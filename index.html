@@ -317,7 +317,7 @@
     const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v1";
+    const CACHE_KEY = "carplay_weather_cache_v2";
 
     const $ = (id) => document.getElementById(id);
 
@@ -594,8 +594,22 @@
         return;
       }
 
+      let geolocationResolved = false;
+
+      // Đồng hồ đếm ngược bảo vệ: Sau 5 giây nếu iOS WebKit bị treo GPS, tự động chuyển về mặc định
+      const safetyTimer = setTimeout(() => {
+        if (!geolocationResolved) {
+          geolocationResolved = true;
+          useFallbackLocation("GPS phản hồi chậm · Dùng vị trí mặc định");
+        }
+      }, 5000);
+
       navigator.geolocation.getCurrentPosition(
         async (position) => {
+          if (geolocationResolved) return;
+          geolocationResolved = true;
+          clearTimeout(safetyTimer);
+
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
 
@@ -605,11 +619,16 @@
             fetchCityName(latitude, longitude)
           ]);
         },
-        () => useFallbackLocation("Chưa cấp quyền GPS"),
+        () => {
+          if (geolocationResolved) return;
+          geolocationResolved = true;
+          clearTimeout(safetyTimer);
+          useFallbackLocation("Chưa cấp quyền GPS");
+        },
         {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 5 * 60 * 1000
+          enableHighAccuracy: false, // Dùng định vị mạng/Wi-Fi để phản hồi tức thì, không bị treo phần cứng
+          timeout: 4000,
+          maximumAge: 60 * 1000
         }
       );
     }
@@ -642,7 +661,7 @@
             fetchCityName(position.coords.latitude, position.coords.longitude);
           },
           () => refreshForCurrentLocation(),
-          { enableHighAccuracy: false, timeout: 8000, maximumAge: 10 * 60 * 1000 }
+          { enableHighAccuracy: false, timeout: 5000, maximumAge: 10 * 60 * 1000 }
         );
       }, REFRESH_INTERVAL_MS);
     }
