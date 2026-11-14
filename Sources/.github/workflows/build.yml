@@ -1,0 +1,96 @@
+name: Build TrollStore IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Auto Compile & Package IPA
+        run: |
+          mkdir -p Payload/CarPlayWeather.app
+          SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+          
+          # Tự động tìm file ViewController.swift của bạn dù nằm ở thư mục nào
+          VC_FILE=$(find . -name "ViewController.swift" | head -n 1)
+          echo "Found ViewController at: $VC_FILE"
+          
+          # Kiểm tra xem file đã có @main chưa, nếu chưa tự động thêm bộ khởi chạy AppDelegate
+          if ! grep -q "@main" "$VC_FILE"; then
+            cat << 'EOF' > AppEntry.swift
+          import UIKit
+          @main
+          class AppDelegate: UIResponder, UIApplicationDelegate {
+              var window: UIWindow?
+              func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+                  window = UIWindow(frame: UIScreen.main.bounds)
+                  window?.rootViewController = ViewController()
+                  window?.makeKeyAndVisible()
+                  return true
+              }
+          }
+          EOF
+            SOURCES="$VC_FILE AppEntry.swift"
+          else
+            SOURCES="$VC_FILE"
+          fi
+
+          # Biên dịch trực tiếp thành file chạy iOS
+          swiftc $SOURCES \
+            -sdk "$SDK_PATH" \
+            -target arm64-apple-ios15.0 \
+            -framework UIKit \
+            -framework WebKit \
+            -o Payload/CarPlayWeather.app/CarPlayWeather
+
+          # Tạo Info.plist chuẩn (hỗ trợ GPS thời tiết + Fullscreen)
+          cat << 'EOF' > Payload/CarPlayWeather.app/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>CarPlayWeather</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.custom.carplayweather</string>
+              <key>CFBundleName</key>
+              <string>CarPlayWeather</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0</string>
+              <key>CFBundleVersion</key>
+              <string>1</string>
+              <key>LSRequiresIPhoneOS</key>
+              <true/>
+              <key>MinimumOSVersion</key>
+              <string>15.0</string>
+              <key>UIStatusBarHidden</key>
+              <true/>
+              <key>UIViewControllerBasedStatusBarAppearance</key>
+              <true/>
+              <key>NSLocationWhenInUseUsageDescription</key>
+              <string>Cập nhật thời tiết và địa điểm hiện tại</string>
+              <key>NSAppTransportSecurity</key>
+              <dict>
+                  <key>NSAllowsArbitraryLoads</key>
+                  <true/>
+              </dict>
+          </dict>
+          </plist>
+          EOF
+
+          # Ký giả lập (Fake-sign) cho TrollStore
+          codesign -s - --force Payload/CarPlayWeather.app/CarPlayWeather
+
+          # Đóng gói thành file .ipa
+          zip -r CarPlayWeather.ipa Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: CarPlayWeather-IPA
+          path: CarPlayWeather.ipa
