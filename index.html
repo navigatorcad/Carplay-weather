@@ -126,7 +126,7 @@
       color: #e5edf7;
     }
 
-    /* KHỐI THỜI GIAN TRONG FORM CHỮ NHẬT (TO HƠN VỊ TRÍ MỘT CHÚT) */
+    /* KHỐI THỜI GIAN TRONG FORM CHỮ NHẬT */
     .card-time-block {
       width: 100%;
       display: flex;
@@ -137,7 +137,7 @@
     }
 
     .card-time-block .clock-text {
-      font-size: 18px; /* To hơn phần vị trí (15px) */
+      font-size: 18px;
       font-weight: 800;
       color: var(--accent);
       text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.6);
@@ -156,38 +156,51 @@
       color: #ffd54f;
     }
 
-    /* KHỐI THỜI GIAN BÊN NGOÀI FORM TRÒN (KHÔNG KHUNG, VIỀN SÁNG ĐỒNG BỘ) */
+    /* KHỐI THỜI GIAN BÊN NGOÀI FORM TRÒN (VIỀN SÁNG PHÁT RA RỰC RỠ ĐỒNG BỘ MÀU KHUNG) */
     .external-time-bar {
       display: none; /* Chỉ hiện ở form tròn */
-      width: min( min(310px, 92vw), 92vh ); /* Bằng chiều rộng khung tròn */
+      width: min( min(310px, 92vw), 92vh ); /* Khớp chuẩn đường kính khung tròn */
       margin-top: 12px;
       text-align: center;
       flex-direction: column;
       align-items: center;
-      gap: 2px;
+      gap: 3px;
     }
 
     .external-time-bar .clock-text {
-      font-size: 14px;
-      font-weight: 800;
-      color: var(--accent);
-      /* Hiệu ứng viền sáng phát ra theo ký tự đồng bộ màu khung */
-      text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.9), 0 0 16px rgba(var(--accent-rgb), 0.6), 0 0 24px rgba(var(--accent-rgb), 0.3);
+      font-size: 19px;
+      font-weight: 850;
+      color: #ffffff;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+      /* Hiệu ứng viền sáng phát ra (Neon Glow) cực mạnh bao quanh ký tự, đồng bộ màu theo biến --accent */
+      text-shadow: 0 0 6px var(--accent), 0 0 12px var(--accent), 0 0 22px var(--accent), 0 0 35px rgba(var(--accent-rgb), 0.8);
       letter-spacing: 1px;
     }
 
+    .external-time-bar .dates-row {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 4px;
+    }
+
     .external-time-bar .solar-date {
-      font-size: 11px;
-      font-weight: 650;
-      color: var(--text);
-      text-shadow: 0 0 6px rgba(var(--accent-rgb), 0.6);
+      font-size: 9.5px;
+      font-weight: 750;
+      color: #f1f5f9;
+      text-shadow: 0 0 5px var(--accent), 0 0 10px rgba(var(--accent-rgb), 0.7);
     }
 
     .external-time-bar .lunar-date {
-      font-size: 10px;
-      font-weight: 650;
-      color: #ffd54f;
-      text-shadow: 0 0 6px rgba(255, 213, 79, 0.6);
+      font-size: 9.5px;
+      font-weight: 750;
+      color: #ffe082;
+      text-shadow: 0 0 5px #ffd54f, 0 0 10px rgba(255, 213, 79, 0.7);
     }
 
     .main-temp {
@@ -348,7 +361,7 @@
       <main class="bubble level-low" id="widgetShape" aria-live="polite" onclick="refreshData()">
         <div class="city" id="city">📍 Đang xác định vị trí...</div>
         
-        <!-- Khối thời gian hiển thị riêng cho Form Chữ Nhật (nằm dưới vị trí, to hơn) -->
+        <!-- Khối thời gian hiển thị riêng cho Form Chữ Nhật -->
         <div class="card-time-block" id="cardTimeBlock" style="display: none;">
           <div class="clock-text" id="cardClock">-- : -- : --</div>
           <div class="solar-date" id="cardSolar">--</div>
@@ -403,11 +416,19 @@
       </main>
     </div>
 
-    <!-- Khối thời gian bên ngoài cho Form Tròn (không khung, viền sáng đồng bộ theo ký tự) -->
+    <!-- Khối thời gian bên ngoài cho Form Tròn (Phát sáng rực rỡ đồng bộ màu khung) -->
     <div class="external-time-bar" id="externalTimeBar">
-      <div class="clock-text" id="extClock">-- : -- : --</div>
-      <div class="solar-date" id="extSolar">--</div>
-      <div class="lunar-date" id="extLunar">--</div>
+      <div class="clock-text" id="extClock">
+        <span id="extHours">--</span>
+        <span style="opacity: 0.6;">:</span>
+        <span id="extMinutes">--</span>
+        <span style="opacity: 0.6;">:</span>
+        <span id="extSeconds">--</span>
+      </div>
+      <div class="dates-row">
+        <span class="solar-date" id="extSolar">--</span>
+        <span class="lunar-date" id="extLunar">--</span>
+      </div>
     </div>
   </div>
 
@@ -418,8 +439,8 @@
     const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v13";
-    const LAYOUT_KEY = "carplay_layout_mode_v11";
+    const CACHE_KEY = "carplay_weather_cache_v15";
+    const LAYOUT_KEY = "carplay_layout_mode_v13";
 
     const $ = (id) => document.getElementById(id);
     let currentLocation = null;
@@ -450,7 +471,7 @@
       let lunarMonth = ((Math.floor((jd - 2451545.0) / 29.53058885) + 2) % 12) + 1;
       if (lunarMonth <= 0) lunarMonth += 12;
       
-      return `Ngày ${lunarDay} tháng ${lunarMonth} Âm lịch`;
+      return `Âm: ${lunarDay}/${lunarMonth}`;
     }
 
     // --- CẬP NHẬT ĐỒNG HỒ & THỜI GIAN THỰC MỖI GIÂY ---
@@ -459,21 +480,21 @@
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
-      const timeStr = `${hours} : ${minutes} : ${seconds}`;
 
-      const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+      const daysOfWeek = ["CN", "Th 2", "Th 3", "Th 4", "Th 5", "Th 6", "Th 7"];
       const dayOfWeek = daysOfWeek[now.getDay()];
       const day = String(now.getDate()).padStart(2, '0');
       const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = now.getFullYear();
-      const solarStr = `${dayOfWeek}, ${day}/${month}/${year}`;
+      const solarStr = `${dayOfWeek}, ${day}/${month}`;
       const lunarStr = getLunarDateFormatted(now);
 
-      if ($('cardClock')) $('cardClock').textContent = timeStr;
-      if ($('cardSolar')) $('cardSolar').textContent = solarStr;
-      if ($('cardLunar')) $('cardLunar').textContent = lunarStr;
+      if ($('cardClock')) $('cardClock').textContent = `${hours} : ${minutes} : ${seconds}`;
+      if ($('cardSolar')) $('cardSolar').textContent = `${dayOfWeek}, ${day}/${month}/${now.getFullYear()}`;
+      if ($('cardLunar')) $('cardLunar').textContent = getLunarDateFormatted(now).replace("Âm: ", "Ngày ") + " Âm lịch";
 
-      if ($('extClock')) $('extClock').textContent = timeStr;
+      if ($('extHours')) $('extHours').textContent = hours;
+      if ($('extMinutes')) $('extMinutes').textContent = minutes;
+      if ($('extSeconds')) $('extSeconds').textContent = seconds;
       if ($('extSolar')) $('extSolar').textContent = solarStr;
       if ($('extLunar')) $('extLunar').textContent = lunarStr;
     }
@@ -714,7 +735,7 @@
     }
 
     window.addEventListener("resize", () => {
-      if (currentMode === "card") updateCardScale();
+      updateCardScale();
     });
 
     function loadSavedLayout() {
