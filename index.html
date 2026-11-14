@@ -126,7 +126,7 @@
       color: #e5edf7;
     }
 
-    /* KHỐI THỜI GIAN VÀ NGÀY THÁNG BÊN TRONG CARD (DƯỚI VỊ TRÍ) */
+    /* KHỐI THỜI GIAN TRONG FORM CHỮ NHẬT (TO HƠN VỊ TRÍ MỘT CHÚT) */
     .card-time-block {
       width: 100%;
       display: flex;
@@ -136,10 +136,11 @@
       margin-top: -2px;
     }
 
-    .clock-text {
-      font-size: 13px;
-      font-weight: 750;
+    .card-time-block .clock-text {
+      font-size: 18px; /* To hơn phần vị trí (15px) */
+      font-weight: 800;
       color: var(--accent);
+      text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.6);
       letter-spacing: 0.5px;
     }
 
@@ -155,22 +156,38 @@
       color: #ffd54f;
     }
 
-    /* KHỐI THỜI GIAN VÀ NGÀY THÁNG BÊN NGOÀI BUBBLE (DƯỚI KHUNG TRÒN) */
+    /* KHỐI THỜI GIAN BÊN NGOÀI FORM TRÒN (KHÔNG KHUNG, VIỀN SÁNG ĐỒNG BỘ) */
     .external-time-bar {
       display: none; /* Chỉ hiện ở form tròn */
-      width: min( min(310px, 92vw), 92vh );
-      margin-top: 10px;
-      padding: 6px 10px;
-      border-radius: 16px;
-      background: rgba(13, 20, 30, 0.85);
-      border: 2px solid var(--accent);
-      box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.5);
-      backdrop-filter: blur(8px);
+      width: min( min(310px, 92vw), 92vh ); /* Bằng chiều rộng khung tròn */
+      margin-top: 12px;
       text-align: center;
       flex-direction: column;
       align-items: center;
-      gap: 1px;
-      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+      gap: 2px;
+    }
+
+    .external-time-bar .clock-text {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--accent);
+      /* Hiệu ứng viền sáng phát ra theo ký tự đồng bộ màu khung */
+      text-shadow: 0 0 8px rgba(var(--accent-rgb), 0.9), 0 0 16px rgba(var(--accent-rgb), 0.6), 0 0 24px rgba(var(--accent-rgb), 0.3);
+      letter-spacing: 1px;
+    }
+
+    .external-time-bar .solar-date {
+      font-size: 11px;
+      font-weight: 650;
+      color: var(--text);
+      text-shadow: 0 0 6px rgba(var(--accent-rgb), 0.6);
+    }
+
+    .external-time-bar .lunar-date {
+      font-size: 10px;
+      font-weight: 650;
+      color: #ffd54f;
+      text-shadow: 0 0 6px rgba(255, 213, 79, 0.6);
     }
 
     .main-temp {
@@ -331,7 +348,7 @@
       <main class="bubble level-low" id="widgetShape" aria-live="polite" onclick="refreshData()">
         <div class="city" id="city">📍 Đang xác định vị trí...</div>
         
-        <!-- Khối thời gian hiển thị riêng cho Form Chữ Nhật (nằm dưới vị trí) -->
+        <!-- Khối thời gian hiển thị riêng cho Form Chữ Nhật (nằm dưới vị trí, to hơn) -->
         <div class="card-time-block" id="cardTimeBlock" style="display: none;">
           <div class="clock-text" id="cardClock">-- : -- : --</div>
           <div class="solar-date" id="cardSolar">--</div>
@@ -386,7 +403,7 @@
       </main>
     </div>
 
-    <!-- Khối thời gian hiển thị riêng cho Form Tròn (nằm ngoài và bên dưới khung tròn) -->
+    <!-- Khối thời gian bên ngoài cho Form Tròn (không khung, viền sáng đồng bộ theo ký tự) -->
     <div class="external-time-bar" id="externalTimeBar">
       <div class="clock-text" id="extClock">-- : -- : --</div>
       <div class="solar-date" id="extSolar">--</div>
@@ -401,8 +418,8 @@
     const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v12";
-    const LAYOUT_KEY = "carplay_layout_mode_v10";
+    const CACHE_KEY = "carplay_weather_cache_v13";
+    const LAYOUT_KEY = "carplay_layout_mode_v11";
 
     const $ = (id) => document.getElementById(id);
     let currentLocation = null;
@@ -424,12 +441,7 @@
       const d = dateObj.getDate();
       const m = dateObj.getMonth() + 1;
       const y = dateObj.getFullYear();
-      
-      // Thuật toán chuyển đổi lịch âm cơ bản chuẩn xác cho VN
-      // Tính tương đối lịch âm dựa trên mốc JDN chuẩn
       const jd = jdFromDate(d, m, y);
-      // Giả lập hiển thị ngày âm lịch chuẩn xác theo chu kỳ mặt trăng gần đúng hoặc thuật toán Hồ Ngọc Đức gọn nhẹ:
-      // (Dùng offset chuẩn so với mốc tân niên âm lịch)
       const lunarDays = ((jd - 2451545.0 + 0.5) % 29.53058885);
       let lunarDay = Math.floor(lunarDays) + 1;
       if (lunarDay > 30) lunarDay = 30;
@@ -656,7 +668,6 @@
 
     function updateCardScale() {
       const widget = $("widgetShape");
-      const extBar = $("externalTimeBar");
       if (currentMode === "card") {
         const containerW = window.innerWidth - 20;
         const containerH = window.innerHeight - 20;
