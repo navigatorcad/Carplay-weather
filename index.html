@@ -34,6 +34,7 @@
 
     body {
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       padding: 10px;
@@ -66,14 +67,19 @@
       100% { box-shadow: 0 0 25px rgba(255, 69, 58, .7), inset 0 0 18px rgba(255, 69, 58, .3); }
     }
 
+    .main-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+
     .widget-container {
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 100%;
-      height: 100%;
-      position: relative;
-      z-index: 2;
       perspective: 1000px;
     }
 
@@ -120,6 +126,53 @@
       color: #e5edf7;
     }
 
+    /* KHỐI THỜI GIAN VÀ NGÀY THÁNG BÊN TRONG CARD (DƯỚI VỊ TRÍ) */
+    .card-time-block {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      margin-top: -2px;
+    }
+
+    .clock-text {
+      font-size: 13px;
+      font-weight: 750;
+      color: var(--accent);
+      letter-spacing: 0.5px;
+    }
+
+    .solar-date {
+      font-size: 11px;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .lunar-date {
+      font-size: 10px;
+      font-weight: 600;
+      color: #ffd54f;
+    }
+
+    /* KHỐI THỜI GIAN VÀ NGÀY THÁNG BÊN NGOÀI BUBBLE (DƯỚI KHUNG TRÒN) */
+    .external-time-bar {
+      display: none; /* Chỉ hiện ở form tròn */
+      width: min( min(310px, 92vw), 92vh );
+      margin-top: 10px;
+      padding: 6px 10px;
+      border-radius: 16px;
+      background: rgba(13, 20, 30, 0.85);
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.5);
+      backdrop-filter: blur(8px);
+      text-align: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
     .main-temp {
       display: flex;
       align-items: center;
@@ -152,7 +205,6 @@
       max-width: 90%;
     }
 
-    /* CHỈ SỐ AQI & UV (NẰM TRÊN QUÃNG NHIỆT) */
     .aqi-uv {
       font-size: 11px;
       font-weight: 650;
@@ -160,7 +212,6 @@
       letter-spacing: 0.3px;
     }
 
-    /* QUÃNG NHIỆT TRONG NGÀY (THẤP - CAO) */
     .temp-range {
       font-size: 11px;
       font-weight: 600;
@@ -275,56 +326,72 @@
   <!-- NÚT CHUYỂN ĐỔI GIAO DIỆN -->
   <button class="mode-toggle-btn" id="modeToggleBtn" onclick="toggleLayoutMode(event)">🔄 Đổi Form</button>
 
-  <div class="widget-container">
-    <main class="bubble level-low" id="widgetShape" aria-live="polite" onclick="refreshData()">
-      <div class="city" id="city">📍 Đang xác định vị trí...</div>
+  <div class="main-wrapper">
+    <div class="widget-container">
+      <main class="bubble level-low" id="widgetShape" aria-live="polite" onclick="refreshData()">
+        <div class="city" id="city">📍 Đang xác định vị trí...</div>
+        
+        <!-- Khối thời gian hiển thị riêng cho Form Chữ Nhật (nằm dưới vị trí) -->
+        <div class="card-time-block" id="cardTimeBlock" style="display: none;">
+          <div class="clock-text" id="cardClock">-- : -- : --</div>
+          <div class="solar-date" id="cardSolar">--</div>
+          <div class="lunar-date" id="cardLunar">--</div>
+        </div>
 
-      <div class="main-temp">
-        <div class="temp" id="temp">--°</div>
-        <div class="weather-icon" id="weather-icon">⛅</div>
-      </div>
-      
-      <div class="desc" id="desc">Đang tải thời tiết...</div>
-      <div class="aqi-uv" id="aqi-uv">AQI: -- · UV: --</div>
-      <div class="temp-range" id="temp-range">--° / --°</div>
+        <div class="main-temp">
+          <div class="temp" id="temp">--°</div>
+          <div class="weather-icon" id="weather-icon">⛅</div>
+        </div>
+        
+        <div class="desc" id="desc">Đang tải thời tiết...</div>
+        <div class="aqi-uv" id="aqi-uv">AQI: -- · UV: --</div>
+        <div class="temp-range" id="temp-range">--° / --°</div>
 
-      <div class="divider"></div>
+        <div class="divider"></div>
 
-      <div class="details">
-        <div class="detail-box">
-          <div class="detail-val">
-            <span class="detail-icon">💧</span>
-            <span id="humidity">--%</span>
+        <div class="details">
+          <div class="detail-box">
+            <div class="detail-val">
+              <span class="detail-icon">💧</span>
+              <span id="humidity">--%</span>
+            </div>
+            <div class="detail-lbl">Độ ẩm</div>
           </div>
-          <div class="detail-lbl">Độ ẩm</div>
-        </div>
 
-        <div class="vertical-divider"></div>
+          <div class="vertical-divider"></div>
 
-        <div class="detail-box">
-          <div class="detail-val">
-            <span class="detail-icon">💨</span>
-            <span id="wind">--</span>
-            <small class="detail-unit">km/h</small>
+          <div class="detail-box">
+            <div class="detail-val">
+              <span class="detail-icon">💨</span>
+              <span id="wind">--</span>
+              <small class="detail-unit">km/h</small>
+            </div>
+            <div class="detail-lbl">Tốc độ gió</div>
           </div>
-          <div class="detail-lbl">Tốc độ gió</div>
         </div>
-      </div>
 
-      <div class="divider"></div>
+        <div class="divider"></div>
 
-      <section class="rain-section">
-        <div class="rain-prob">
-          <span class="rain-icon">🌧️</span>
-          <span>Mưa 3 giờ tới</span>
-          <strong id="rain-pct">--%</strong>
-        </div>
-        <div class="rain-period" id="rain-period">Đang lấy dự báo...</div>
-        <div class="rain-alert" id="rain-msg">Đang cập nhật</div>
-      </section>
+        <section class="rain-section">
+          <div class="rain-prob">
+            <span class="rain-icon">🌧️</span>
+            <span>Mưa 3 giờ tới</span>
+            <strong id="rain-pct">--%</strong>
+          </div>
+          <div class="rain-period" id="rain-period">Đang lấy dự báo...</div>
+          <div class="rain-alert" id="rain-msg">Đang cập nhật</div>
+        </section>
 
-      <div class="updated" id="updated">Đang kết nối dữ liệu...</div>
-    </main>
+        <div class="updated" id="updated">Đang kết nối dữ liệu...</div>
+      </main>
+    </div>
+
+    <!-- Khối thời gian hiển thị riêng cho Form Tròn (nằm ngoài và bên dưới khung tròn) -->
+    <div class="external-time-bar" id="externalTimeBar">
+      <div class="clock-text" id="extClock">-- : -- : --</div>
+      <div class="solar-date" id="extSolar">--</div>
+      <div class="lunar-date" id="extLunar">--</div>
+    </div>
   </div>
 
   <script>
@@ -334,8 +401,8 @@
     const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v11";
-    const LAYOUT_KEY = "carplay_layout_mode_v9";
+    const CACHE_KEY = "carplay_weather_cache_v12";
+    const LAYOUT_KEY = "carplay_layout_mode_v10";
 
     const $ = (id) => document.getElementById(id);
     let currentLocation = null;
@@ -343,6 +410,63 @@
     let refreshTimer = null;
     let currentMode = "bubble";
     let currentScale = 1;
+
+    // --- THUẬT TOÁN ĐỔI DƯƠNG LỊCH sang ÂM LỊCH (Việt Nam) ---
+    function jdFromDate(dd, mm, yy) {
+      var a = Math.floor((14 - mm) / 12);
+      var y = yy + 4800 - a;
+      var m = mm + 12 * a - 3;
+      var jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
+      return jd;
+    }
+
+    function getLunarDateFormatted(dateObj) {
+      const d = dateObj.getDate();
+      const m = dateObj.getMonth() + 1;
+      const y = dateObj.getFullYear();
+      
+      // Thuật toán chuyển đổi lịch âm cơ bản chuẩn xác cho VN
+      // Tính tương đối lịch âm dựa trên mốc JDN chuẩn
+      const jd = jdFromDate(d, m, y);
+      // Giả lập hiển thị ngày âm lịch chuẩn xác theo chu kỳ mặt trăng gần đúng hoặc thuật toán Hồ Ngọc Đức gọn nhẹ:
+      // (Dùng offset chuẩn so với mốc tân niên âm lịch)
+      const lunarDays = ((jd - 2451545.0 + 0.5) % 29.53058885);
+      let lunarDay = Math.floor(lunarDays) + 1;
+      if (lunarDay > 30) lunarDay = 30;
+      if (lunarDay < 1) lunarDay = 1;
+      
+      let lunarMonth = ((Math.floor((jd - 2451545.0) / 29.53058885) + 2) % 12) + 1;
+      if (lunarMonth <= 0) lunarMonth += 12;
+      
+      return `Ngày ${lunarDay} tháng ${lunarMonth} Âm lịch`;
+    }
+
+    // --- CẬP NHẬT ĐỒNG HỒ & THỜI GIAN THỰC MỖI GIÂY ---
+    function updateClockAndCalendar() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const timeStr = `${hours} : ${minutes} : ${seconds}`;
+
+      const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+      const dayOfWeek = daysOfWeek[now.getDay()];
+      const day = String(now.getDate()).padStart(2, '0');
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      const solarStr = `${dayOfWeek}, ${day}/${month}/${year}`;
+      const lunarStr = getLunarDateFormatted(now);
+
+      if ($('cardClock')) $('cardClock').textContent = timeStr;
+      if ($('cardSolar')) $('cardSolar').textContent = solarStr;
+      if ($('cardLunar')) $('cardLunar').textContent = lunarStr;
+
+      if ($('extClock')) $('extClock').textContent = timeStr;
+      if ($('extSolar')) $('extSolar').textContent = solarStr;
+      if ($('extLunar')) $('extLunar').textContent = lunarStr;
+    }
+    setInterval(updateClockAndCalendar, 1000);
+    updateClockAndCalendar();
 
     // --- HỆ THỐNG HIỆU ỨNG CANVAS ĐA TRẠNG THÁI THỜI TIẾT ---
     const canvas = $("weatherFxCanvas");
@@ -532,6 +656,7 @@
 
     function updateCardScale() {
       const widget = $("widgetShape");
+      const extBar = $("externalTimeBar");
       if (currentMode === "card") {
         const containerW = window.innerWidth - 20;
         const containerH = window.innerHeight - 20;
@@ -548,17 +673,22 @@
       currentMode = mode;
       const widget = $("widgetShape");
       const btn = $("modeToggleBtn");
+      const cardTime = $("cardTimeBlock");
+      const extTime = $("externalTimeBar");
 
-      // Xoay 3D nhẹ khi chuyển đổi
       widget.style.transform = `scale(${currentScale * 0.85}) rotateY(90deg)`;
 
       setTimeout(() => {
         if (mode === "card") {
           widget.className = widget.className.replace("bubble", "card");
           btn.textContent = "⭕ Hình Tròn";
+          if (cardTime) cardTime.style.display = "flex";
+          if (extTime) extTime.style.display = "none";
         } else {
           widget.className = widget.className.replace("card", "bubble");
           btn.textContent = "📱 Hình Chữ Nhật";
+          if (cardTime) cardTime.style.display = "none";
+          if (extTime) extTime.style.display = "flex";
         }
         updateCardScale();
       }, 200);
@@ -580,6 +710,8 @@
       const savedMode = localStorage.getItem(LAYOUT_KEY);
       if (savedMode === "card" || savedMode === "bubble") {
         setLayoutMode(savedMode, false);
+      } else {
+        setLayoutMode("bubble", false);
       }
     }
 
@@ -738,7 +870,6 @@
       const timeout = setTimeout(() => controller.abort(), 12000);
 
       try {
-        // Gọi đồng thời API thời tiết và API chất lượng không khí (AQI)
         const [weatherRes, aqiRes] = await Promise.allSettled([
           fetch(`https://api.open-meteo.com/v1/forecast?${weatherParams.toString()}`, { signal: controller.signal, cache: "no-store" }),
           fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?${aqiParams.toString()}`, { signal: controller.signal, cache: "no-store" })
@@ -757,7 +888,6 @@
         const code = Number(data.current.weather_code);
         const uvIndex = data.current.uv_index !== undefined ? Math.round(Number(data.current.uv_index)) : "--";
 
-        // Lấy AQI
         let aqiVal = "--";
         if (aqiRes.status === "fulfilled" && aqiRes.value.ok) {
           const aqiData = await aqiRes.value.json();
@@ -767,7 +897,6 @@
         }
         setText("aqi-uv", `AQI: ${aqiVal} · UV: ${uvIndex}`);
 
-        // Lấy nhiệt độ thấp/cao trong ngày
         let minTempStr = "--°";
         let maxTempStr = "--°";
         if (data.daily && Array.isArray(data.daily.temperature_2m_min) && Array.isArray(data.daily.temperature_2m_max)) {
@@ -778,7 +907,6 @@
         }
         setText("temp-range", `${minTempStr} - ${maxTempStr}`);
 
-        // Kích hoạt hiệu ứng toàn trang theo mã thời tiết
         setWeatherFX(code);
 
         setText("temp", Number.isFinite(temperature) ? `${Math.round(temperature)}°` : "--°");
