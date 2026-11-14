@@ -127,13 +127,6 @@
       color: #e5edf7;
     }
 
-    .main-temp-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1px;
-    }
-
     .main-temp {
       display: flex;
       align-items: center;
@@ -159,19 +152,19 @@
       50% { transform: translateY(-3px); }
     }
 
-    /* QUÃNG NHIỆT TRONG NGÀY (THẤP - CAO) */
-    .temp-range {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-      letter-spacing: 0.5px;
-    }
-
     .desc {
       color: #d0dbea;
       font-size: 14px;
       font-weight: 550;
       max-width: 90%;
+    }
+
+    /* QUÃNG NHIỆT TRONG NGÀY (THẤP - CAO) NẰM DƯỚI MÔ TẢ THỜI TIẾT */
+    .temp-range {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.5px;
       margin-top: -2px;
     }
 
@@ -285,15 +278,13 @@
     <main class="bubble level-low" id="widgetShape" aria-live="polite" onclick="refreshData()">
       <div class="city" id="city">📍 Đang xác định vị trí...</div>
 
-      <div class="main-temp-wrapper">
-        <div class="main-temp">
-          <div class="temp" id="temp">--°</div>
-          <div class="weather-icon" id="weather-icon">⛅</div>
-        </div>
-        <div class="temp-range" id="temp-range">--° / --°</div>
+      <div class="main-temp">
+        <div class="temp" id="temp">--°</div>
+        <div class="weather-icon" id="weather-icon">⛅</div>
       </div>
-
+      
       <div class="desc" id="desc">Đang tải thời tiết...</div>
+      <div class="temp-range" id="temp-range">--° / --°</div>
 
       <div class="divider"></div>
 
@@ -341,8 +332,8 @@
     const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v9";
-    const LAYOUT_KEY = "carplay_layout_mode_v7";
+    const CACHE_KEY = "carplay_weather_cache_v10";
+    const LAYOUT_KEY = "carplay_layout_mode_v8";
 
     const $ = (id) => document.getElementById(id);
     let currentLocation = null;
