@@ -37,6 +37,12 @@
       padding: 10px;
     }
 
+    @keyframes pulse-high {
+      0% { box-shadow: 0 0 25px rgba(255, 69, 58, .7), inset 0 0 18px rgba(255, 69, 58, .3); }
+      50% { box-shadow: 0 0 45px rgba(255, 69, 58, 1), inset 0 0 30px rgba(255, 69, 58, .6); }
+      100% { box-shadow: 0 0 25px rgba(255, 69, 58, .7), inset 0 0 18px rgba(255, 69, 58, .3); }
+    }
+
     .bubble {
       width: min( min(310px, 92vw), 92vh );
       aspect-ratio: 1 / 1;
@@ -52,19 +58,28 @@
       align-items: center;
       padding: 22px 19px;
       text-align: center;
-      transition: border-color .45s ease, box-shadow .45s ease;
+      transition: border-color .45s ease, box-shadow .45s ease, transform 0.1s ease;
       position: relative;
+      cursor: pointer;
+    }
+
+    .bubble:active {
+      transform: scale(0.97);
     }
 
     .city {
-      max-width: 100%;
+      max-width: 85%;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
-      font-size: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      font-size: 15px;
       font-weight: 650;
       color: #e5edf7;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
+      line-height: 1.2;
+      word-break: break-word;
     }
 
     .main-temp {
@@ -92,6 +107,8 @@
       font-size: 14px;
       font-weight: 550;
       margin: 2px 0 6px;
+      max-width: 90%;
+      word-break: break-word;
     }
 
     .divider {
@@ -216,9 +233,10 @@
     .level-high {
       --accent: #ff453a;
       --accent-rgb: 255, 69, 58;
+      animation: pulse-high 1.2s infinite ease-in-out;
     }
 
-    .level-low, .level-mild, .level-warn, .level-high {
+    .level-low, .level-mild, .level-warn {
       border-color: var(--accent);
       box-shadow:
         0 0 27px rgba(var(--accent-rgb), .72),
@@ -235,7 +253,7 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .bubble { transition: none; }
+      .bubble { animation: none; transition: none; }
     }
   </style>
 </head>
@@ -290,7 +308,6 @@
   <script>
     "use strict";
 
-    // Tọa độ mặc định khi không cấp được quyền GPS: Phủ Lý.
     const DEFAULT_LOCATION = {
       latitude: 20.5453,
       longitude: 105.9122,
@@ -300,6 +317,7 @@
     const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
+    const CACHE_KEY = "carplay_weather_cache_v1";
 
     const $ = (id) => document.getElementById(id);
 
@@ -309,6 +327,55 @@
 
     function setText(id, value) {
       $(id).textContent = value;
+    }
+
+    // Tải dữ liệu từ LocalStorage ngay khi khởi động để chống hiện dấu "--" khi mất mạng
+    function loadFromCache() {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const data = JSON.parse(cached);
+          if (data.temp && data.temp !== "--°") {
+            setText("temp", data.temp);
+            setText("humidity", data.humidity);
+            setText("wind", data.wind);
+            setText("desc", data.desc);
+            setText("weather-icon", data.weatherIcon);
+            setText("rain-pct", data.rainPct);
+            setText("rain-period", data.rainPeriod);
+            setText("rain-msg", data.rainMsg);
+            setText("city", data.city);
+            setText("updated", data.updated + " (Lưu trữ)");
+            if (data.className) {
+              $("bubble").className = "bubble " + data.className;
+            }
+          }
+        }
+      } catch (e) {
+        // Bỏ qua lỗi cache
+      }
+    }
+
+    // Lưu dữ liệu thành công vào LocalStorage
+    function saveToCache(className) {
+      try {
+        const data = {
+          temp: $("temp").textContent,
+          humidity: $("humidity").textContent,
+          wind: $("wind").textContent,
+          desc: $("desc").textContent,
+          weatherIcon: $("weather-icon").textContent,
+          rainPct: $("rain-pct").textContent,
+          rainPeriod: $("rain-period").textContent,
+          rainMsg: $("rain-msg").textContent,
+          city: $("city").textContent,
+          updated: $("updated").textContent,
+          className: className
+        };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      } catch (e) {
+        // Bỏ qua lỗi lưu cache
+      }
     }
 
     function weatherDescription(code) {
@@ -327,8 +394,6 @@
     }
 
     function parseApiLocalTime(value) {
-      // API được yêu cầu trả giờ địa phương Asia/Bangkok dưới dạng YYYY-MM-DDTHH:mm.
-      // So sánh chuỗi thời gian cùng định dạng để không phụ thuộc múi giờ của thiết bị.
       return typeof value === "string" ? value.slice(0, 16) : "";
     }
 
@@ -341,10 +406,6 @@
         return null;
       }
 
-      // Tìm giờ hiện tại theo timestamp do chính API trả về.
-      // Chọn mốc giờ gần nhất không muộn hơn thời điểm hiện tại.
-      // Nhờ vậy, nếu bây giờ là 15:35 thì giờ 15:00 vẫn được xem là giờ hiện tại,
-      // và dự báo kế tiếp bắt đầu từ 16:00.
       let currentIndex = -1;
       for (let i = 0; i < times.length; i++) {
         if (parseApiLocalTime(times[i]) <= currentApiTime) currentIndex = i;
@@ -368,8 +429,6 @@
 
       if (!candidates.length) return null;
 
-      // Lấy giờ có xác suất mưa cao nhất trong 3 giờ kế tiếp.
-      // Khi bằng nhau, giữ mốc thời gian xuất hiện sớm hơn.
       return candidates.reduce((best, item) =>
         item.probability > best.probability ? item : best
       );
@@ -381,7 +440,6 @@
       const [hour, minute] = startHour.split(":").map(Number);
       if (!Number.isFinite(hour) || !Number.isFinite(minute)) return startHour;
 
-      // Cộng giờ trực tiếp trên giờ địa phương API để không lệch múi giờ thiết bị.
       const endHour = `${String((hour + 1) % 24).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
       return `${startHour}–${endHour}`;
     }
@@ -397,10 +455,10 @@
       let messageText = "Khả năng mưa thấp";
       if (probability >= 80) {
         level = "level-high";
-        messageText = "Cảnh báo mưa rất cao";
+        messageText = "⚠️ Cảnh báo mưa rất cao";
       } else if (probability >= 60) {
         level = "level-warn";
-        messageText = "Cảnh báo mưa";
+        messageText = "⚠️ Cảnh báo mưa";
       } else if (probability >= 40) {
         level = "level-mild";
         messageText = "Chú ý khả năng có mưa";
@@ -410,6 +468,7 @@
       pct.style.color = "var(--accent)";
       message.style.color = "var(--accent)";
       message.textContent = messageText;
+      return level;
     }
 
     async function fetchWeather(latitude, longitude) {
@@ -454,15 +513,16 @@
         setText("desc", condition.text);
         setText("weather-icon", condition.icon);
 
+        let activeLevel = "level-low";
         const forecast = getNextHoursForecast(data);
         if (forecast) {
           setText("rain-pct", `${Math.round(forecast.probability)}%`);
-          setText("rain-period", `Khung giờ cao nhất: ${formatHourRange(forecast.time)}`);
-          applyRainLevel(forecast.probability);
+          setText("rain-period", `Cao nhất: ${formatHourRange(forecast.time)}`);
+          activeLevel = applyRainLevel(forecast.probability);
         } else {
           setText("rain-pct", "--%");
-          setText("rain-period", "Chưa có dữ liệu dự báo theo giờ");
-          applyRainLevel(0);
+          setText("rain-period", "Không có dữ liệu dự báo");
+          activeLevel = applyRainLevel(0);
         }
 
         $("bubble").classList.remove("error");
@@ -476,13 +536,15 @@
         }).format(new Date());
 
         setText("updated", `Cập nhật ${updatedAt}`);
+        
+        // Lưu dữ liệu vào cache sau khi thành công
+        saveToCache($("bubble").className);
       } finally {
         clearTimeout(timeout);
       }
     }
 
     async function fetchCityName(latitude, longitude) {
-      // Tránh gọi reverse geocoding quá thường xuyên.
       const now = Date.now();
       if (now - lastReverseGeocodeAt < 30 * 60 * 1000) return;
       lastReverseGeocodeAt = now;
@@ -495,19 +557,21 @@
           "accept-language": "vi"
         });
 
-        const response = await fetch(
+        const response = href=`https://nominatim.openstreetmap.org/reverse?${params.toString()}`;
+        const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?${params.toString()}`,
           { headers: { "Accept": "application/json" }, cache: "no-store" }
         );
-        if (!response.ok) throw new Error("Không tra cứu được tên địa điểm.");
+        if (!res.ok) throw new Error("Không tra cứu được tên địa điểm.");
 
-        const data = await response.json();
+        const data = await res.json();
         const address = data.address || {};
         const name = address.city || address.town || address.municipality ||
                      address.county || address.state || "Vị trí hiện tại";
         setText("city", `📍 ${name}`);
+        saveToCache($("bubble").className);
       } catch (error) {
-        // Giữ tên vị trí mặc định/đã có nếu dịch vụ địa danh không phản hồi.
+        // Giữ nguyên
       }
     }
 
@@ -528,15 +592,16 @@
         await fetchWeather(currentLocation.latitude, currentLocation.longitude);
       } catch (error) {
         $("bubble").classList.add("error");
-        setText("desc", "Không tải được thời tiết");
-        setText("rain-msg", "Kiểm tra kết nối mạng");
-        setText("updated", error.name === "AbortError" ? "Kết nối quá thời gian" : "Đang chờ kết nối");
+        setText("desc", "Mất kết nối mạng");
+        setText("rain-msg", "Đang dùng dữ liệu cũ");
+        setText("updated", "Lỗi mạng · Chạm để thử lại");
       }
     }
 
     function getLocationAndWeather() {
+      setText("updated", "Đang định vị GPS...");
       if (!navigator.geolocation) {
-        useFallbackLocation("GPS không khả dụng · dùng vị trí mặc định");
+        useFallbackLocation("GPS không khả dụng");
         return;
       }
 
@@ -551,7 +616,7 @@
             fetchCityName(latitude, longitude)
           ]);
         },
-        () => useFallbackLocation("Không có quyền GPS · dùng Phủ Lý"),
+        () => useFallbackLocation("Chưa cấp quyền GPS"),
         {
           enableHighAccuracy: true,
           timeout: 10000,
@@ -560,12 +625,21 @@
       );
     }
 
+    // TÍNH NĂNG CHẠM ĐỂ LÀM MỚI (TAP TO REFRESH)
+    $("bubble").addEventListener("click", () => {
+      setText("updated", "Đang làm mới dữ liệu...");
+      getLocationAndWeather();
+    });
+
     function startWeatherWidget() {
+      // Hiển thị cache cũ ngay lập tức trước khi gọi mạng
+      loadFromCache();
+      
+      // Tiến hành lấy vị trí và thời tiết mới
       getLocationAndWeather();
 
       if (refreshTimer) clearInterval(refreshTimer);
       refreshTimer = setInterval(() => {
-        // Thử lấy vị trí mới; nếu GPS lỗi thì giữ vị trí hiện có.
         if (!navigator.geolocation) {
           refreshForCurrentLocation();
           return;
