@@ -329,7 +329,6 @@
       $(id).textContent = value;
     }
 
-    // Tải dữ liệu từ LocalStorage ngay khi khởi động để chống hiện dấu "--" khi mất mạng
     function loadFromCache() {
       try {
         const cached = localStorage.getItem(CACHE_KEY);
@@ -351,12 +350,9 @@
             }
           }
         }
-      } catch (e) {
-        // Bỏ qua lỗi cache
-      }
+      } catch (e) {}
     }
 
-    // Lưu dữ liệu thành công vào LocalStorage
     function saveToCache(className) {
       try {
         const data = {
@@ -373,9 +369,7 @@
           className: className
         };
         localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-      } catch (e) {
-        // Bỏ qua lỗi lưu cache
-      }
+      } catch (e) {}
     }
 
     function weatherDescription(code) {
@@ -536,8 +530,6 @@
         }).format(new Date());
 
         setText("updated", `Cập nhật ${updatedAt}`);
-        
-        // Lưu dữ liệu vào cache sau khi thành công
         saveToCache($("bubble").className);
       } finally {
         clearTimeout(timeout);
@@ -557,7 +549,6 @@
           "accept-language": "vi"
         });
 
-        const response = href=`https://nominatim.openstreetmap.org/reverse?${params.toString()}`;
         const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?${params.toString()}`,
           { headers: { "Accept": "application/json" }, cache: "no-store" }
@@ -570,9 +561,7 @@
                      address.county || address.state || "Vị trí hiện tại";
         setText("city", `📍 ${name}`);
         saveToCache($("bubble").className);
-      } catch (error) {
-        // Giữ nguyên
-      }
+      } catch (error) {}
     }
 
     function useFallbackLocation(reason) {
@@ -625,17 +614,14 @@
       );
     }
 
-    // TÍNH NĂNG CHẠM ĐỂ LÀM MỚI (TAP TO REFRESH)
+    // Tính năng chạm để làm mới
     $("bubble").addEventListener("click", () => {
       setText("updated", "Đang làm mới dữ liệu...");
       getLocationAndWeather();
     });
 
     function startWeatherWidget() {
-      // Hiển thị cache cũ ngay lập tức trước khi gọi mạng
       loadFromCache();
-      
-      // Tiến hành lấy vị trí và thời tiết mới
       getLocationAndWeather();
 
       if (refreshTimer) clearInterval(refreshTimer);
