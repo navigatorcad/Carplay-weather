@@ -127,6 +127,13 @@
       color: #e5edf7;
     }
 
+    .main-temp-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+    }
+
     .main-temp {
       display: flex;
       align-items: center;
@@ -152,11 +159,20 @@
       50% { transform: translateY(-3px); }
     }
 
+    /* QUÃNG NHIỆT TRONG NGÀY (THẤP - CAO) */
+    .temp-range {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+
     .desc {
       color: #d0dbea;
       font-size: 14px;
       font-weight: 550;
       max-width: 90%;
+      margin-top: -2px;
     }
 
     .divider {
@@ -259,7 +275,7 @@
 </head>
 <body>
 
-  <!-- LỚP PHỦ CANVAS HIỆU ỨNG THỜI TIẾT ĐA DẠNG -->
+  <!-- LỚP PHỦ CANVAS HIỆU ỨNG THỜI TIẾT TOÀN TRANG -->
   <canvas class="weather-fx" id="weatherFxCanvas"></canvas>
 
   <!-- NÚT CHUYỂN ĐỔI GIAO DIỆN -->
@@ -269,10 +285,14 @@
     <main class="bubble level-low" id="widgetShape" aria-live="polite" onclick="refreshData()">
       <div class="city" id="city">📍 Đang xác định vị trí...</div>
 
-      <div class="main-temp">
-        <div class="temp" id="temp">--°</div>
-        <div class="weather-icon" id="weather-icon">⛅</div>
+      <div class="main-temp-wrapper">
+        <div class="main-temp">
+          <div class="temp" id="temp">--°</div>
+          <div class="weather-icon" id="weather-icon">⛅</div>
+        </div>
+        <div class="temp-range" id="temp-range">--° / --°</div>
       </div>
+
       <div class="desc" id="desc">Đang tải thời tiết...</div>
 
       <div class="divider"></div>
@@ -321,8 +341,8 @@
     const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v8";
-    const LAYOUT_KEY = "carplay_layout_mode_v6";
+    const CACHE_KEY = "carplay_weather_cache_v9";
+    const LAYOUT_KEY = "carplay_layout_mode_v7";
 
     const $ = (id) => document.getElementById(id);
     let currentLocation = null;
@@ -334,7 +354,7 @@
     const canvas = $("weatherFxCanvas");
     const ctx = canvas.getContext("2d");
     let particles = [];
-    let fxType = "none"; // "sunny", "cloudy", "fog", "drizzle", "rain", "snow", "storm"
+    let fxType = "none";
     let lightningTimer = null;
 
     function resizeCanvas() {
@@ -348,7 +368,6 @@
       particles = [];
       for (let i = 0; i < count; i++) {
         if (type === "sunny") {
-          // Hạt bụi sáng lơ lửng
           particles.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
@@ -358,7 +377,6 @@
             opacity: Math.random() * 0.4 + 0.1
           });
         } else if (type === "snow") {
-          // Bông tuyết rơi lững lờ
           particles.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
@@ -369,7 +387,6 @@
             angle: Math.random() * Math.PI * 2
           });
         } else if (type === "drizzle") {
-          // Mưa phùn nhẹ, thưa
           particles.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
@@ -378,7 +395,6 @@
             opacity: Math.random() * 0.3 + 0.15
           });
         } else if (type === "rain" || type === "storm") {
-          // Mưa / Giông bão
           particles.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
@@ -387,7 +403,6 @@
             opacity: Math.random() * 0.5 + 0.3
           });
         } else if (type === "fog") {
-          // Sương mù mờ ảo trôi ngang
           particles.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
@@ -488,7 +503,7 @@
         initParticles("sunny", 35);
       } else if (code === 2 || code === 3) {
         body.classList.add("weather-cloudy");
-        fxType = "none"; // Mây tĩnh lặng, không cần hạt phủ nặng
+        fxType = "none";
       } else if (code === 45 || code === 48) {
         body.classList.add("weather-fog");
         fxType = "fog";
@@ -575,6 +590,7 @@
           const data = JSON.parse(cached);
           if (data.temp && data.temp !== "--°") {
             setText("temp", data.temp);
+            setText("temp-range", data.tempRange);
             setText("humidity", data.humidity);
             setText("wind", data.wind);
             setText("desc", data.desc);
@@ -601,6 +617,7 @@
       try {
         const data = {
           temp: $("temp").textContent,
+          tempRange: $("temp-range").textContent,
           humidity: $("humidity").textContent,
           wind: $("wind").textContent,
           desc: $("desc").textContent,
@@ -702,9 +719,10 @@
         latitude: String(latitude),
         longitude: String(longitude),
         current: "temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m",
+        daily: "temperature_2m_min,temperature_2m_max",
         hourly: "precipitation_probability",
         timezone: TIME_ZONE,
-        forecast_days: "2",
+        forecast_days: "1",
         wind_speed_unit: "kmh"
       });
 
@@ -723,6 +741,18 @@
         const humidity = Number(data.current.relative_humidity_2m);
         const wind = Number(data.current.wind_speed_10m);
         const code = Number(data.current.weather_code);
+
+        // Lấy nhiệt độ thấp nhất và cao nhất trong ngày từ daily
+        let minTempStr = "--°";
+        let maxTempStr = "--°";
+        if (data.daily && Array.isArray(data.daily.temperature_2m_min) && Array.isArray(data.daily.temperature_2m_max)) {
+          const minVal = Number(data.daily.temperature_2m_min[0]);
+          const maxVal = Number(data.daily.temperature_2m_max[0]);
+          if (Number.isFinite(minVal)) minTempStr = `${Math.round(minVal)}°`;
+          if (Number.isFinite(maxVal)) maxTempStr = `${Math.round(maxVal)}°`;
+        }
+        const tempRangeText = `${minTempStr} - ${maxTempStr}`;
+        setText("temp-range", tempRangeText);
 
         // Kích hoạt hiệu ứng toàn trang theo mã thời tiết
         setWeatherFX(code);
@@ -825,7 +855,7 @@
           if (geolocationResolved) return;
           geolocationResolved = true;
           clearTimeout(safetyTimer);
-          useFallbackLocation("Chưa cấp quyền gây lỗi GPS");
+          useFallbackLocation("Chưa cấp quyền GPS");
         },
         { enableHighAccuracy: false, timeout: 4000, maximumAge: 60 * 1000 }
       );
