@@ -16,8 +16,17 @@ jobs:
           mkdir -p Payload/CarPlayWeather.app
           SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
           
-          # Biên dịch trực tiếp file ViewController.swift từ thư mục source của bạn
-          swiftc source/ViewController.swift \
+          # Tự động tìm chính xác file ViewController.swift dù nó nằm ở bất kỳ thư mục nào
+          VC_FILE=$(find . -name "ViewController.swift" | head -n 1)
+          echo "Found ViewController at: $VC_FILE"
+          
+          if [ -z "$VC_FILE" ]; then
+            echo "Error: Không tìm thấy file ViewController.swift!"
+            exit 1
+          fi
+
+          # Biên dịch trực tiếp file vừa tìm thấy
+          swiftc "$VC_FILE" \
             -sdk "$SDK_PATH" \
             -target arm64-apple-ios15.0 \
             -framework UIKit \
