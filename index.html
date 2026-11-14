@@ -74,48 +74,41 @@
       height: 100%;
       position: relative;
       z-index: 2;
+      perspective: 1000px;
     }
 
-    /* GIAO DIỆN HÌNH TRÒN */
-    .bubble {
-      width: min( min(310px, 92vw), 92vh );
-      aspect-ratio: 1 / 1;
-      border-radius: 50%;
+    /* GIAO DIỆN HÌNH TRÒN & CHỮ NHẬT CÓ HIỆU ỨNG 3D FLIP */
+    .bubble, .card {
       background: var(--bg-gradient);
       border: 4px solid var(--accent);
       box-shadow: 0 0 25px rgba(var(--accent-rgb), .68), inset 0 0 18px rgba(var(--accent-rgb), .22);
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      padding: 22px 19px;
       text-align: center;
-      transition: border-color .45s ease, box-shadow .45s ease;
       position: relative;
       cursor: pointer;
+      transition: transform 0.4s cubic-bezier(0.4, 0.2, 0.2, 1), border-color 0.4s ease, box-shadow 0.4s ease;
     }
 
-    .bubble:active { transform: scale(0.97); }
+    .bubble {
+      width: min( min(310px, 92vw), 92vh );
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      justify-content: center;
+      padding: 22px 19px;
+    }
 
-    /* GIAO DIỆN HÌNH CHỮ NHẬT ĐỨNG */
     .card {
       width: 290px;
       height: 420px;
       flex-shrink: 0;
       border-radius: 24px;
-      background: var(--bg-gradient);
-      border: 4px solid var(--accent);
-      box-shadow: 0 0 25px rgba(var(--accent-rgb), .68), inset 0 0 18px rgba(var(--accent-rgb), .22);
-      display: flex;
-      flex-direction: column;
       justify-content: space-between;
-      align-items: center;
       padding: 20px 16px;
-      text-align: center;
-      transition: border-color .45s ease, box-shadow .45s ease;
-      position: relative;
-      cursor: pointer;
     }
+
+    .bubble:active, .card:active { transform: scale(0.97); }
 
     .city {
       max-width: 85%;
@@ -159,9 +152,17 @@
       max-width: 90%;
     }
 
-    /* QUÃNG NHIỆT TRONG NGÀY (THẤP - CAO) NẰM DƯỚI MÔ TẢ THỜI TIẾT */
+    /* CHỈ SỐ AQI & UV (NẰM TRÊN QUÃNG NHIỆT) */
+    .aqi-uv {
+      font-size: 11px;
+      font-weight: 650;
+      color: var(--accent);
+      letter-spacing: 0.3px;
+    }
+
+    /* QUÃNG NHIỆT TRONG NGÀY (THẤP - CAO) */
     .temp-range {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--muted);
       letter-spacing: 0.5px;
@@ -284,6 +285,7 @@
       </div>
       
       <div class="desc" id="desc">Đang tải thời tiết...</div>
+      <div class="aqi-uv" id="aqi-uv">AQI: -- · UV: --</div>
       <div class="temp-range" id="temp-range">--° / --°</div>
 
       <div class="divider"></div>
@@ -332,14 +334,15 @@
     const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v10";
-    const LAYOUT_KEY = "carplay_layout_mode_v8";
+    const CACHE_KEY = "carplay_weather_cache_v11";
+    const LAYOUT_KEY = "carplay_layout_mode_v9";
 
     const $ = (id) => document.getElementById(id);
     let currentLocation = null;
     let lastReverseGeocodeAt = 0;
     let refreshTimer = null;
     let currentMode = "bubble";
+    let currentScale = 1;
 
     // --- HỆ THỐNG HIỆU ỨNG CANVAS ĐA TRẠNG THÁI THỜI TIẾT ---
     const canvas = $("weatherFxCanvas");
@@ -532,27 +535,33 @@
       if (currentMode === "card") {
         const containerW = window.innerWidth - 20;
         const containerH = window.innerHeight - 20;
-        const scale = Math.min(containerW / 290, containerH / 420, 1.3);
-        widget.style.transform = `scale(${scale})`;
+        currentScale = Math.min(containerW / 290, containerH / 420, 1.3);
+        widget.style.transform = `scale(${currentScale})`;
       } else {
+        currentScale = 1;
         widget.style.transform = "none";
       }
     }
 
+    // HIỆU ỨNG LẬT THẺ 3D MƯỢT MÀ KHI ĐỔI FORM
     function setLayoutMode(mode, save = true) {
       currentMode = mode;
       const widget = $("widgetShape");
       const btn = $("modeToggleBtn");
 
-      if (mode === "card") {
-        widget.className = widget.className.replace("bubble", "card");
-        btn.textContent = "⭕ Hình Tròn";
+      // Xoay 3D nhẹ khi chuyển đổi
+      widget.style.transform = `scale(${currentScale * 0.85}) rotateY(90deg)`;
+
+      setTimeout(() => {
+        if (mode === "card") {
+          widget.className = widget.className.replace("bubble", "card");
+          btn.textContent = "⭕ Hình Tròn";
+        } else {
+          widget.className = widget.className.replace("card", "bubble");
+          btn.textContent = "📱 Hình Chữ Nhật";
+        }
         updateCardScale();
-      } else {
-        widget.className = widget.className.replace("card", "bubble");
-        widget.style.transform = "none";
-        btn.textContent = "📱 Hình Chữ Nhật";
-      }
+      }, 200);
 
       if (save) { localStorage.setItem(LAYOUT_KEY, mode); }
     }
@@ -581,6 +590,7 @@
           const data = JSON.parse(cached);
           if (data.temp && data.temp !== "--°") {
             setText("temp", data.temp);
+            setText("aqi-uv", data.aqiUvText || "AQI: -- · UV: --");
             setText("temp-range", data.tempRange);
             setText("humidity", data.humidity);
             setText("wind", data.wind);
@@ -608,6 +618,7 @@
       try {
         const data = {
           temp: $("temp").textContent,
+          aqiUvText: $("aqi-uv").textContent,
           tempRange: $("temp-range").textContent,
           humidity: $("humidity").textContent,
           wind: $("wind").textContent,
@@ -706,10 +717,10 @@
     }
 
     async function fetchWeather(latitude, longitude) {
-      const params = new URLSearchParams({
+      const weatherParams = new URLSearchParams({
         latitude: String(latitude),
         longitude: String(longitude),
-        current: "temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m",
+        current: "temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,uv_index",
         daily: "temperature_2m_min,temperature_2m_max",
         hourly: "precipitation_probability",
         timezone: TIME_ZONE,
@@ -717,23 +728,46 @@
         wind_speed_unit: "kmh"
       });
 
-      const url = `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+      const aqiParams = new URLSearchParams({
+        latitude: String(latitude),
+        longitude: String(longitude),
+        current: "european_aqi"
+      });
+
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 12000);
 
       try {
-        const response = await fetch(url, { method: "GET", signal: controller.signal, cache: "no-store" });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        // Gọi đồng thời API thời tiết và API chất lượng không khí (AQI)
+        const [weatherRes, aqiRes] = await Promise.allSettled([
+          fetch(`https://api.open-meteo.com/v1/forecast?${weatherParams.toString()}`, { signal: controller.signal, cache: "no-store" }),
+          fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?${aqiParams.toString()}`, { signal: controller.signal, cache: "no-store" })
+        ]);
 
-        const data = await response.json();
+        if (weatherRes.status !== "fulfilled" || !weatherRes.value.ok) {
+          throw new Error("Không tải được dữ liệu thời tiết.");
+        }
+
+        const data = await weatherRes.value.json();
         if (!data.current) throw new Error("Không có dữ liệu hiện tại.");
 
         const temperature = Number(data.current.temperature_2m);
         const humidity = Number(data.current.relative_humidity_2m);
         const wind = Number(data.current.wind_speed_10m);
         const code = Number(data.current.weather_code);
+        const uvIndex = data.current.uv_index !== undefined ? Math.round(Number(data.current.uv_index)) : "--";
 
-        // Lấy nhiệt độ thấp nhất và cao nhất trong ngày từ daily
+        // Lấy AQI
+        let aqiVal = "--";
+        if (aqiRes.status === "fulfilled" && aqiRes.value.ok) {
+          const aqiData = await aqiRes.value.json();
+          if (aqiData.current && aqiData.current.european_aqi !== undefined) {
+            aqiVal = Math.round(Number(aqiData.current.european_aqi));
+          }
+        }
+        setText("aqi-uv", `AQI: ${aqiVal} · UV: ${uvIndex}`);
+
+        // Lấy nhiệt độ thấp/cao trong ngày
         let minTempStr = "--°";
         let maxTempStr = "--°";
         if (data.daily && Array.isArray(data.daily.temperature_2m_min) && Array.isArray(data.daily.temperature_2m_max)) {
@@ -742,8 +776,7 @@
           if (Number.isFinite(minVal)) minTempStr = `${Math.round(minVal)}°`;
           if (Number.isFinite(maxVal)) maxTempStr = `${Math.round(maxVal)}°`;
         }
-        const tempRangeText = `${minTempStr} - ${maxTempStr}`;
-        setText("temp-range", tempRangeText);
+        setText("temp-range", `${minTempStr} - ${maxTempStr}`);
 
         // Kích hoạt hiệu ứng toàn trang theo mã thời tiết
         setWeatherFX(code);
