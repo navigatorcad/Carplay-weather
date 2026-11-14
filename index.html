@@ -40,30 +40,30 @@
       position: relative;
     }
 
-    /* HIỆU ỨNG ĐỘNG THEO THỜI TIẾT (BACKGROUND THEMES) */
-    body.weather-sunny {
-      background: radial-gradient(circle at 50% 20%, #1a2639 0%, #0c121d 60%, #030508 100%);
+    /* LỚP PHỦ HIỆU ỨNG CANVAS TOÀN TRANG */
+    .weather-fx {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
     }
-    body.weather-rain {
-      background: radial-gradient(circle at 50% 20%, #0f1c2e 0%, #080e18 60%, #020408 100%);
-    }
-    body.weather-storm {
-      background: radial-gradient(circle at 50% 20%, #22121a 0%, #11080d 60%, #050204 100%);
-    }
-    body.weather-cloudy {
-      background: radial-gradient(circle at 50% 20%, #16202b 0%, #0b1017 60%, #020407 100%);
-    }
+
+    /* MÀU NỀN TOÀN TRANG THEO CÁC NHÓM THỜI TIẾT */
+    body.weather-sunny { background: radial-gradient(circle at 50% 20%, #1c2b42 0%, #0d1522 60%, #04070c 100%); }
+    body.weather-cloudy { background: radial-gradient(circle at 50% 20%, #182230 0%, #0a0f18 60%, #030508 100%); }
+    body.weather-fog { background: radial-gradient(circle at 50% 20%, #1f252d 0%, #0f1217 60%, #050608 100%); }
+    body.weather-drizzle { background: radial-gradient(circle at 50% 20%, #111d2e 0%, #070e17 60%, #020408 100%); }
+    body.weather-rain { background: radial-gradient(circle at 50% 20%, #0f1c2e 0%, #080e18 60%, #020408 100%); }
+    body.weather-snow { background: radial-gradient(circle at 50% 20%, #1b2636 0%, #0d131d 60%, #04060a 100%); }
+    body.weather-storm { background: radial-gradient(circle at 50% 20%, #22121a 0%, #11080d 60%, #050204 100%); }
 
     @keyframes pulse-high {
       0% { box-shadow: 0 0 25px rgba(255, 69, 58, .7), inset 0 0 18px rgba(255, 69, 58, .3); }
       50% { box-shadow: 0 0 45px rgba(255, 69, 58, 1), inset 0 0 30px rgba(255, 69, 58, .6); }
       100% { box-shadow: 0 0 25px rgba(255, 69, 58, .7), inset 0 0 18px rgba(255, 69, 58, .3); }
-    }
-
-    /* HIỆU ỨNG MƯA RƠI NHẸ TRÊN NỀN WIDGET */
-    @keyframes rain-fall {
-      0% { background-position: 0 0; }
-      100% { background-position: 20px 40px; }
     }
 
     .widget-container {
@@ -90,14 +90,14 @@
       align-items: center;
       padding: 22px 19px;
       text-align: center;
-      transition: border-color .45s ease, box-shadow .45s ease, transform 0.1s ease;
+      transition: border-color .45s ease, box-shadow .45s ease;
       position: relative;
       cursor: pointer;
     }
 
     .bubble:active { transform: scale(0.97); }
 
-    /* GIAO DIỆN HÌNH CHỮ NHẬT ĐỨNG (TỰ SCALE THEO MÀN HÌNH) */
+    /* GIAO DIỆN HÌNH CHỮ NHẬT ĐỨNG */
     .card {
       width: 290px;
       height: 420px;
@@ -259,6 +259,9 @@
 </head>
 <body>
 
+  <!-- LỚP PHỦ CANVAS HIỆU ỨNG THỜI TIẾT ĐA DẠNG -->
+  <canvas class="weather-fx" id="weatherFxCanvas"></canvas>
+
   <!-- NÚT CHUYỂN ĐỔI GIAO DIỆN -->
   <button class="mode-toggle-btn" id="modeToggleBtn" onclick="toggleLayoutMode(event)">🔄 Đổi Form</button>
 
@@ -318,8 +321,8 @@
     const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v6";
-    const LAYOUT_KEY = "carplay_layout_mode_v4";
+    const CACHE_KEY = "carplay_weather_cache_v8";
+    const LAYOUT_KEY = "carplay_layout_mode_v6";
 
     const $ = (id) => document.getElementById(id);
     let currentLocation = null;
@@ -327,9 +330,197 @@
     let refreshTimer = null;
     let currentMode = "bubble";
 
+    // --- HỆ THỐNG HIỆU ỨNG CANVAS ĐA TRẠNG THÁI THỜI TIẾT ---
+    const canvas = $("weatherFxCanvas");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+    let fxType = "none"; // "sunny", "cloudy", "fog", "drizzle", "rain", "snow", "storm"
+    let lightningTimer = null;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function initParticles(type, count) {
+      particles = [];
+      for (let i = 0; i < count; i++) {
+        if (type === "sunny") {
+          // Hạt bụi sáng lơ lửng
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: Math.random() * 2 + 1,
+            speedY: (Math.random() - 0.5) * 0.3,
+            speedX: (Math.random() - 0.5) * 0.3,
+            opacity: Math.random() * 0.4 + 0.1
+          });
+        } else if (type === "snow") {
+          // Bông tuyết rơi lững lờ
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: Math.random() * 3 + 1.5,
+            speedY: Math.random() * 0.8 + 0.5,
+            speedX: Math.random() * 0.5 - 0.25,
+            opacity: Math.random() * 0.6 + 0.2,
+            angle: Math.random() * Math.PI * 2
+          });
+        } else if (type === "drizzle") {
+          // Mưa phùn nhẹ, thưa
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            length: Math.random() * 10 + 5,
+            speed: Math.random() * 4 + 3,
+            opacity: Math.random() * 0.3 + 0.15
+          });
+        } else if (type === "rain" || type === "storm") {
+          // Mưa / Giông bão
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            length: Math.random() * 22 + 12,
+            speed: Math.random() * 12 + 10,
+            opacity: Math.random() * 0.5 + 0.3
+          });
+        } else if (type === "fog") {
+          // Sương mù mờ ảo trôi ngang
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            width: Math.random() * 200 + 100,
+            height: Math.random() * 40 + 20,
+            speed: Math.random() * 0.4 + 0.2,
+            opacity: Math.random() * 0.12 + 0.05
+          });
+        }
+      }
+    }
+
+    function animateWeatherFX() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (fxType === "sunny") {
+        for (let p of particles) {
+          ctx.fillStyle = `rgba(255, 235, 150, ${p.opacity})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+          p.y += p.speedY;
+          p.x += p.speedX;
+          if (p.y < 0) p.y = canvas.height;
+          if (p.y > canvas.height) p.y = 0;
+          if (p.x < 0) p.x = canvas.width;
+          if (p.x > canvas.width) p.x = 0;
+        }
+      } else if (fxType === "snow") {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        for (let p of particles) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+          p.y += p.speedY;
+          p.angle += 0.02;
+          p.x += Math.sin(p.angle) * 0.4 + p.speedX;
+          if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
+        }
+      } else if (fxType === "drizzle") {
+        ctx.strokeStyle = "rgba(174, 219, 255, 0.25)";
+        ctx.lineWidth = 1;
+        for (let p of particles) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x - 0.5, p.y + p.length);
+          ctx.stroke();
+          p.y += p.speed;
+          if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
+        }
+      } else if (fxType === "rain" || fxType === "storm") {
+        ctx.strokeStyle = "rgba(174, 219, 255, 0.45)";
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = "round";
+        for (let p of particles) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x - 1.5, p.y + p.length);
+          ctx.stroke();
+          p.y += p.speed;
+          p.x -= 0.8;
+          if (p.y > canvas.height) { p.y = -20; p.x = Math.random() * canvas.width; }
+        }
+      } else if (fxType === "fog") {
+        for (let p of particles) {
+          let grad = ctx.createLinearGradient(p.x, p.y, p.x + p.width, p.y);
+          grad.addColorStop(0, `rgba(200, 220, 240, 0)`);
+          grad.addColorStop(0.5, `rgba(200, 220, 240, ${p.opacity})`);
+          grad.addColorStop(1, `rgba(200, 220, 240, 0)`);
+          ctx.fillStyle = grad;
+          ctx.fillRect(p.x, p.y, p.width, p.height);
+          p.x += p.speed;
+          if (p.x > canvas.width) p.x = -p.width;
+        }
+      }
+      requestAnimationFrame(animateWeatherFX);
+    }
+    animateWeatherFX();
+
+    function triggerLightning() {
+      if (fxType !== "storm") return;
+      const flash = document.createElement("div");
+      flash.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.35); z-index:3; pointer-events:none; transition: opacity 0.2s ease;";
+      document.body.appendChild(flash);
+      setTimeout(() => flash.style.opacity = "0", 60);
+      setTimeout(() => flash.remove(), 250);
+    }
+
+    function setWeatherFX(code) {
+      const body = document.body;
+      body.classList.remove("weather-sunny", "weather-cloudy", "weather-fog", "weather-drizzle", "weather-rain", "weather-snow", "weather-storm");
+      
+      if (lightningTimer) { clearInterval(lightningTimer); lightningTimer = null; }
+
+      if (code === 0 || code === 1) {
+        body.classList.add("weather-sunny");
+        fxType = "sunny";
+        initParticles("sunny", 35);
+      } else if (code === 2 || code === 3) {
+        body.classList.add("weather-cloudy");
+        fxType = "none"; // Mây tĩnh lặng, không cần hạt phủ nặng
+      } else if (code === 45 || code === 48) {
+        body.classList.add("weather-fog");
+        fxType = "fog";
+        initParticles("fog", 6);
+      } else if (code >= 51 && code <= 57) {
+        body.classList.add("weather-drizzle");
+        fxType = "drizzle";
+        initParticles("drizzle", 40);
+      } else if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) {
+        body.classList.add("weather-rain");
+        fxType = "rain";
+        initParticles("rain", 70);
+      } else if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) {
+        body.classList.add("weather-snow");
+        fxType = "snow";
+        initParticles("snow", 50);
+      } else if (code >= 95) {
+        body.classList.add("weather-storm");
+        fxType = "storm";
+        initParticles("storm", 100);
+        lightningTimer = setInterval(() => {
+          if (Math.random() < 0.35) triggerLightning();
+        }, 3500);
+      } else {
+        body.classList.add("weather-cloudy");
+        fxType = "none";
+      }
+    }
+    // --------------------------------------------------------
+
     function setText(id, value) { $(id).textContent = value; }
 
-    // Tự động scale cho khung chữ nhật
     function updateCardScale() {
       const widget = $("widgetShape");
       if (currentMode === "card") {
@@ -377,22 +568,6 @@
       }
     }
 
-    // Cập nhật hiệu ứng màu nền động dựa theo mã thời tiết (Weather Code)
-    function applyWeatherVisualEffect(code) {
-      const body = document.body;
-      body.classList.remove("weather-sunny", "weather-rain", "weather-storm", "weather-cloudy");
-
-      if (code === 0 || code === 1) {
-        body.classList.add("weather-sunny"); // Trời nắng / quang đãng
-      } else if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
-        body.classList.add("weather-rain"); // Trời mưa
-      } else if (code >= 95) {
-        body.classList.add("weather-storm"); // Giông bão
-      } else {
-        body.classList.add("weather-cloudy"); // Mây mù / u ám
-      }
-    }
-
     function loadFromCache() {
       try {
         const cached = localStorage.getItem(CACHE_KEY);
@@ -415,7 +590,7 @@
               widget.classList.add(data.levelClass);
             }
             if (typeof data.weatherCode === "number") {
-              applyWeatherVisualEffect(data.weatherCode);
+              setWeatherFX(data.weatherCode);
             }
           }
         }
@@ -549,8 +724,8 @@
         const wind = Number(data.current.wind_speed_10m);
         const code = Number(data.current.weather_code);
 
-        // Kích hoạt hiệu ứng hình nền động theo mã thời tiết
-        applyWeatherVisualEffect(code);
+        // Kích hoạt hiệu ứng toàn trang theo mã thời tiết
+        setWeatherFX(code);
 
         setText("temp", Number.isFinite(temperature) ? `${Math.round(temperature)}°` : "--°");
         setText("humidity", Number.isFinite(humidity) ? `${Math.round(humidity)}%` : "--%");
@@ -650,7 +825,7 @@
           if (geolocationResolved) return;
           geolocationResolved = true;
           clearTimeout(safetyTimer);
-          useFallbackLocation("Chưa cấp quyền GPS");
+          useFallbackLocation("Chưa cấp quyền gây lỗi GPS");
         },
         { enableHighAccuracy: false, timeout: 4000, maximumAge: 60 * 1000 }
       );
