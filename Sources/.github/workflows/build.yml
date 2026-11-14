@@ -25,6 +25,8 @@ jobs:
             
           cp Sources/Info.plist Payload/CarPlayWidget.app/Info.plist
           ldid -S Payload/CarPlayWidget.app/CarPlayWidget || codesign -s - --force Payload/CarPlayWidget.app/CarPlayWidget
+          
+          # Đổi tên và đóng gói thành file .ipa thực thụ
           zip -r CarPlayWidget.ipa Payload
 
       - name: Upload IPA
