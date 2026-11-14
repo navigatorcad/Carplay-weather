@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#000000">
-  <title>Weather Bubble CarPlay</title>
+  <title>Weather CarPlay Widget</title>
   <style>
     :root {
       --accent: #90caf9;
@@ -35,12 +35,22 @@
       justify-content: center;
       align-items: center;
       padding: 10px;
+      position: relative;
     }
 
     @keyframes pulse-high {
       0% { box-shadow: 0 0 25px rgba(255, 69, 58, .7), inset 0 0 18px rgba(255, 69, 58, .3); }
       50% { box-shadow: 0 0 45px rgba(255, 69, 58, 1), inset 0 0 30px rgba(255, 69, 58, .6); }
       100% { box-shadow: 0 0 25px rgba(255, 69, 58, .7), inset 0 0 18px rgba(255, 69, 58, .3); }
+    }
+
+    /* CHẾ ĐỘ 1: HÌNH TRÒN (BUBBLE) */
+    .widget-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
     }
 
     .bubble {
@@ -67,6 +77,32 @@
       transform: scale(0.97);
     }
 
+    /* CHẾ ĐỘ 2: HÌNH CHỮ NHẬT ĐỨNG (CARD) */
+    .card {
+      width: min(290px, 90vw);
+      height: min(420px, 92vh);
+      border-radius: 24px;
+      background: linear-gradient(135deg, #202b3a 0%, #111923 55%, #080c12 100%);
+      border: 4px solid var(--accent);
+      box-shadow:
+        0 0 25px rgba(var(--accent-rgb), .68),
+        inset 0 0 18px rgba(var(--accent-rgb), .22);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 16px;
+      text-align: center;
+      transition: border-color .45s ease, box-shadow .45s ease, transform 0.1s ease;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .card:active {
+      transform: scale(0.97);
+    }
+
+    /* CÁC THÀNH PHẦN CHUNG */
     .city {
       max-width: 85%;
       overflow: hidden;
@@ -77,7 +113,6 @@
       font-size: 15px;
       font-weight: 650;
       color: #e5edf7;
-      margin-bottom: 2px;
       line-height: 1.2;
       word-break: break-word;
     }
@@ -87,18 +122,17 @@
       align-items: center;
       justify-content: center;
       gap: 9px;
-      min-height: 58px;
     }
 
     .temp {
-      font-size: 51px;
+      font-size: 48px;
       line-height: 1;
       font-weight: 750;
       letter-spacing: -2px;
     }
 
     .weather-icon {
-      font-size: 38px;
+      font-size: 36px;
       line-height: 1;
     }
 
@@ -106,7 +140,6 @@
       color: #d0dbea;
       font-size: 14px;
       font-weight: 550;
-      margin: 2px 0 6px;
       max-width: 90%;
       word-break: break-word;
     }
@@ -114,9 +147,8 @@
     .divider {
       width: 88%;
       height: 1px;
-      flex: 0 0 1px;
       background: rgba(255,255,255,.20);
-      margin: 5px 0;
+      margin: 4px 0;
     }
 
     .details {
@@ -124,7 +156,6 @@
       justify-content: space-around;
       align-items: center;
       width: 91%;
-      min-height: 47px;
     }
 
     .detail-box {
@@ -140,13 +171,13 @@
       align-items: center;
       justify-content: center;
       gap: 5px;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 750;
       white-space: nowrap;
     }
 
     .detail-icon {
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1;
     }
 
@@ -164,13 +195,12 @@
 
     .vertical-divider {
       width: 1px;
-      height: 31px;
+      height: 28px;
       background: rgba(255,255,255,.25);
     }
 
     .rain-section {
       width: 100%;
-      margin-top: 2px;
     }
 
     .rain-prob {
@@ -184,11 +214,11 @@
     }
 
     .rain-icon {
-      font-size: 19px;
+      font-size: 18px;
     }
 
     .rain-prob strong {
-      font-size: 19px;
+      font-size: 18px;
       font-weight: 800;
       color: var(--accent);
     }
@@ -196,8 +226,7 @@
     .rain-period {
       font-size: 10px;
       color: var(--muted);
-      margin-top: 3px;
-      min-height: 13px;
+      margin-top: 2px;
     }
 
     .rain-alert {
@@ -205,17 +234,36 @@
       font-weight: 650;
       margin-top: 2px;
       color: var(--accent);
-      min-height: 13px;
     }
 
     .updated {
-      position: absolute;
-      bottom: 22px;
-      left: 0;
       width: 100%;
       color: #8190a3;
       font-size: 8px;
       opacity: .9;
+    }
+
+    /* NÚT CHUYỂN ĐỔI GIAO DIỆN Ở GÓC DƯỚI BÊN TRÁI */
+    .mode-toggle-btn {
+      position: fixed;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(13, 20, 30, 0.85);
+      border: 1.5px solid var(--accent);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 650;
+      padding: 6px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      z-index: 999;
+      transition: transform 0.1s ease, background 0.3s ease;
+    }
+
+    .mode-toggle-btn:active {
+      transform: scale(0.92);
     }
 
     .level-low {
@@ -246,64 +294,71 @@
     .error .desc { color: #ffb4ab; }
 
     @media (max-height: 360px) {
-      .bubble { width: min(280px, 88vh); padding: 15px; }
-      .temp { font-size: 44px; }
-      .weather-icon { font-size: 32px; }
-      .updated { bottom: 14px; }
+      .bubble { width: min(280px, 88vh); padding: 12px; }
+      .card { height: min(280px, 92vh); padding: 12px; }
+      .temp { font-size: 40px; }
+      .weather-icon { font-size: 30px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .bubble { animation: none; transition: none; }
+      .bubble, .card { animation: none; transition: none; }
     }
   </style>
 </head>
 <body>
-  <main class="bubble level-low" id="bubble" aria-live="polite">
-    <div class="city" id="city">📍 Đang xác định vị trí...</div>
 
-    <div class="main-temp">
-      <div class="temp" id="temp">--°</div>
-      <div class="weather-icon" id="weather-icon">⛅</div>
-    </div>
-    <div class="desc" id="desc">Đang tải thời tiết...</div>
+  <!-- NÚT CHUYỂN ĐỔI GIAO DIỆN Ở GÓC DƯỚI BÊN TRÁI -->
+  <button class="mode-toggle-btn" id="modeToggleBtn" onclick="toggleLayoutMode(event)">🔄 Đổi Form</button>
 
-    <div class="divider"></div>
+  <!-- KHUNG HIỂN THỊ CHÍNH -->
+  <div class="widget-container">
+    <main class="bubble level-low" id="widgetShape" aria-live="polite" onclick="refreshData()">
+      <div class="city" id="city">📍 Đang xác định vị trí...</div>
 
-    <div class="details">
-      <div class="detail-box">
-        <div class="detail-val">
-          <span class="detail-icon">💧</span>
-          <span id="humidity">--%</span>
+      <div class="main-temp">
+        <div class="temp" id="temp">--°</div>
+        <div class="weather-icon" id="weather-icon">⛅</div>
+      </div>
+      <div class="desc" id="desc">Đang tải thời tiết...</div>
+
+      <div class="divider"></div>
+
+      <div class="details">
+        <div class="detail-box">
+          <div class="detail-val">
+            <span class="detail-icon">💧</span>
+            <span id="humidity">--%</span>
+          </div>
+          <div class="detail-lbl">Độ ẩm</div>
         </div>
-        <div class="detail-lbl">Độ ẩm</div>
-      </div>
 
-      <div class="vertical-divider"></div>
+        <div class="vertical-divider"></div>
 
-      <div class="detail-box">
-        <div class="detail-val">
-          <span class="detail-icon">💨</span>
-          <span id="wind">--</span>
-          <small class="detail-unit">km/h</small>
+        <div class="detail-box">
+          <div class="detail-val">
+            <span class="detail-icon">💨</span>
+            <span id="wind">--</span>
+            <small class="detail-unit">km/h</small>
+          </div>
+          <div class="detail-lbl">Tốc độ gió</div>
         </div>
-        <div class="detail-lbl">Tốc độ gió</div>
       </div>
-    </div>
 
-    <div class="divider"></div>
+      <div class="divider"></div>
 
-    <section class="rain-section">
-      <div class="rain-prob">
-        <span class="rain-icon">🌧️</span>
-        <span>Mưa 3 giờ tới</span>
-        <strong id="rain-pct">--%</strong>
-      </div>
-      <div class="rain-period" id="rain-period">Đang lấy dự báo theo giờ...</div>
-      <div class="rain-alert" id="rain-msg">Đang cập nhật</div>
-    </section>
+      <section class="rain-section">
+        <div class="rain-prob">
+          <span class="rain-icon">🌧️</span>
+          <span>Mưa 3 giờ tới</span>
+          <strong id="rain-pct">--%</strong>
+        </div>
+        <div class="rain-period" id="rain-period">Đang lấy dự báo...</div>
+        <div class="rain-alert" id="rain-msg">Đang cập nhật</div>
+      </section>
 
-    <div class="updated" id="updated">Đang kết nối dữ liệu...</div>
-  </main>
+      <div class="updated" id="updated">Đang kết nối dữ liệu...</div>
+    </main>
+  </div>
 
   <script>
     "use strict";
@@ -317,16 +372,51 @@
     const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v2";
+    const CACHE_KEY = "carplay_weather_cache_v3";
+    const LAYOUT_KEY = "carplay_layout_mode";
 
     const $ = (id) => document.getElementById(id);
 
     let currentLocation = null;
     let lastReverseGeocodeAt = 0;
     let refreshTimer = null;
+    let currentMode = "bubble"; // "bubble" hoặc "card"
 
     function setText(id, value) {
       $(id).textContent = value;
+    }
+
+    // --- XỬ LÝ CHUYỂN ĐỔI GIAO DIỆN (TRÒN <-> CHỮ NHẬT) ---
+    function setLayoutMode(mode, save = true) {
+      currentMode = mode;
+      const widget = $("widgetShape");
+      const btn = $("modeToggleBtn");
+
+      if (mode === "card") {
+        widget.className = widget.className.replace("bubble", "card");
+        btn.textContent = "⭕ Hình Tròn";
+      } else {
+        widget.className = widget.className.replace("card", "bubble");
+        btn.textContent = "📱 Hình Chữ Nhật";
+      }
+
+      if (save) {
+        localStorage.setItem(LAYOUT_KEY, mode);
+      }
+    }
+
+    function toggleLayoutMode(event) {
+      event.stopPropagation(); // Ngăn không cho kích hoạt sự kiện click refresh
+      const newMode = currentMode === "bubble" ? "card" : "bubble";
+      setLayoutMode(newMode);
+    }
+
+    // Tải chế độ giao diện đã lưu trước đó
+    function loadSavedLayout() {
+      const savedMode = localStorage.getItem(LAYOUT_KEY);
+      if (savedMode === "card" || savedMode === "bubble") {
+        setLayoutMode(savedMode, false);
+      }
     }
 
     function loadFromCache() {
@@ -345,15 +435,17 @@
             setText("rain-msg", data.rainMsg);
             setText("city", data.city);
             setText("updated", data.updated + " (Lưu trữ)");
-            if (data.className) {
-              $("bubble").className = "bubble " + data.className;
+            if (data.levelClass) {
+              const widget = $("widgetShape");
+              widget.classList.remove("level-low", "level-mild", "level-warn", "level-high");
+              widget.classList.add(data.levelClass);
             }
           }
         }
       } catch (e) {}
     }
 
-    function saveToCache(className) {
+    function saveToCache(levelClass) {
       try {
         const data = {
           temp: $("temp").textContent,
@@ -366,7 +458,7 @@
           rainMsg: $("rain-msg").textContent,
           city: $("city").textContent,
           updated: $("updated").textContent,
-          className: className
+          levelClass: levelClass
         };
         localStorage.setItem(CACHE_KEY, JSON.stringify(data));
       } catch (e) {}
@@ -439,30 +531,30 @@
     }
 
     function applyRainLevel(probability) {
-      const bubble = $("bubble");
+      const widget = $("widgetShape");
       const pct = $("rain-pct");
       const message = $("rain-msg");
 
-      bubble.classList.remove("level-low", "level-mild", "level-warn", "level-high");
+      widget.classList.remove("level-low", "level-mild", "level-warn", "level-high");
 
-      let level = "level-low";
+      let levelClass = "level-low";
       let messageText = "Khả năng mưa thấp";
       if (probability >= 80) {
-        level = "level-high";
+        levelClass = "level-high";
         messageText = "⚠️ Cảnh báo mưa rất cao";
       } else if (probability >= 60) {
-        level = "level-warn";
+        levelClass = "level-warn";
         messageText = "⚠️ Cảnh báo mưa";
       } else if (probability >= 40) {
-        level = "level-mild";
+        levelClass = "level-mild";
         messageText = "Chú ý khả năng có mưa";
       }
 
-      bubble.classList.add(level);
+      widget.classList.add(levelClass);
       pct.style.color = "var(--accent)";
       message.style.color = "var(--accent)";
       message.textContent = messageText;
-      return level;
+      return levelClass;
     }
 
     async function fetchWeather(latitude, longitude) {
@@ -507,19 +599,19 @@
         setText("desc", condition.text);
         setText("weather-icon", condition.icon);
 
-        let activeLevel = "level-low";
+        let activeLevelClass = "level-low";
         const forecast = getNextHoursForecast(data);
         if (forecast) {
           setText("rain-pct", `${Math.round(forecast.probability)}%`);
           setText("rain-period", `Cao nhất: ${formatHourRange(forecast.time)}`);
-          activeLevel = applyRainLevel(forecast.probability);
+          activeLevelClass = applyRainLevel(forecast.probability);
         } else {
           setText("rain-pct", "--%");
           setText("rain-period", "Không có dữ liệu dự báo");
-          activeLevel = applyRainLevel(0);
+          activeLevelClass = applyRainLevel(0);
         }
 
-        $("bubble").classList.remove("error");
+        $("widgetShape").classList.remove("error");
         const updatedAt = new Intl.DateTimeFormat("vi-VN", {
           timeZone: TIME_ZONE,
           hour: "2-digit",
@@ -530,7 +622,7 @@
         }).format(new Date());
 
         setText("updated", `Cập nhật ${updatedAt}`);
-        saveToCache($("bubble").className);
+        saveToCache(activeLevelClass);
       } finally {
         clearTimeout(timeout);
       }
@@ -560,7 +652,10 @@
         const name = address.city || address.town || address.municipality ||
                      address.county || address.state || "Vị trí hiện tại";
         setText("city", `📍 ${name}`);
-        saveToCache($("bubble").className);
+        
+        // Lưu trạng thái hiện tại vào cache
+        const activeClass = Array.from($("widgetShape").classList).find(c => c.startsWith("level-")) || "level-low";
+        saveToCache(activeClass);
       } catch (error) {}
     }
 
@@ -580,7 +675,7 @@
       try {
         await fetchWeather(currentLocation.latitude, currentLocation.longitude);
       } catch (error) {
-        $("bubble").classList.add("error");
+        $("widgetShape").classList.add("error");
         setText("desc", "Mất kết nối mạng");
         setText("rain-msg", "Đang dùng dữ liệu cũ");
         setText("updated", "Lỗi mạng · Chạm để thử lại");
@@ -595,8 +690,6 @@
       }
 
       let geolocationResolved = false;
-
-      // Đồng hồ đếm ngược bảo vệ: Sau 5 giây nếu iOS WebKit bị treo GPS, tự động chuyển về mặc định
       const safetyTimer = setTimeout(() => {
         if (!geolocationResolved) {
           geolocationResolved = true;
@@ -626,20 +719,21 @@
           useFallbackLocation("Chưa cấp quyền GPS");
         },
         {
-          enableHighAccuracy: false, // Dùng định vị mạng/Wi-Fi để phản hồi tức thì, không bị treo phần cứng
+          enableHighAccuracy: false,
           timeout: 4000,
           maximumAge: 60 * 1000
         }
       );
     }
 
-    // Tính năng chạm để làm mới
-    $("bubble").addEventListener("click", () => {
+    // Chạm vào widget để làm mới dữ liệu
+    function refreshData() {
       setText("updated", "Đang làm mới dữ liệu...");
       getLocationAndWeather();
-    });
+    }
 
     function startWeatherWidget() {
+      loadSavedLayout();
       loadFromCache();
       getLocationAndWeather();
 
