@@ -16,7 +16,7 @@ jobs:
           mkdir -p Payload/CarPlayWeather.app
           SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
           
-          # Tự động tìm chính xác file ViewController.swift dù nó nằm ở bất kỳ thư mục nào
+          # Tự động tìm chính xác file ViewController.swift
           VC_FILE=$(find . -name "ViewController.swift" | head -n 1)
           echo "Found ViewController at: $VC_FILE"
           
@@ -25,8 +25,8 @@ jobs:
             exit 1
           fi
 
-          # Biên dịch trực tiếp file vừa tìm thấy
-          swiftc "$VC_FILE" \
+          # Thêm -parse-as-library để nhận diện @main entry point
+          swiftc -parse-as-library "$VC_FILE" \
             -sdk "$SDK_PATH" \
             -target arm64-apple-ios15.0 \
             -framework UIKit \
@@ -68,7 +68,7 @@ jobs:
           </plist>
           EOF
 
-          # Ký số tệp thực thi bằng ldid cho TrollStore
+          # Ký giả lập cho TrollStore
           ldid -S Payload/CarPlayWeather.app/CarPlayWeather || codesign -s - --force Payload/CarPlayWeather.app/CarPlayWeather
 
           # Đóng gói thành file .ipa chuẩn
