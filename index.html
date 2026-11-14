@@ -52,7 +52,6 @@
       z-index: 1;
     }
 
-    /* MÀU NỀN TOÀN TRANG THEO CÁC NHÓM THỜI TIẾT */
     body.weather-sunny { background: radial-gradient(circle at 50% 20%, #1c2b42 0%, #0d1522 60%, #04070c 100%); }
     body.weather-cloudy { background: radial-gradient(circle at 50% 20%, #182230 0%, #0a0f18 60%, #030508 100%); }
     body.weather-fog { background: radial-gradient(circle at 50% 20%, #1f252d 0%, #0f1217 60%, #050608 100%); }
@@ -83,7 +82,6 @@
       perspective: 1000px;
     }
 
-    /* GIAO DIỆN HÌNH TRÒN & CHỮ NHẬT CÓ HIỆU ỨNG 3D FLIP */
     .bubble, .card {
       background: var(--bg-gradient);
       border: 4px solid var(--accent);
@@ -156,51 +154,49 @@
       color: #ffd54f;
     }
 
-    /* KHỐI THỜI GIAN BÊN NGOÀI FORM TRÒN (VIỀN SÁNG PHÁT RA RỰC RỠ ĐỒNG BỘ MÀU KHUNG) */
+    /* KHỐI THỜI GIAN BÊN NGOÀI FORM TRÒN (3 DÒNG RIÊNG BIỆT, KHỚP ĐƯỜNG KÍNH, PHÁT SÁNG NEON) */
     .external-time-bar {
       display: none; /* Chỉ hiện ở form tròn */
-      width: min( min(310px, 92vw), 92vh ); /* Khớp chuẩn đường kính khung tròn */
-      margin-top: 12px;
+      width: min( min(310px, 92vw), 92vh ); /* Khớp chuẩn đúng đường kính khung tròn */
+      margin-top: 10px;
       text-align: center;
       flex-direction: column;
       align-items: center;
       gap: 3px;
     }
 
+    /* Dòng 1: Giờ : Phút : Giây (Size to, vừa đúng chiều dài đường kính) */
     .external-time-bar .clock-text {
-      font-size: 19px;
-      font-weight: 850;
+      font-size: 22px; 
+      font-weight: 900;
       color: #ffffff;
       width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 4px;
-      /* Hiệu ứng viền sáng phát ra (Neon Glow) cực mạnh bao quanh ký tự, đồng bộ màu theo biến --accent */
-      text-shadow: 0 0 6px var(--accent), 0 0 12px var(--accent), 0 0 22px var(--accent), 0 0 35px rgba(var(--accent-rgb), 0.8);
-      letter-spacing: 1px;
+      text-align: center;
+      text-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent), 0 0 25px rgba(var(--accent-rgb), 0.8);
+      letter-spacing: 0.5px;
+      white-space: nowrap;
     }
 
-    .external-time-bar .dates-row {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 4px;
-    }
-
+    /* Dòng 2: Dương lịch (Size bằng đúng 1 nửa giờ: 11px) */
     .external-time-bar .solar-date {
-      font-size: 9.5px;
+      font-size: 11px;
       font-weight: 750;
       color: #f1f5f9;
-      text-shadow: 0 0 5px var(--accent), 0 0 10px rgba(var(--accent-rgb), 0.7);
+      width: 100%;
+      text-align: center;
+      text-shadow: 0 0 5px var(--accent), 0 0 10px rgba(var(--accent-rgb), 0.6);
+      white-space: nowrap;
     }
 
+    /* Dòng 3: Âm lịch (Size bằng đúng 1 nửa giờ: 11px) */
     .external-time-bar .lunar-date {
-      font-size: 9.5px;
+      font-size: 11px;
       font-weight: 750;
       color: #ffe082;
-      text-shadow: 0 0 5px #ffd54f, 0 0 10px rgba(255, 213, 79, 0.7);
+      width: 100%;
+      text-align: center;
+      text-shadow: 0 0 5px #ffd54f, 0 0 10px rgba(255, 213, 79, 0.6);
+      white-space: nowrap;
     }
 
     .main-temp {
@@ -416,19 +412,11 @@
       </main>
     </div>
 
-    <!-- Khối thời gian bên ngoài cho Form Tròn (Phát sáng rực rỡ đồng bộ màu khung) -->
+    <!-- Khối thời gian bên ngoài cho Form Tròn (3 Dòng: Giờ, Dương Lịch, Âm Lịch) -->
     <div class="external-time-bar" id="externalTimeBar">
-      <div class="clock-text" id="extClock">
-        <span id="extHours">--</span>
-        <span style="opacity: 0.6;">:</span>
-        <span id="extMinutes">--</span>
-        <span style="opacity: 0.6;">:</span>
-        <span id="extSeconds">--</span>
-      </div>
-      <div class="dates-row">
-        <span class="solar-date" id="extSolar">--</span>
-        <span class="lunar-date" id="extLunar">--</span>
-      </div>
+      <div class="clock-text" id="extClock">-- : -- : --</div>
+      <div class="solar-date" id="extSolar">--</div>
+      <div class="lunar-date" id="extLunar">--</div>
     </div>
   </div>
 
@@ -439,8 +427,8 @@
     const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v15";
-    const LAYOUT_KEY = "carplay_layout_mode_v13";
+    const CACHE_KEY = "carplay_weather_cache_v17";
+    const LAYOUT_KEY = "carplay_layout_mode_v15";
 
     const $ = (id) => document.getElementById(id);
     let currentLocation = null;
@@ -471,7 +459,7 @@
       let lunarMonth = ((Math.floor((jd - 2451545.0) / 29.53058885) + 2) % 12) + 1;
       if (lunarMonth <= 0) lunarMonth += 12;
       
-      return `Âm: ${lunarDay}/${lunarMonth}`;
+      return `Ngày ${lunarDay} tháng ${lunarMonth} Âm lịch`;
     }
 
     // --- CẬP NHẬT ĐỒNG HỒ & THỜI GIAN THỰC MỖI GIÂY ---
@@ -480,21 +468,22 @@
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const seconds = String(now.getSeconds()).padStart(2, '0');
+      const timeStr = `${hours} : ${minutes} : ${seconds}`;
 
       const daysOfWeek = ["CN", "Th 2", "Th 3", "Th 4", "Th 5", "Th 6", "Th 7"];
       const dayOfWeek = daysOfWeek[now.getDay()];
       const day = String(now.getDate()).padStart(2, '0');
       const month = String(now.getMonth() + 1).padStart(2, '0');
-      const solarStr = `${dayOfWeek}, ${day}/${month}`;
+      const year = now.getFullYear();
+      
+      const solarStr = `${dayOfWeek}, ngày ${day}/${month}/${year}`;
       const lunarStr = getLunarDateFormatted(now);
 
-      if ($('cardClock')) $('cardClock').textContent = `${hours} : ${minutes} : ${seconds}`;
-      if ($('cardSolar')) $('cardSolar').textContent = `${dayOfWeek}, ${day}/${month}/${now.getFullYear()}`;
-      if ($('cardLunar')) $('cardLunar').textContent = getLunarDateFormatted(now).replace("Âm: ", "Ngày ") + " Âm lịch";
+      if ($('cardClock')) $('cardClock').textContent = timeStr;
+      if ($('cardSolar')) $('cardSolar').textContent = solarStr;
+      if ($('cardLunar')) $('cardLunar').textContent = lunarStr;
 
-      if ($('extHours')) $('extHours').textContent = hours;
-      if ($('extMinutes')) $('extMinutes').textContent = minutes;
-      if ($('extSeconds')) $('extSeconds').textContent = seconds;
+      if ($('extClock')) $('extClock').textContent = timeStr;
       if ($('extSolar')) $('extSolar').textContent = solarStr;
       if ($('extLunar')) $('extLunar').textContent = lunarStr;
     }
