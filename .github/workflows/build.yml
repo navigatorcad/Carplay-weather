@@ -11,44 +11,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Auto Compile & Package IPA
+      - name: Compile and Package IPA
         run: |
           mkdir -p Payload/CarPlayWeather.app
           SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
           
-          # Tự động tìm file ViewController.swift của bạn dù nằm ở thư mục nào
-          VC_FILE=$(find . -name "ViewController.swift" | head -n 1)
-          echo "Found ViewController at: $VC_FILE"
-          
-          # Kiểm tra xem file đã có @main chưa, nếu chưa tự động thêm bộ khởi chạy AppDelegate
-          if ! grep -q "@main" "$VC_FILE"; then
-            cat << 'EOF' > AppEntry.swift
-          import UIKit
-          @main
-          class AppDelegate: UIResponder, UIApplicationDelegate {
-              var window: UIWindow?
-              func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-                  window = UIWindow(frame: UIScreen.main.bounds)
-                  window?.rootViewController = ViewController()
-                  window?.makeKeyAndVisible()
-                  return true
-              }
-          }
-          EOF
-            SOURCES="$VC_FILE AppEntry.swift"
-          else
-            SOURCES="$VC_FILE"
-          fi
-
-          # Biên dịch trực tiếp thành file chạy iOS
-          swiftc $SOURCES \
+          # Biên dịch trực tiếp file ViewController.swift từ thư mục source của bạn
+          swiftc source/ViewController.swift \
             -sdk "$SDK_PATH" \
             -target arm64-apple-ios15.0 \
             -framework UIKit \
             -framework WebKit \
             -o Payload/CarPlayWeather.app/CarPlayWeather
 
-          # Tạo Info.plist chuẩn (hỗ trợ GPS thời tiết + Fullscreen)
+          # Tạo Info.plist chuẩn (chạy full-screen và cấp quyền GPS)
           cat << 'EOF' > Payload/CarPlayWeather.app/Info.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -57,7 +33,7 @@ jobs:
               <key>CFBundleExecutable</key>
               <string>CarPlayWeather</string>
               <key>CFBundleIdentifier</key>
-              <string>com.custom.carplayweather</string>
+              <string>com.navigatorcad.carplayweather</string>
               <key>CFBundleName</key>
               <string>CarPlayWeather</string>
               <key>CFBundleShortVersionString</key>
@@ -83,10 +59,10 @@ jobs:
           </plist>
           EOF
 
-          # Ký giả lập (Fake-sign) cho TrollStore
-          codesign -s - --force Payload/CarPlayWeather.app/CarPlayWeather
+          # Ký số tệp thực thi bằng ldid cho TrollStore
+          ldid -S Payload/CarPlayWeather.app/CarPlayWeather || codesign -s - --force Payload/CarPlayWeather.app/CarPlayWeather
 
-          # Đóng gói thành file .ipa
+          # Đóng gói thành file .ipa chuẩn
           zip -r CarPlayWeather.ipa Payload
 
       - name: Upload IPA
