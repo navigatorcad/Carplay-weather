@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#000000">
-  <title>Weather CarPlay Widget</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Weather CarPlay Widget</title>
   <style>
     :root {
       --accent: #90caf9;
@@ -46,7 +46,6 @@
       100% { box-shadow: 0 0 25px rgba(255, 69, 58, .7), inset 0 0 18px rgba(255, 69, 58, .3); }
     }
 
-    /* CHẾ ĐỘ 1: HÌNH TRÒN (BUBBLE) */
     .widget-container {
       display: flex;
       justify-content: center;
@@ -55,15 +54,14 @@
       height: 100%;
     }
 
+    /* GIAO DIỆN HÌNH TRÒN */
     .bubble {
       width: min( min(310px, 92vw), 92vh );
       aspect-ratio: 1 / 1;
       border-radius: 50%;
       background: radial-gradient(circle at 50% 38%, #202b3a 0%, #111923 52%, #080c12 100%);
       border: 4px solid var(--accent);
-      box-shadow:
-        0 0 25px rgba(var(--accent-rgb), .68),
-        inset 0 0 18px rgba(var(--accent-rgb), .22);
+      box-shadow: 0 0 25px rgba(var(--accent-rgb), .68), inset 0 0 18px rgba(var(--accent-rgb), .22);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -75,48 +73,36 @@
       cursor: pointer;
     }
 
-    .bubble:active {
-      transform: scale(0.97);
-    }
+    .bubble:active { transform: scale(0.97); }
 
-    /* CHẾ ĐỘ 2: HÌNH CHỮ NHẬT ĐỨNG (CARD) */
+    /* GIAO DIỆN HÌNH CHỮ NHẬT ĐỨNG (Cố định chuẩn tỷ lệ, tự scale theo màn hình) */
     .card {
-      width: min(290px, 90vw);
-      height: min(420px, 92vh);
+      width: 290px;
+      height: 420px;
+      flex-shrink: 0;
       border-radius: 24px;
       background: linear-gradient(135deg, #202b3a 0%, #111923 55%, #080c12 100%);
       border: 4px solid var(--accent);
-      box-shadow:
-        0 0 25px rgba(var(--accent-rgb), .68),
-        inset 0 0 18px rgba(var(--accent-rgb), .22);
+      box-shadow: 0 0 25px rgba(var(--accent-rgb), .68), inset 0 0 18px rgba(var(--accent-rgb), .22);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       align-items: center;
       padding: 20px 16px;
       text-align: center;
-      transition: border-color .45s ease, box-shadow .45s ease, transform 0.1s ease;
+      transition: border-color .45s ease, box-shadow .45s ease;
       position: relative;
       cursor: pointer;
     }
 
-    .card:active {
-      transform: scale(0.97);
-    }
-
-    /* CÁC THÀNH PHẦN CHUNG */
     .city {
       max-width: 85%;
       overflow: hidden;
       text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+      white-space: nowrap;
       font-size: 15px;
       font-weight: 650;
       color: #e5edf7;
-      line-height: 1.2;
-      word-break: break-word;
     }
 
     .main-temp {
@@ -143,7 +129,6 @@
       font-size: 14px;
       font-weight: 550;
       max-width: 90%;
-      word-break: break-word;
     }
 
     .divider {
@@ -178,22 +163,9 @@
       white-space: nowrap;
     }
 
-    .detail-icon {
-      font-size: 18px;
-      line-height: 1;
-    }
-
-    .detail-unit {
-      font-size: 11px;
-      font-weight: 550;
-      color: #cbd5e1;
-      margin-left: 1px;
-    }
-
-    .detail-lbl {
-      font-size: 11px;
-      color: var(--muted);
-    }
+    .detail-icon { font-size: 18px; line-height: 1; }
+    .detail-unit { font-size: 11px; font-weight: 550; color: #cbd5e1; margin-left: 1px; }
+    .detail-lbl { font-size: 11px; color: var(--muted); }
 
     .vertical-divider {
       width: 1px;
@@ -201,9 +173,7 @@
       background: rgba(255,255,255,.25);
     }
 
-    .rain-section {
-      width: 100%;
-    }
+    .rain-section { width: 100%; }
 
     .rain-prob {
       display: flex;
@@ -215,71 +185,36 @@
       white-space: nowrap;
     }
 
-    .rain-icon {
-      font-size: 18px;
-    }
-
-    .rain-prob strong {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--accent);
-    }
-
-    .rain-period {
-      font-size: 10px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-
-    .rain-alert {
-      font-size: 10px;
-      font-weight: 650;
-      margin-top: 2px;
-      color: var(--accent);
-    }
-
-    .updated {
-      width: 100%;
-      color: #8190a3;
-      font-size: 8px;
-      opacity: .9;
-    }
+    .rain-icon { font-size: 18px; }
+    .rain-prob strong { font-size: 18px; font-weight: 800; color: var(--accent); }
+    .rain-period { font-size: 10px; color: var(--muted); margin-top: 2px; white-space: nowrap; }
+    .rain-alert { font-size: 10px; font-weight: 650; margin-top: 2px; color: var(--accent); white-space: nowrap; }
+    .updated { width: 100%; color: #8190a3; font-size: 8px; opacity: .9; }
 
     /* NÚT CHUYỂN ĐỔI GIAO DIỆN Ở GÓC DƯỚI BÊN TRÁI */
     .mode-toggle-btn {
       position: fixed;
-      bottom: 12px;
-      left: 12px;
-      background: rgba(13, 20, 30, 0.85);
-      border: 1.5px solid var(--accent);
-      color: var(--text);
-      font-size: 11px;
-      font-weight: 650;
-      padding: 6px 10px;
-      border-radius: 12px;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(20, 30, 45, 0.95);
+      border: 2px solid var(--accent);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: 14px;
       cursor: pointer;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      z-index: 999;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      z-index: 9999;
       transition: transform 0.1s ease, background 0.3s ease;
     }
 
-    .mode-toggle-btn:active {
-      transform: scale(0.92);
-    }
+    .mode-toggle-btn:active { transform: scale(0.92); }
 
-    .level-low {
-      --accent: #90caf9;
-      --accent-rgb: 144, 202, 249;
-    }
-    .level-mild {
-      --accent: #ffd54f;
-      --accent-rgb: 255, 213, 79;
-    }
-    .level-warn {
-      --accent: #ff9800;
-      --accent-rgb: 255, 152, 0;
-    }
+    .level-low { --accent: #90caf9; --accent-rgb: 144, 202, 249; }
+    .level-mild { --accent: #ffd54f; --accent-rgb: 255, 213, 79; }
+    .level-warn { --accent: #ff9800; --accent-rgb: 255, 152, 0; }
     .level-high {
       --accent: #ff453a;
       --accent-rgb: 255, 69, 58;
@@ -288,31 +223,17 @@
 
     .level-low, .level-mild, .level-warn {
       border-color: var(--accent);
-      box-shadow:
-        0 0 27px rgba(var(--accent-rgb), .72),
-        inset 0 0 17px rgba(var(--accent-rgb), .27);
+      box-shadow: 0 0 27px rgba(var(--accent-rgb), .72), inset 0 0 17px rgba(var(--accent-rgb), .27);
     }
 
     .error .desc { color: #ffb4ab; }
-
-    @media (max-height: 360px) {
-      .bubble { width: min(280px, 88vh); padding: 12px; }
-      .card { height: min(280px, 92vh); padding: 12px; }
-      .temp { font-size: 40px; }
-      .weather-icon { font-size: 30px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .bubble, .card { animation: none; transition: none; }
-    }
   </style>
 </head>
 <body>
 
-  <!-- NÚT CHUYỂN ĐỔI GIAO DIỆN Ở GÓC DƯỚI BÊN TRÁI -->
+  <!-- NÚT CHUYỂN ĐỔI GIAO DIỆN -->
   <button class="mode-toggle-btn" id="modeToggleBtn" onclick="toggleLayoutMode(event)">🔄 Đổi Form</button>
 
-  <!-- KHUNG HIỂN THỊ CHÍNH -->
   <div class="widget-container">
     <main class="bubble level-low" id="widgetShape" aria-live="polite" onclick="refreshData()">
       <div class="city" id="city">📍 Đang xác định vị trí...</div>
@@ -365,30 +286,38 @@
   <script>
     "use strict";
 
-    const DEFAULT_LOCATION = {
-      latitude: 20.5453,
-      longitude: 105.9122,
-      name: "Phủ Lý (mặc định)"
-    };
-
+    const DEFAULT_LOCATION = { latitude: 20.5453, longitude: 105.9122, name: "Phủ Lý (mặc định)" };
     const REFRESH_INTERVAL_MS = 30 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v3";
-    const LAYOUT_KEY = "carplay_layout_mode";
+    const CACHE_KEY = "carplay_weather_cache_v5";
+    const LAYOUT_KEY = "carplay_layout_mode_v3";
 
     const $ = (id) => document.getElementById(id);
-
     let currentLocation = null;
     let lastReverseGeocodeAt = 0;
     let refreshTimer = null;
-    let currentMode = "bubble"; // "bubble" hoặc "card"
+    let currentMode = "bubble";
 
-    function setText(id, value) {
-      $(id).textContent = value;
+    function setText(id, value) { $(id).textContent = value; }
+
+    // Tự động tính toán tỷ lệ thu phóng cho khung hình chữ nhật
+    function updateCardScale() {
+      const widget = $("widgetShape");
+      if (currentMode === "card") {
+        const containerW = window.innerWidth - 20;
+        const containerH = window.innerHeight - 20;
+        const baseW = 290;
+        const baseH = 420;
+        const scaleX = containerW / baseW;
+        const scaleY = containerH / baseH;
+        const scale = Math.min(scaleX, scaleY, 1.3); // Giới hạn không phóng quá to trên màn hình lớn
+        widget.style.transform = `scale(${scale})`;
+      } else {
+        widget.style.transform = "none";
+      }
     }
 
-    // --- XỬ LÝ CHUYỂN ĐỔI GIAO DIỆN (TRÒN <-> CHỮ NHẬT) ---
     function setLayoutMode(mode, save = true) {
       currentMode = mode;
       const widget = $("widgetShape");
@@ -397,23 +326,26 @@
       if (mode === "card") {
         widget.className = widget.className.replace("bubble", "card");
         btn.textContent = "⭕ Hình Tròn";
+        updateCardScale();
       } else {
         widget.className = widget.className.replace("card", "bubble");
+        widget.style.transform = "none";
         btn.textContent = "📱 Hình Chữ Nhật";
       }
 
-      if (save) {
-        localStorage.setItem(LAYOUT_KEY, mode);
-      }
+      if (save) { localStorage.setItem(LAYOUT_KEY, mode); }
     }
 
     function toggleLayoutMode(event) {
-      event.stopPropagation(); // Ngăn không cho kích hoạt sự kiện click refresh
+      event.stopPropagation();
       const newMode = currentMode === "bubble" ? "card" : "bubble";
       setLayoutMode(newMode);
     }
 
-    // Tải chế độ giao diện đã lưu trước đó
+    window.addEventListener("resize", () => {
+      if (currentMode === "card") updateCardScale();
+    });
+
     function loadSavedLayout() {
       const savedMode = localStorage.getItem(LAYOUT_KEY);
       if (savedMode === "card" || savedMode === "bubble") {
@@ -481,18 +413,14 @@
       return { text: "Chưa rõ thời tiết", icon: "🌡️" };
     }
 
-    function parseApiLocalTime(value) {
-      return typeof value === "string" ? value.slice(0, 16) : "";
-    }
+    function parseApiLocalTime(value) { return typeof value === "string" ? value.slice(0, 16) : ""; }
 
     function getNextHoursForecast(data) {
       const times = data?.hourly?.time;
       const probabilities = data?.hourly?.precipitation_probability;
       const currentApiTime = parseApiLocalTime(data?.current?.time);
 
-      if (!Array.isArray(times) || !Array.isArray(probabilities) || !currentApiTime) {
-        return null;
-      }
+      if (!Array.isArray(times) || !Array.isArray(probabilities) || !currentApiTime) return null;
 
       let currentIndex = -1;
       for (let i = 0; i < times.length; i++) {
@@ -505,21 +433,13 @@
       for (let offset = 1; offset <= FORECAST_HOURS; offset++) {
         const index = currentIndex + offset;
         if (index >= times.length) break;
-
         const raw = probabilities[index];
         if (raw === null || raw === undefined || !Number.isFinite(Number(raw))) continue;
-
-        candidates.push({
-          probability: Number(raw),
-          time: parseApiLocalTime(times[index])
-        });
+        candidates.push({ probability: Number(raw), time: parseApiLocalTime(times[index]) });
       }
 
       if (!candidates.length) return null;
-
-      return candidates.reduce((best, item) =>
-        item.probability > best.probability ? item : best
-      );
+      return candidates.reduce((best, item) => item.probability > best.probability ? item : best);
     }
 
     function formatHourRange(localTime) {
@@ -527,7 +447,6 @@
       const startHour = localTime.slice(11, 16);
       const [hour, minute] = startHour.split(":").map(Number);
       if (!Number.isFinite(hour) || !Number.isFinite(minute)) return startHour;
-
       const endHour = `${String((hour + 1) % 24).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
       return `${startHour}–${endHour}`;
     }
@@ -575,18 +494,11 @@
       const timeout = setTimeout(() => controller.abort(), 12000);
 
       try {
-        const response = await fetch(url, {
-          method: "GET",
-          signal: controller.signal,
-          cache: "no-store"
-        });
-
-        if (!response.ok) {
-          throw new Error(`Weather API trả về HTTP ${response.status}`);
-        }
+        const response = await fetch(url, { method: "GET", signal: controller.signal, cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const data = await response.json();
-        if (!data.current) throw new Error("API không trả về dữ liệu thời tiết hiện tại.");
+        if (!data.current) throw new Error("Không có dữ liệu hiện tại.");
 
         const temperature = Number(data.current.temperature_2m);
         const humidity = Number(data.current.relative_humidity_2m);
@@ -615,12 +527,7 @@
 
         $("widgetShape").classList.remove("error");
         const updatedAt = new Intl.DateTimeFormat("vi-VN", {
-          timeZone: TIME_ZONE,
-          hour: "2-digit",
-          minute: "2-digit",
-          day: "2-digit",
-          month: "2-digit",
-          hour12: false
+          timeZone: TIME_ZONE, hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", hour12: false
         }).format(new Date());
 
         setText("updated", `Cập nhật ${updatedAt}`);
@@ -636,37 +543,22 @@
       lastReverseGeocodeAt = now;
 
       try {
-        const params = new URLSearchParams({
-          format: "jsonv2",
-          lat: String(latitude),
-          lon: String(longitude),
-          "accept-language": "vi"
-        });
-
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?${params.toString()}`,
-          { headers: { "Accept": "application/json" }, cache: "no-store" }
-        );
-        if (!res.ok) throw new Error("Không tra cứu được tên địa điểm.");
+        const params = new URLSearchParams({ format: "jsonv2", lat: String(latitude), lon: String(longitude), "accept-language": "vi" });
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, { headers: { "Accept": "application/json" }, cache: "no-store" });
+        if (!res.ok) throw new Error();
 
         const data = await res.json();
         const address = data.address || {};
-        const name = address.city || address.town || address.municipality ||
-                     address.county || address.state || "Vị trí hiện tại";
+        const name = address.city || address.town || address.municipality || address.county || address.state || "Vị trí hiện tại";
         setText("city", `📍 ${name}`);
         
-        // Lưu trạng thái hiện tại vào cache
         const activeClass = Array.from($("widgetShape").classList).find(c => c.startsWith("level-")) || "level-low";
         saveToCache(activeClass);
       } catch (error) {}
     }
 
     function useFallbackLocation(reason) {
-      currentLocation = {
-        latitude: DEFAULT_LOCATION.latitude,
-        longitude: DEFAULT_LOCATION.longitude,
-        name: DEFAULT_LOCATION.name
-      };
+      currentLocation = { latitude: DEFAULT_LOCATION.latitude, longitude: DEFAULT_LOCATION.longitude, name: DEFAULT_LOCATION.name };
       setText("city", `📍 ${DEFAULT_LOCATION.name}`);
       if (reason) setText("updated", reason);
       refreshForCurrentLocation();
@@ -707,12 +599,8 @@
 
           const latitude = position.coords.latitude;
           const longitude = position.coords.longitude;
-
           currentLocation = { latitude, longitude, name: "Vị trí hiện tại" };
-          await Promise.allSettled([
-            refreshForCurrentLocation(),
-            fetchCityName(latitude, longitude)
-          ]);
+          await Promise.allSettled([refreshForCurrentLocation(), fetchCityName(latitude, longitude)]);
         },
         () => {
           if (geolocationResolved) return;
@@ -720,15 +608,10 @@
           clearTimeout(safetyTimer);
           useFallbackLocation("Chưa cấp quyền GPS");
         },
-        {
-          enableHighAccuracy: false,
-          timeout: 4000,
-          maximumAge: 60 * 1000
-        }
+        { enableHighAccuracy: false, timeout: 4000, maximumAge: 60 * 1000 }
       );
     }
 
-    // Chạm vào widget để làm mới dữ liệu
     function refreshData() {
       setText("updated", "Đang làm mới dữ liệu...");
       getLocationAndWeather();
@@ -741,18 +624,10 @@
 
       if (refreshTimer) clearInterval(refreshTimer);
       refreshTimer = setInterval(() => {
-        if (!navigator.geolocation) {
-          refreshForCurrentLocation();
-          return;
-        }
-
+        if (!navigator.geolocation) { refreshForCurrentLocation(); return; }
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            currentLocation = {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-              name: "Vị trí hiện tại"
-            };
+            currentLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude, name: "Vị trí hiện tại" };
             refreshForCurrentLocation();
             fetchCityName(position.coords.latitude, position.coords.longitude);
           },
