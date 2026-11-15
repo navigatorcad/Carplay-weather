@@ -114,14 +114,49 @@
 
     .bubble:active, .card:active { transform: scale(0.97); }
 
-    .city {
+    /* KHUNG HIỂN THỊ TÊN VỊ TRÍ & HIỆU ỨNG CHẠY CHỮ (MARQUEE) */
+    .city-container {
+      display: flex;
+      align-items: center;
       max-width: 85%;
       overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
       font-size: 14px;
       font-weight: 650;
       color: #e5edf7;
+      position: relative;
+    }
+
+    .city-pin {
+      flex-shrink: 0;
+      margin-right: 3px;
+      z-index: 3;
+    }
+
+    .city-viewport {
+      overflow: hidden;
+      width: 100%;
+      position: relative;
+      white-space: nowrap;
+    }
+
+    .city-track {
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .city-track.marquee-active {
+      display: inline-flex;
+      animation: smoothScroll 14s linear infinite; /* Điều chỉnh thời gian: số giây càng lớn chạy càng chậm */
+    }
+
+    .city-text {
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    @keyframes smoothScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
     }
 
     /* KHỐI THỜI GIAN TRONG FORM CHỮ NHẬT */
@@ -154,10 +189,10 @@
       color: #ffd54f;
     }
 
-    /* KHỐI THỜI GIAN BÊN NGOÀI FORM TRÒN (3 DÒNG RIÊNG BIỆT, KHỚP ĐƯỜNG KÍNH, PHÁT SÁNG NEON) */
+    /* KHỐI THỜI GIAN BÊN NGOÀI FORM TRÒN */
     .external-time-bar {
-      display: none; /* Chỉ hiện ở form tròn */
-      width: min( min(310px, 92vw), 92vh ); /* Khớp chuẩn đúng đường kính khung tròn */
+      display: none;
+      width: min( min(310px, 92vw), 92vh );
       margin-top: 10px;
       text-align: center;
       flex-direction: column;
@@ -165,7 +200,6 @@
       gap: 3px;
     }
 
-    /* Dòng 1: Giờ : Phút : Giây */
     .external-time-bar .clock-text {
       font-size: 22px; 
       font-weight: 900;
@@ -177,7 +211,6 @@
       white-space: nowrap;
     }
 
-    /* Dòng 2: Dương lịch */
     .external-time-bar .solar-date {
       font-size: 11px;
       font-weight: 750;
@@ -188,7 +221,6 @@
       white-space: nowrap;
     }
 
-    /* Dòng 3: Âm lịch */
     .external-time-bar .lunar-date {
       font-size: 11px;
       font-weight: 750;
@@ -355,7 +387,16 @@
   <div class="main-wrapper">
     <div class="widget-container">
       <main class="bubble level-low" id="widgetShape" aria-live="polite" onclick="refreshData()">
-        <div class="city" id="city">📍 Đang xác định vị trí...</div>
+        
+        <!-- VỊ TRÍ VỚI ICON 📍 CỐ ĐỊNH VÀ HIỆU ỨNG CHẠY CHỮ KHI DÀI -->
+        <div class="city-container" id="cityContainer">
+          <span class="city-pin">📍</span>
+          <div class="city-viewport" id="cityViewport">
+            <div class="city-track" id="cityTrack">
+              <span class="city-text" id="cityText">Đang xác định vị trí...</span>
+            </div>
+          </div>
+        </div>
         
         <!-- Khối thời gian hiển thị riêng cho Form Chữ Nhật -->
         <div class="card-time-block" id="cardTimeBlock" style="display: none;">
@@ -412,7 +453,7 @@
       </main>
     </div>
 
-    <!-- Khối thời gian bên ngoài cho Form Tròn (3 Dòng: Giờ, Dương Lịch, Âm Lịch) -->
+    <!-- Khối thời gian bên ngoài cho Form Tròn -->
     <div class="external-time-bar" id="externalTimeBar">
       <div class="clock-text" id="extClock">-- : -- : --</div>
       <div class="solar-date" id="extSolar">--</div>
@@ -424,10 +465,10 @@
     "use strict";
 
     const DEFAULT_LOCATION = { latitude: 20.5453, longitude: 105.9122, name: "Phủ Lý (mặc định)" };
-    const REFRESH_INTERVAL_MS = 15 * 60 * 1000; // Đã cập nhật thành 15 phút
+    const REFRESH_INTERVAL_MS = 15 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v19";
+    const CACHE_KEY = "carplay_weather_cache_v20";
     const LAYOUT_KEY = "carplay_layout_mode_v17";
 
     const $ = (id) => document.getElementById(id);
@@ -436,6 +477,34 @@
     let refreshTimer = null;
     let currentMode = "bubble";
     let currentScale = 1;
+
+    // --- HÀM CẬP NHẬT TÊN VỊ TRÍ & XỬ LÝ CHẠY CHỮ (MARQUEE) ---
+    function updateCityDisplay(nameText) {
+      const track = $('cityTrack');
+      const viewport = $('cityViewport');
+      
+      // Đặt nội dung chữ tạm thời để đo kích thước
+      track.className = "city-track";
+      track.innerHTML = `<span class="city-text" id="cityText">${nameText}</span>`;
+
+      // Kiểm tra độ dài sau khi render DOM
+      requestAnimationFrame(() => {
+        const textSpan = $('cityText');
+        if (!textSpan || !viewport) return;
+        
+        const textWidth = textSpan.offsetWidth;
+        const viewportWidth = viewport.offsetWidth;
+
+        // Nếu chiều dài tên vị trí lớn hơn khung chứa thì kích hoạt chạy chữ mượt mà
+        if (textWidth > viewportWidth) {
+          track.innerHTML = `
+            <span class="city-text">${nameText}</span>
+            <span class="city-text" style="padding-left: 40px;">${nameText}</span>
+          `;
+          track.classList.add('marquee-active');
+        }
+      });
+    }
 
     // --- THUẬT TOÁN ĐỔI DƯƠNG LỊCH sang ÂM LỊCH (Việt Nam) ---
     function jdFromDate(dd, mm, yy) {
@@ -672,9 +741,11 @@
         fxType = "none";
       }
     }
-    // --------------------------------------------------------
 
-    function setText(id, value) { $(id).textContent = value; }
+    function setText(id, value) { 
+      const el = $(id);
+      if (el) el.textContent = value; 
+    }
 
     function updateCardScale() {
       const widget = $("widgetShape");
@@ -689,7 +760,6 @@
       }
     }
 
-    // HIỆU ỨNG LẬT THẺ 3D MƯỢT MÀ KHI ĐỔI FORM
     function setLayoutMode(mode, save = true) {
       currentMode = mode;
       const widget = $("widgetShape");
@@ -752,7 +822,11 @@
             setText("rain-pct", data.rainPct);
             setText("rain-period", data.rainPeriod);
             setText("rain-msg", data.rainMsg);
-            setText("city", data.city);
+            
+            if (data.city) {
+              updateCityDisplay(data.city.replace(/^📍\s*/, ""));
+            }
+            
             setText("updated", data.updated + " (Lưu trữ)");
             if (data.levelClass) {
               const widget = $("widgetShape");
@@ -769,6 +843,7 @@
 
     function saveToCache(levelClass, weatherCode) {
       try {
+        const cityTextEl = $('cityText');
         const data = {
           temp: $("temp").textContent,
           aqiUvText: $("aqi-uv").textContent,
@@ -780,7 +855,7 @@
           rainPct: $("rain-pct").textContent,
           rainPeriod: $("rain-period").textContent,
           rainMsg: $("rain-msg").textContent,
-          city: $("city").textContent,
+          city: cityTextEl ? cityTextEl.textContent : DEFAULT_LOCATION.name,
           updated: $("updated").textContent,
           levelClass: levelClass,
           weatherCode: weatherCode
@@ -1010,22 +1085,22 @@
           }
         }
 
-        let formattedName = "📍 ";
+        let formattedName = "";
         if (subLoc && cityLoc) {
-          formattedName += `${subPrefix}${subLoc}, ${cityPrefix}${cityLoc}`;
+          formattedName = `${subPrefix}${subLoc}, ${cityPrefix}${cityLoc}`;
         } else if (cityLoc) {
-          formattedName += `${cityPrefix}${cityLoc}`;
+          formattedName = `${cityPrefix}${cityLoc}`;
         } else {
-          formattedName += "Vị trí hiện tại";
+          formattedName = "Vị trí hiện tại";
         }
 
-        setText("city", formattedName);
+        updateCityDisplay(formattedName);
       } catch (error) {}
     }
 
     function useFallbackLocation(reason) {
       currentLocation = { latitude: DEFAULT_LOCATION.latitude, longitude: DEFAULT_LOCATION.longitude, name: DEFAULT_LOCATION.name };
-      setText("city", `📍 ${DEFAULT_LOCATION.name}`);
+      updateCityDisplay(DEFAULT_LOCATION.name);
       if (reason) setText("updated", reason);
       refreshForCurrentLocation();
     }
