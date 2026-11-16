@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -7,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Weather CarPlay Widget - Aura Edition 2.2</title>
+<title>Weather CarPlay Widget - Aura Edition 2.3</title>
 <style>
 :root{--accent:#90caf9;--accent-rgb:144,202,249;--text:#f8fafc;--muted:#aebdce;--surface-opacity:.75}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
@@ -25,7 +24,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0b0f19 0%,#05070c 
 .weather-fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
 .main-wrapper{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2;max-width:100%;max-height:100%}
 .widget-container{display:flex;justify-content:center;align-items:center;perspective:1000px}
-.bubble,.card{background:rgba(13,20,32,var(--surface-opacity));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:4px solid var(--accent);box-shadow:0 0 25px rgba(var(--accent-rgb),.68),inset 0 0 18px rgba(var(--accent-rgb),.22);display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;transition:transform .35s cubic-bezier(.4,.2,.2,1),border-color .4s,box-shadow .4s;overflow:hidden}
+.bubble,.card{background:rgba(13,20,32,var(--surface-opacity));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:4px solid var(--accent);box-shadow:0 0 25px rgba(var(--accent-rgb),.68),inset 0 0 18px rgba(var(--accent-rgb),.22);display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;transition:transform .35s cubic-bezier(.4,.2,.2,1),border-color .4s,box-shadow .4s;overflow:hidden;cursor:pointer}
 .bubble{width:min(min(310px,92vw),92vh);aspect-ratio:1/1;border-radius:50%;justify-content:center;padding:22px 19px;gap:2px}
 .card{width:290px;height:470px;flex-shrink:0;border-radius:24px;justify-content:space-between;padding:15px 15px 12px;gap:3px}
 .bubble:active,.card:active{transform:scale(.985)}
@@ -181,7 +180,7 @@ const DEFAULT_LOCATION={latitude:20.5453,longitude:105.9122,name:"Phủ Lý (m�
 const REFRESH_INTERVAL_MS=15*60*1000;
 const FORECAST_HOURS=3;
 const TIME_ZONE="Asia/Ho_Chi_Minh";
-const CACHE_KEY="carplay_weather_cache_v22";
+const CACHE_KEY="carplay_weather_cache_v23";
 const LAYOUT_KEY="carplay_layout_mode_v17";
 const OPACITY_KEYS={bubble:"carplay_opacity_bubble_v22",card:"carplay_opacity_card_v22"};
 const $=id=>document.getElementById(id);
@@ -260,7 +259,6 @@ function updateCityDisplay(name){
 
 /* =========================================================
    LỊCH ÂM VIỆT NAM - MÚI GIỜ UTC+7
-   Tính tháng 11 theo thời điểm Đông chí và ngày Sóc.
    ========================================================= */
 
 function INT(d){
@@ -281,7 +279,6 @@ function jdFromDate(dd,mm,yy){
  return jd;
 }
 
-/* Thời điểm Sóc tính theo Julian Day UT */
 function newMoon(k){
  const T=k/1236.85;
  const T2=T*T;
@@ -325,12 +322,10 @@ function newMoon(k){
  return jd+C-deltaT;
 }
 
-/* Ngày âm lịch bắt đầu tại ngày địa phương có chứa thời điểm Sóc */
 function getNewMoonDay(k,tz=7){
  return INT(newMoon(k)+0.5+tz/24);
 }
 
-/* Kinh độ Mặt Trời, trả về radian từ 0 đến 2π */
 function sunLongitudeAngle(jdn){
  const T=(jdn-2451545)/36525;
  const T2=T*T;
@@ -350,7 +345,6 @@ function sunLongitudeAngle(jdn){
  return L;
 }
 
-/* Chia kinh độ Mặt Trời thành 12 cung, mỗi cung 30 độ */
 function sunLongitude(jdn){
  return INT(sunLongitudeAngle(jdn)/(Math.PI/6));
 }
@@ -359,7 +353,6 @@ function getSunLongitude(dayNumber,tz=7){
  return sunLongitude(dayNumber-0.5-tz/24);
 }
 
-/* Tìm ngày địa phương xảy ra Đông chí */
 function getWinterSolsticeDay(year,tz=7){
  const approximateJD=jdFromDate(21,12,year)-0.5;
 
@@ -381,10 +374,6 @@ function getWinterSolsticeDay(year,tz=7){
  return INT(solsticeJD+0.5+tz/24);
 }
 
-/*
- * Tháng 11 âm lịch là tháng chứa Đông chí.
- * Tìm ngày Sóc gần nhất nhưng không sau ngày Đông chí.
- */
 function getLunarMonth11(year,tz=7){
  const solsticeDay=getWinterSolsticeDay(year,tz);
 
@@ -401,7 +390,6 @@ function getLunarMonth11(year,tz=7){
  return getNewMoonDay(k,tz);
 }
 
-/* Xác định vị trí tháng nhuận trong năm âm lịch */
 function getLeapMonthOffset(a11,tz=7){
  const k=INT(0.5+(a11-2415021.076998695)/29.530588853);
 
@@ -418,7 +406,6 @@ function getLeapMonthOffset(a11,tz=7){
  return i-1;
 }
 
-/* Chuyển ngày dương lịch sang ngày âm lịch */
 function convertSolar2Lunar(dd,mm,yy,tz=7){
  const dayNumber=jdFromDate(dd,mm,yy);
 
@@ -476,7 +463,6 @@ function convertSolar2Lunar(dd,mm,yy,tz=7){
  };
 }
 
-/* Lấy ngày dương theo múi giờ Việt Nam, không phụ thuộc múi giờ thiết bị */
 function getLunarDateFormatted(date=new Date()){
  try{
   const parts=new Intl.DateTimeFormat("en-CA",{
@@ -597,7 +583,7 @@ function particleCount(type){
 }
 
 function initParticles(type,count){
- particles=[];
+ particles=[]; // Xóa sạch mảng cũ tránh trùng lặp dữ liệu/rò rỉ bộ nhớ
 
  const w=window.innerWidth;
  const h=window.innerHeight;
@@ -1318,7 +1304,6 @@ async function refreshForCurrentLocation(){
  }
 }
 
-/* Host có thể gọi hàm này để truyền tọa độ GPS */
 window.setCarPlayLocation=function(lat,lon,accuracy){
  lat=Number(lat);
  lon=Number(lon);
@@ -1502,13 +1487,15 @@ function startWeatherWidget(){
  resizeCanvas();
  startCanvas();
 
+ // Thêm sự kiện chạm vào widget để làm mới dữ liệu thủ công
+ $("widgetShape").addEventListener("click", refreshData);
+
  getLocationAndWeather();
  startPeriodicRefresh();
 }
 
 startWeatherWidget();
 
-/* Host có thể gọi thủ công khi WebView được kích hoạt */
 window.refreshWeatherWidget=refreshData;
 
 </script>
