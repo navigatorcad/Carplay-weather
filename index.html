@@ -1,1194 +1,1516 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#000000">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Weather CarPlay Widget - Aura Edition</title>
-  <style>
-    :root {
-      --accent: #90caf9;
-      --accent-rgb: 144, 202, 249;
-      --text: #f8fafc;
-      --muted: #aebdce;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #050811;
-      color: var(--text);
-      transition: background 2s ease;
-    }
-
-    body {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 10px;
-      position: relative;
-    }
-
-    /* KHÔNG GIAN NỀN ĐỘNG (EMOTIONAL AMBIANCE AURA) */
-    .aura-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-      transition: opacity 2s ease;
-    }
-
-    .aura-orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.35;
-      animation: floatAura 15s ease-in-out infinite alternate;
-    }
-
-    .orb-1 { width: 300px; height: 300px; top: -10%; left: -10%; background: rgba(var(--accent-rgb), 0.4); }
-    .orb-2 { width: 350px; height: 350px; bottom: -15%; right: -10%; background: rgba(59, 130, 246, 0.25); animation-delay: -5s; }
-
-    @keyframes floatAura {
-      0% { transform: translate(0, 0) scale(1); }
-      100% { transform: translate(30px, 40px) scale(1.15); }
-    }
-
-    /* TRẠNG THÁI AURA THEO THỜI GIAN TRONG NGÀY */
-    body.aura-dawn { background: radial-gradient(circle at 50% 30%, #2a1b2d 0%, #16101d 60%, #08060c 100%); }
-    body.aura-noon { background: radial-gradient(circle at 50% 30%, #14284b 0%, #0a1326 60%, #03060c 100%); }
-    body.aura-sunset { background: radial-gradient(circle at 50% 30%, #3d1c28 0%, #1f0f1b 60%, #0a0408 100%); }
-    body.aura-night { background: radial-gradient(circle at 50% 30%, #0b0f19 0%, #05070c 60%, #010204 100%); }
-
-    /* LỚP PHỦ HIỆU ỨNG CANVAS THỜI TIẾT */
-    .weather-fx {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    @keyframes pulse-high {
-      0% { box-shadow: 0 0 25px rgba(255, 69, 58, .7), inset 0 0 18px rgba(255, 69, 58, .3); }
-      50% { box-shadow: 0 0 45px rgba(255, 69, 58, 1), inset 0 0 30px rgba(255, 69, 58, .6); }
-      100% { box-shadow: 0 0 25px rgba(255, 69, 58, .7), inset 0 0 18px rgba(255, 69, 58, .3); }
-    }
-
-    .main-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      z-index: 2;
-    }
-
-    .widget-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      perspective: 1000px;
-    }
-
-    .bubble, .card {
-      background: rgba(13, 20, 32, 0.75);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 4px solid var(--accent);
-      box-shadow: 0 0 25px rgba(var(--accent-rgb), .68), inset 0 0 18px rgba(var(--accent-rgb), .22);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      position: relative;
-      cursor: pointer;
-      transition: transform 0.4s cubic-bezier(0.4, 0.2, 0.2, 1), border-color 0.4s ease, box-shadow 0.4s ease;
-    }
-
-    .bubble {
-      width: min( min(310px, 92vw), 92vh );
-      aspect-ratio: 1 / 1;
-      border-radius: 50%;
-      justify-content: center;
-      padding: 22px 19px;
-    }
-
-    .card {
-      width: 290px;
-      height: 420px;
-      flex-shrink: 0;
-      border-radius: 24px;
-      justify-content: space-between;
-      padding: 20px 16px;
-    }
-
-    .bubble:active, .card:active { transform: scale(0.97); }
-
-    /* KHUNG VỊ TRÍ & MARQUEE */
-    .city-container {
-      display: flex;
-      align-items: center;
-      max-width: 85%;
-      overflow: hidden;
-      font-size: 14px;
-      font-weight: 650;
-      color: #e5edf7;
-      position: relative;
-    }
-
-    .city-pin {
-      flex-shrink: 0;
-      margin-right: 3px;
-      z-index: 3;
-    }
-
-    .city-viewport {
-      overflow: hidden;
-      width: 100%;
-      position: relative;
-      white-space: nowrap;
-    }
-
-    .city-track {
-      display: inline-block;
-      white-space: nowrap;
-    }
-
-    .city-track.marquee-active {
-      display: inline-flex;
-      animation: smoothScroll 14s linear infinite;
-    }
-
-    .city-text {
-      display: inline-block;
-      white-space: nowrap;
-    }
-
-    @keyframes smoothScroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-
-    /* KHỐI THỜI GIAN TRONG FORM CHỮ NHẬT */
-    .card-time-block {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1px;
-      margin-top: -2px;
-    }
-
-    .card-time-block .clock-text {
-      font-size: 18px;
-      font-weight: 800;
-      color: var(--accent);
-      text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.6);
-      letter-spacing: 0.5px;
-    }
-
-    .solar-date {
-      font-size: 11px;
-      font-weight: 600;
-      color: #e2e8f0;
-    }
-
-    .lunar-date {
-      font-size: 10px;
-      font-weight: 600;
-      color: #ffd54f;
-    }
-
-    /* KHỐI THỜI GIAN BÊN NGOÀI FORM TRÒN */
-    .external-time-bar {
-      display: none;
-      width: min( min(310px, 92vw), 92vh );
-      margin-top: 10px;
-      text-align: center;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-    }
-
-    .external-time-bar .clock-text {
-      font-size: 22px; 
-      font-weight: 900;
-      color: #ffffff;
-      width: 100%;
-      text-align: center;
-      text-shadow: 0 0 8px var(--accent), 0 0 16px var(--accent), 0 0 25px rgba(var(--accent-rgb), 0.8);
-      letter-spacing: 0.5px;
-      white-space: nowrap;
-    }
-
-    .external-time-bar .solar-date {
-      font-size: 11px;
-      font-weight: 750;
-      color: #f1f5f9;
-      width: 100%;
-      text-align: center;
-      text-shadow: 0 0 5px var(--accent), 0 0 10px rgba(var(--accent-rgb), 0.6);
-      white-space: nowrap;
-    }
-
-    .external-time-bar .lunar-date {
-      font-size: 11px;
-      font-weight: 750;
-      color: #ffe082;
-      width: 100%;
-      text-align: center;
-      text-shadow: 0 0 5px #ffd54f, 0 0 10px rgba(255, 213, 79, 0.6);
-      white-space: nowrap;
-    }
-
-    .main-temp {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 9px;
-    }
-
-    .temp {
-      font-size: 48px;
-      line-height: 1;
-      font-weight: 750;
-      letter-spacing: -2px;
-    }
-
-    .weather-icon {
-      font-size: 36px;
-      line-height: 1;
-      animation: float-icon 3s ease-in-out infinite;
-    }
-
-    @keyframes float-icon {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-3px); }
-    }
-
-    .desc {
-      color: #d0dbea;
-      font-size: 14px;
-      font-weight: 550;
-      max-width: 90%;
-    }
-
-    .aqi-uv {
-      font-size: 11px;
-      font-weight: 650;
-      color: var(--accent);
-      letter-spacing: 0.3px;
-    }
-
-    .temp-range {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
-      letter-spacing: 0.5px;
-      margin-top: -2px;
-    }
-
-    .divider {
-      width: 88%;
-      height: 1px;
-      background: rgba(255,255,255,.20);
-      margin: 4px 0;
-    }
-
-    .details {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      width: 91%;
-    }
-
-    .detail-box {
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1px;
-    }
-
-    .detail-val {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      font-size: 16px;
-      font-weight: 750;
-      white-space: nowrap;
-    }
-
-    .detail-icon { font-size: 18px; line-height: 1; }
-    .detail-unit { font-size: 11px; font-weight: 550; color: #cbd5e1; margin-left: 1px; }
-    .detail-lbl { font-size: 11px; color: var(--muted); }
-
-    .vertical-divider {
-      width: 1px;
-      height: 28px;
-      background: rgba(255,255,255,.25);
-    }
-
-    .rain-section { width: 100%; }
-
-    .rain-prob {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 5px;
-      font-size: 13px;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    .rain-icon { font-size: 18px; }
-    .rain-prob strong { font-size: 18px; font-weight: 800; color: var(--accent); }
-    .rain-period { font-size: 10px; color: var(--muted); margin-top: 2px; white-space: nowrap; }
-    .rain-alert { font-size: 10px; font-weight: 650; margin-top: 2px; color: var(--accent); white-space: nowrap; }
-    .updated { width: 100%; color: #8190a3; font-size: 8px; opacity: .9; }
-
-    /* NÚT ĐỔI FORM */
-    .mode-toggle-btn {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      background: rgba(20, 30, 45, 0.95);
-      border: 2px solid var(--accent);
-      color: #fff;
-      font-size: 12px;
-      font-weight: 700;
-      padding: 8px 12px;
-      border-radius: 14px;
-      cursor: pointer;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-      z-index: 9999;
-      transition: transform 0.1s ease, background 0.3s ease;
-    }
-
-    .mode-toggle-btn:active { transform: scale(0.92); }
-
-    .level-low { --accent: #90caf9; --accent-rgb: 144, 202, 249; }
-    .level-mild { --accent: #ffd54f; --accent-rgb: 255, 213, 79; }
-    .level-warn { --accent: #ff9800; --accent-rgb: 255, 152, 0; }
-    .level-high {
-      --accent: #ff453a;
-      --accent-rgb: 255, 69, 58;
-      animation: pulse-high 1.2s infinite ease-in-out;
-    }
-
-    .level-low, .level-mild, .level-warn {
-      border-color: var(--accent);
-      box-shadow: 0 0 27px rgba(var(--accent-rgb), .72), inset 0 0 17px rgba(var(--accent-rgb), .27);
-    }
-
-    .error .desc { color: #ffb4ab; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Weather CarPlay Widget - Aura Edition 2.2</title>
+<style>
+:root{--accent:#90caf9;--accent-rgb:144,202,249;--text:#f8fafc;--muted:#aebdce;--surface-opacity:.75}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;min-height:100%;overflow:hidden;background:#050811;color:var(--text)}
+body{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:10px;position:relative;isolation:isolate}
+.aura-bg{position:fixed;inset:0;pointer-events:none;z-index:0;transition:opacity 2s}
+.aura-orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.35;animation:floatAura 15s ease-in-out infinite alternate}
+.orb-1{width:300px;height:300px;top:-10%;left:-10%;background:rgba(var(--accent-rgb),.4)}
+.orb-2{width:350px;height:350px;bottom:-15%;right:-10%;background:rgba(59,130,246,.25);animation-delay:-5s}
+@keyframes floatAura{to{transform:translate(30px,40px) scale(1.15)}}
+body.aura-dawn{background:radial-gradient(circle at 50% 30%,#2a1b2d 0%,#16101d 60%,#08060c 100%)}
+body.aura-noon{background:radial-gradient(circle at 50% 30%,#14284b 0%,#0a1326 60%,#03060c 100%)}
+body.aura-sunset{background:radial-gradient(circle at 50% 30%,#3d1c28 0%,#1f0f1b 60%,#0a0408 100%)}
+body.aura-night{background:radial-gradient(circle at 50% 30%,#0b0f19 0%,#05070c 60%,#010204 100%)}
+.weather-fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.main-wrapper{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2;max-width:100%;max-height:100%}
+.widget-container{display:flex;justify-content:center;align-items:center;perspective:1000px}
+.bubble,.card{background:rgba(13,20,32,var(--surface-opacity));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:4px solid var(--accent);box-shadow:0 0 25px rgba(var(--accent-rgb),.68),inset 0 0 18px rgba(var(--accent-rgb),.22);display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;transition:transform .35s cubic-bezier(.4,.2,.2,1),border-color .4s,box-shadow .4s;overflow:hidden}
+.bubble{width:min(min(310px,92vw),92vh);aspect-ratio:1/1;border-radius:50%;justify-content:center;padding:22px 19px;gap:2px}
+.card{width:290px;height:470px;flex-shrink:0;border-radius:24px;justify-content:space-between;padding:15px 15px 12px;gap:3px}
+.bubble:active,.card:active{transform:scale(.985)}
+.city-container{display:flex;align-items:center;max-width:85%;overflow:hidden;font-size:14px;font-weight:650;color:#e5edf7;position:relative;flex-shrink:0}
+.city-pin{flex-shrink:0;margin-right:3px}
+.city-viewport{overflow:hidden;width:100%;position:relative;white-space:nowrap}
+.city-track{display:inline-block;white-space:nowrap}
+.city-track.marquee-active{display:inline-flex;animation:smoothScroll 14s linear infinite}
+.city-text{display:inline-block;white-space:nowrap}
+@keyframes smoothScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.card-time-block{width:100%;display:flex;flex-direction:column;align-items:center;gap:1px;margin-top:0;flex-shrink:0}
+.card-time-block .clock-text{font-size:18px;font-weight:800;color:var(--accent);text-shadow:0 0 10px rgba(var(--accent-rgb),.6);letter-spacing:.5px}
+.solar-date{font-size:11px;font-weight:600;color:#e2e8f0}
+.lunar-date{font-size:10px;font-weight:600;color:#ffd54f}
+.external-time-bar{display:none;width:min(min(310px,92vw),92vh);margin-top:10px;text-align:center;flex-direction:column;align-items:center;gap:3px}
+.external-time-bar .clock-text{font-size:22px;font-weight:900;color:#fff;width:100%;text-shadow:0 0 8px var(--accent),0 0 16px var(--accent);letter-spacing:.5px;white-space:nowrap}
+.external-time-bar .solar-date,.external-time-bar .lunar-date{font-size:11px;font-weight:750;width:100%;white-space:nowrap}
+.external-time-bar .solar-date{color:#f1f5f9;text-shadow:0 0 5px var(--accent)}
+.external-time-bar .lunar-date{color:#ffe082;text-shadow:0 0 5px #ffd54f}
+.main-temp{display:flex;align-items:center;justify-content:center;gap:9px;flex-shrink:0}
+.temp{font-size:48px;line-height:1;font-weight:750;letter-spacing:-2px}
+.weather-icon{font-size:36px;line-height:1}
+.desc{color:#d0dbea;font-size:14px;font-weight:550;max-width:90%;flex-shrink:0}
+.aqi-uv{font-size:11px;font-weight:650;color:var(--accent);letter-spacing:.3px;flex-shrink:0}
+.temp-range{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.5px}
+.divider{width:88%;height:1px;background:rgba(255,255,255,.2);margin:3px 0;flex-shrink:0}
+.details{display:flex;justify-content:space-around;align-items:center;width:91%;flex-shrink:0}
+.detail-box{min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px}
+.detail-val{display:flex;align-items:center;justify-content:center;gap:5px;font-size:16px;font-weight:750;white-space:nowrap}
+.detail-icon{font-size:18px;line-height:1}
+.detail-unit{font-size:11px;font-weight:550;color:#cbd5e1;margin-left:1px}
+.detail-lbl{font-size:11px;color:var(--muted)}
+.vertical-divider{width:1px;height:28px;background:rgba(255,255,255,.25)}
+.rain-section{width:100%;flex-shrink:0}
+.rain-prob{display:flex;justify-content:center;align-items:center;gap:5px;font-size:13px;font-weight:600;white-space:nowrap}
+.rain-icon{font-size:18px}
+.rain-prob strong{font-size:18px;font-weight:800;color:var(--accent)}
+.rain-period{font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap}
+.rain-alert{font-size:10px;font-weight:650;margin-top:2px;color:var(--accent);white-space:nowrap}
+.updated{width:100%;color:#8190a3;font-size:8px;opacity:.9;flex-shrink:0}
+.hourly-section{display:none;width:100%;margin-top:2px;padding-top:5px;border-top:1px solid rgba(255,255,255,.17);flex-shrink:0}
+.card .hourly-section{display:block}
+.hourly-title{font-size:10px;color:var(--muted);font-weight:700;margin-bottom:4px;text-align:left}
+.hourly-list{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}
+.hour-item{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;padding:3px 1px;border-radius:8px;background:rgba(255,255,255,.045)}
+.hour-time{font-size:9px;color:#cbd5e1}
+.hour-icon{font-size:15px;line-height:1.2}
+.hour-temp{font-size:11px;font-weight:750}
+.hour-rain{font-size:8px;color:#90caf9}
+.mode-controls{position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:9999;display:flex;align-items:center;gap:10px;max-width:390px;margin:auto}
+.mode-toggle-btn{background:rgba(20,30,45,.95);border:2px solid var(--accent);color:#fff;font-size:12px;font-weight:700;padding:8px 11px;border-radius:14px;cursor:pointer;backdrop-filter:blur(8px);box-shadow:0 4px 15px rgba(0,0,0,.6);white-space:nowrap}
+.opacity-control{flex:1;min-width:0;display:flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(var(--accent-rgb),.7);border-radius:13px;background:rgba(20,30,45,.88);backdrop-filter:blur(8px);color:#fff;font-size:10px}
+.opacity-control label{white-space:nowrap;color:#dbeafe}
+.opacity-control input{width:100%;min-width:35px;accent-color:var(--accent);height:18px}
+.opacity-value{width:29px;text-align:right;font-variant-numeric:tabular-nums}
+.level-low{--accent:#90caf9;--accent-rgb:144,202,249}
+.level-mild{--accent:#ffd54f;--accent-rgb:255,213,79}
+.level-warn{--accent:#ff9800;--accent-rgb:255,152,0}
+.level-high{--accent:#ff453a;--accent-rgb:255,69,58}
+.level-low,.level-mild,.level-warn,.level-high{border-color:var(--accent);box-shadow:0 0 27px rgba(var(--accent-rgb),.72),inset 0 0 17px rgba(var(--accent-rgb),.27)}
+.error .desc{color:#ffb4ab}
+@media(max-height:520px){body{padding:4px}.bubble{width:min(min(270px,88vw),80vh);padding:15px}.external-time-bar{margin-top:4px}.external-time-bar .clock-text{font-size:18px}.mode-controls{bottom:4px}.card{height:390px;padding:9px 12px}.temp{font-size:40px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+</style>
 </head>
 <body>
+<div class="aura-bg"><div class="aura-orb orb-1"></div><div class="aura-orb orb-2"></div></div>
+<canvas class="weather-fx" id="weatherFxCanvas"></canvas>
 
-  <!-- LỚP KHÔNG GIAN NỀN ĐỘNG (AURA) -->
-  <div class="aura-bg" id="auraBg">
-    <div class="aura-orb orb-1"></div>
-    <div class="aura-orb orb-2"></div>
+<div class="mode-controls">
+  <button class="mode-toggle-btn" id="modeToggleBtn" type="button">🔄 Đổi Form</button>
+  <div class="opacity-control">
+    <label for="opacitySlider">Nền</label>
+    <input id="opacitySlider" type="range" min="10" max="100" step="1" value="75">
+    <span class="opacity-value" id="opacityValue">75%</span>
   </div>
+</div>
 
-  <!-- LỚP PHỦ HIỆU ỨNG CANVAS THỜI TIẾT -->
-  <canvas class="weather-fx" id="weatherFxCanvas"></canvas>
-
-  <!-- NÚT CHUYỂN ĐỔI GIAO DIỆN -->
-  <button class="mode-toggle-btn" id="modeToggleBtn" onclick="toggleLayoutMode(event)">🔄 Đổi Form</button>
-
-  <div class="main-wrapper">
-    <div class="widget-container">
-      <main class="bubble level-low" id="widgetShape" aria-live="polite" onclick="refreshData()">
-        
-        <!-- VỊ TRÍ VỚI ICON 📍 CỐ ĐỊNH & MARQUEE -->
-        <div class="city-container" id="cityContainer">
-          <span class="city-pin">📍</span>
-          <div class="city-viewport" id="cityViewport">
-            <div class="city-track" id="cityTrack">
-              <span class="city-text" id="cityText">Đang xác định vị trí...</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- THỜI GIAN CHO FORM CHỮ NHẬT -->
-        <div class="card-time-block" id="cardTimeBlock" style="display: none;">
-          <div class="clock-text" id="cardClock">-- : -- : --</div>
-          <div class="solar-date" id="cardSolar">--</div>
-          <div class="lunar-date" id="cardLunar">--</div>
-        </div>
-
-        <div class="main-temp">
-          <div class="temp" id="temp">--°</div>
-          <div class="weather-icon" id="weather-icon">⛅</div>
-        </div>
-        
-        <div class="desc" id="desc">Đang tải thời tiết...</div>
-        <div class="aqi-uv" id="aqi-uv">AQI: -- · UV: --</div>
-        <div class="temp-range" id="temp-range">--° / --°</div>
-
-        <div class="divider"></div>
-
-        <div class="details">
-          <div class="detail-box">
-            <div class="detail-val">
-              <span class="detail-icon">💧</span>
-              <span id="humidity">--%</span>
-            </div>
-            <div class="detail-lbl">Độ ẩm</div>
-          </div>
-
-          <div class="vertical-divider"></div>
-
-          <div class="detail-box">
-            <div class="detail-val">
-              <span class="detail-icon">💨</span>
-              <span id="wind">--</span>
-              <small class="detail-unit">km/h</small>
-            </div>
-            <div class="detail-lbl">Tốc độ gió</div>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <section class="rain-section">
-          <div class="rain-prob">
-            <span class="rain-icon">🌧️</span>
-            <span>Mưa 3 giờ tới</span>
-            <strong id="rain-pct">--%</strong>
-          </div>
-          <div class="rain-period" id="rain-period">Đang lấy dự báo...</div>
-          <div class="rain-alert" id="rain-msg">Đang cập nhật</div>
-        </section>
-
-        <div class="updated" id="updated">Đang kết nối dữ liệu...</div>
-      </main>
+<div class="main-wrapper">
+ <div class="widget-container">
+  <main class="bubble level-low" id="widgetShape" aria-live="polite">
+   <div class="city-container">
+    <span class="city-pin">📍</span>
+    <div class="city-viewport" id="cityViewport">
+     <div class="city-track" id="cityTrack">
+      <span class="city-text" id="cityText">Đang xác định vị trí...</span>
+     </div>
     </div>
+   </div>
 
-    <!-- THỜI GIAN CHO FORM TRÒN -->
-    <div class="external-time-bar" id="externalTimeBar">
-      <div class="clock-text" id="extClock">-- : -- : --</div>
-      <div class="solar-date" id="extSolar">--</div>
-      <div class="lunar-date" id="extLunar">--</div>
+   <div class="card-time-block" id="cardTimeBlock" style="display:none">
+    <div class="clock-text" id="cardClock">--:--:--</div>
+    <div class="solar-date" id="cardSolar">--</div>
+    <div class="lunar-date" id="cardLunar">--</div>
+   </div>
+
+   <div class="main-temp">
+    <div class="temp" id="temp">--°</div>
+    <div class="weather-icon" id="weather-icon">⛅</div>
+   </div>
+
+   <div class="desc" id="desc">Đang tải thời tiết...</div>
+   <div class="aqi-uv" id="aqi-uv">AQI: -- · UV: --</div>
+   <div class="temp-range" id="temp-range">--° / --°</div>
+   <div class="divider"></div>
+
+   <div class="details">
+    <div class="detail-box">
+     <div class="detail-val"><span class="detail-icon">💧</span><span id="humidity">--%</span></div>
+     <div class="detail-lbl">Độ ẩm</div>
     </div>
-  </div>
+    <div class="vertical-divider"></div>
+    <div class="detail-box">
+     <div class="detail-val"><span class="detail-icon">💨</span><span id="wind">--</span><small class="detail-unit">km/h</small></div>
+     <div class="detail-lbl">Tốc độ gió</div>
+    </div>
+   </div>
 
-  <script>
-    "use strict";
+   <div class="divider"></div>
 
-    const DEFAULT_LOCATION = { latitude: 20.5453, longitude: 105.9122, name: "Phủ Lý (mặc định)" };
-    const REFRESH_INTERVAL_MS = 15 * 60 * 1000;
-    const FORECAST_HOURS = 3;
-    const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v21";
-    const LAYOUT_KEY = "carplay_layout_mode_v17";
+   <section class="rain-section">
+    <div class="rain-prob">
+     <span class="rain-icon">🌧️</span>
+     <span>Mưa 3 giờ tới</span>
+     <strong id="rain-pct">--%</strong>
+    </div>
+    <div class="rain-period" id="rain-period">Đang lấy dự báo...</div>
+    <div class="rain-alert" id="rain-msg">Đang cập nhật</div>
+   </section>
 
-    const $ = (id) => document.getElementById(id);
-    let currentLocation = null;
-    let lastReverseGeocodeAt = 0;
-    let refreshTimer = null;
-    let currentMode = "bubble";
-    let currentScale = 1;
+   <section class="hourly-section" id="hourlySection">
+    <div class="hourly-title">DỰ BÁO THEO GIỜ</div>
+    <div class="hourly-list" id="hourlyList">
+     <span class="hour-time">Đang tải...</span>
+    </div>
+   </section>
 
-    // --- CẬP NHẬT TRẠNG THÁI KHÔNG GIAN NỀN AURA THEO THỜI GIAN THỰC ---
-    function updateAmbianceAura() {
-      const now = new Date();
-      const hour = now.getHours();
-      const body = document.body;
+   <div class="updated" id="updated">Đang kết nối dữ liệu...</div>
+  </main>
+ </div>
 
-      body.classList.remove("aura-dawn", "aura-noon", "aura-sunset", "aura-night");
+ <div class="external-time-bar" id="externalTimeBar">
+  <div class="clock-text" id="extClock">--:--:--</div>
+  <div class="solar-date" id="extSolar">--</div>
+  <div class="lunar-date" id="extLunar">--</div>
+ </div>
+</div>
 
-      if (hour >= 5 && hour < 8) {
-        body.classList.add("aura-dawn"); // Bình minh: 5h - 8h
-      } else if (hour >= 8 && hour < 17) {
-        body.classList.add("aura-noon"); // Trưa chiều: 8h - 17h
-      } else if (hour >= 17 && hour < 19) {
-        body.classList.add("aura-sunset"); // Hoàng hôn: 17h - 19h
-      } else {
-        body.classList.add("aura-night"); // Đêm sâu: 19h - 5h
-      }
+<script>
+"use strict";
+
+const DEFAULT_LOCATION={latitude:20.5453,longitude:105.9122,name:"Phủ Lý (mặc định)"};
+const REFRESH_INTERVAL_MS=15*60*1000;
+const FORECAST_HOURS=3;
+const TIME_ZONE="Asia/Ho_Chi_Minh";
+const CACHE_KEY="carplay_weather_cache_v22";
+const LAYOUT_KEY="carplay_layout_mode_v17";
+const OPACITY_KEYS={bubble:"carplay_opacity_bubble_v22",card:"carplay_opacity_card_v22"};
+const $=id=>document.getElementById(id);
+
+let currentLocation=null;
+let lastReverseGeocodeAt=0;
+let refreshTimer=null;
+let clockTimer=null;
+let auraTimer=null;
+let currentMode="bubble";
+let refreshInFlight=false;
+let geoInFlight=false;
+let geoSafetyTimer=null;
+let fxType="none";
+let particles=[];
+let rafId=0;
+let lightningTimer=null;
+let canvasCtx=null;
+let lastWeatherCode=null;
+let lastLocationKey="";
+let pageActive=!document.hidden;
+
+const reducedMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function safeStorageGet(key){
+ try{return localStorage.getItem(key)}catch(_){return null}
+}
+function safeStorageSet(key,value){
+ try{localStorage.setItem(key,value)}catch(_){}
+}
+function setText(id,value){
+ const el=$(id);
+ if(el)el.textContent=value;
+}
+
+function updateAmbianceAura(){
+ const h=Number(new Intl.DateTimeFormat("en-US",{
+  timeZone:TIME_ZONE,hour:"2-digit",hourCycle:"h23"
+ }).format(new Date()));
+
+ document.body.classList.remove("aura-dawn","aura-noon","aura-sunset","aura-night");
+ document.body.classList.add(
+  h>=5&&h<8?"aura-dawn":
+  h>=8&&h<17?"aura-noon":
+  h>=17&&h<19?"aura-sunset":"aura-night"
+ );
+}
+
+function updateCityDisplay(name){
+ const track=$("cityTrack");
+ const viewport=$("cityViewport");
+ if(!track||!viewport)return;
+
+ track.className="city-track";
+ track.replaceChildren();
+
+ const first=document.createElement("span");
+ first.className="city-text";
+ first.textContent=String(name||"Vị trí hiện tại");
+ track.appendChild(first);
+
+ requestAnimationFrame(()=>{
+  if(!pageActive)return;
+  const w=first.getBoundingClientRect().width;
+
+  if(w>viewport.clientWidth+2){
+   const second=document.createElement("span");
+   second.className="city-text";
+   second.textContent=String(name||"Vị trí hiện tại");
+   second.style.paddingLeft="40px";
+   track.appendChild(second);
+   track.classList.add("marquee-active");
+  }
+ });
+}
+
+/* =========================================================
+   LỊCH ÂM VIỆT NAM - MÚI GIỜ UTC+7
+   Tính tháng 11 theo thời điểm Đông chí và ngày Sóc.
+   ========================================================= */
+
+function INT(d){
+ return Math.floor(d);
+}
+
+function jdFromDate(dd,mm,yy){
+ const a=INT((14-mm)/12);
+ const y=yy+4800-a;
+ const m=mm+12*a-3;
+
+ let jd=dd+INT((153*m+2)/5)+365*y+INT(y/4)-INT(y/100)+INT(y/400)-32045;
+
+ if(jd<2299161){
+  jd=dd+INT((153*m+2)/5)+365*y+INT(y/4)-32083;
+ }
+
+ return jd;
+}
+
+/* Thời điểm Sóc tính theo Julian Day UT */
+function newMoon(k){
+ const T=k/1236.85;
+ const T2=T*T;
+ const T3=T2*T;
+ const dr=Math.PI/180;
+
+ let jd=2415020.75933
+  +29.53058868*k
+  +0.0001178*T2
+  -0.000000155*T3;
+
+ jd+=0.00033*Math.sin((166.56+132.87*T-0.009173*T2)*dr);
+
+ const M=359.2242+29.10535608*k-0.0000333*T2-0.00000347*T3;
+ const Mpr=306.0253+385.81691806*k+0.0107306*T2+0.00001236*T3;
+ const F=21.2964+390.67050646*k-0.0016528*T2-0.00000239*T3;
+
+ const C=
+  (0.1734-0.000393*T)*Math.sin(M*dr)
+  +0.0021*Math.sin(2*M*dr)
+  -0.4068*Math.sin(Mpr*dr)
+  +0.0161*Math.sin(2*Mpr*dr)
+  -0.0004*Math.sin(3*Mpr*dr)
+  +0.0104*Math.sin(2*F*dr)
+  -0.0051*Math.sin((M+Mpr)*dr)
+  -0.0074*Math.sin((M-Mpr)*dr)
+  +0.0004*Math.sin((2*F+M)*dr)
+  -0.0004*Math.sin((2*F-M)*dr)
+  -0.0006*Math.sin((2*F+Mpr)*dr)
+  +0.0010*Math.sin((2*F-Mpr)*dr)
+  +0.0005*Math.sin((2*Mpr+M)*dr);
+
+ let deltaT;
+
+ if(T<-11){
+  deltaT=0.001+0.000839*T+0.0002261*T2-0.00000845*T3-0.000000081*T*T3;
+ }else{
+  deltaT=-0.000278+0.000265*T+0.000262*T2;
+ }
+
+ return jd+C-deltaT;
+}
+
+/* Ngày âm lịch bắt đầu tại ngày địa phương có chứa thời điểm Sóc */
+function getNewMoonDay(k,tz=7){
+ return INT(newMoon(k)+0.5+tz/24);
+}
+
+/* Kinh độ Mặt Trời, trả về radian từ 0 đến 2π */
+function sunLongitudeAngle(jdn){
+ const T=(jdn-2451545)/36525;
+ const T2=T*T;
+ const dr=Math.PI/180;
+
+ const M=357.52910+35999.05030*T-0.0001559*T2-0.00000048*T*T2;
+ const L0=280.46645+36000.76983*T+0.0003032*T2;
+
+ const DL=
+  (1.914600-0.004817*T-0.000014*T2)*Math.sin(dr*M)
+  +(0.019993-0.000101*T)*Math.sin(2*dr*M)
+  +0.000290*Math.sin(3*dr*M);
+
+ let L=(L0+DL)*dr;
+ L-=Math.PI*2*INT(L/(Math.PI*2));
+
+ return L;
+}
+
+/* Chia kinh độ Mặt Trời thành 12 cung, mỗi cung 30 độ */
+function sunLongitude(jdn){
+ return INT(sunLongitudeAngle(jdn)/(Math.PI/6));
+}
+
+function getSunLongitude(dayNumber,tz=7){
+ return sunLongitude(dayNumber-0.5-tz/24);
+}
+
+/* Tìm ngày địa phương xảy ra Đông chí */
+function getWinterSolsticeDay(year,tz=7){
+ const approximateJD=jdFromDate(21,12,year)-0.5;
+
+ let low=approximateJD-4;
+ let high=approximateJD+4;
+
+ for(let i=0;i<45;i++){
+  const mid=(low+high)/2;
+  const angle=sunLongitudeAngle(mid);
+
+  if(angle<Math.PI*1.5){
+   low=mid;
+  }else{
+   high=mid;
+  }
+ }
+
+ const solsticeJD=(low+high)/2;
+ return INT(solsticeJD+0.5+tz/24);
+}
+
+/*
+ * Tháng 11 âm lịch là tháng chứa Đông chí.
+ * Tìm ngày Sóc gần nhất nhưng không sau ngày Đông chí.
+ */
+function getLunarMonth11(year,tz=7){
+ const solsticeDay=getWinterSolsticeDay(year,tz);
+
+ let k=INT((solsticeDay-2415021.076998695)/29.530588853);
+
+ while(getNewMoonDay(k,tz)>solsticeDay){
+  k--;
+ }
+
+ while(getNewMoonDay(k+1,tz)<=solsticeDay){
+  k++;
+ }
+
+ return getNewMoonDay(k,tz);
+}
+
+/* Xác định vị trí tháng nhuận trong năm âm lịch */
+function getLeapMonthOffset(a11,tz=7){
+ const k=INT(0.5+(a11-2415021.076998695)/29.530588853);
+
+ let last=0;
+ let i=1;
+ let arc=getSunLongitude(getNewMoonDay(k+i,tz),tz);
+
+ do{
+  last=arc;
+  i++;
+  arc=getSunLongitude(getNewMoonDay(k+i,tz),tz);
+ }while(arc!==last&&i<14);
+
+ return i-1;
+}
+
+/* Chuyển ngày dương lịch sang ngày âm lịch */
+function convertSolar2Lunar(dd,mm,yy,tz=7){
+ const dayNumber=jdFromDate(dd,mm,yy);
+
+ const k=INT((dayNumber-2415021.076998695)/29.530588853);
+
+ let monthStart=getNewMoonDay(k+1,tz);
+
+ if(monthStart>dayNumber){
+  monthStart=getNewMoonDay(k,tz);
+ }
+
+ let a11=getLunarMonth11(yy,tz);
+ let b11=a11;
+ let lunarYear;
+
+ if(a11>=monthStart){
+  lunarYear=yy;
+  a11=getLunarMonth11(yy-1,tz);
+ }else{
+  lunarYear=yy+1;
+  b11=getLunarMonth11(yy+1,tz);
+ }
+
+ const lunarDay=dayNumber-monthStart+1;
+ const diff=INT((monthStart-a11)/29);
+
+ let lunarMonth=diff+11;
+ let lunarLeap=0;
+
+ if(b11-a11>365){
+  const leapMonth=getLeapMonthOffset(a11,tz);
+
+  if(diff>=leapMonth){
+   lunarMonth=diff+10;
+
+   if(diff===leapMonth){
+    lunarLeap=1;
+   }
+  }
+ }
+
+ if(lunarMonth>12){
+  lunarMonth-=12;
+ }
+
+ if(lunarMonth>=11&&diff<4){
+  lunarYear--;
+ }
+
+ return{
+  day:lunarDay,
+  month:lunarMonth,
+  year:lunarYear,
+  leap:lunarLeap
+ };
+}
+
+/* Lấy ngày dương theo múi giờ Việt Nam, không phụ thuộc múi giờ thiết bị */
+function getLunarDateFormatted(date=new Date()){
+ try{
+  const parts=new Intl.DateTimeFormat("en-CA",{
+   timeZone:"Asia/Ho_Chi_Minh",
+   year:"numeric",
+   month:"2-digit",
+   day:"2-digit"
+  }).formatToParts(date);
+
+  const values={};
+
+  for(const part of parts){
+   if(part.type!=="literal"){
+    values[part.type]=Number(part.value);
+   }
+  }
+
+  const lunar=convertSolar2Lunar(
+   values.day,
+   values.month,
+   values.year,
+   7
+  );
+
+  return `Ngày ${lunar.day} tháng ${lunar.month}${lunar.leap?" nhuận":""} năm ${lunar.year} ÂL`;
+ }catch(error){
+  console.error("Lunar calendar error:",error);
+  return "Âm lịch không khả dụng";
+ }
+}
+
+/* =========================================================
+   ĐỒNG HỒ VÀ LỊCH
+   ========================================================= */
+
+function updateClockAndCalendar(){
+ const now=new Date();
+
+ const parts=new Intl.DateTimeFormat("vi-VN",{
+  timeZone:TIME_ZONE,
+  hour:"2-digit",
+  minute:"2-digit",
+  second:"2-digit",
+  hour12:false
+ }).format(now);
+
+ const dateParts=new Intl.DateTimeFormat("vi-VN",{
+  timeZone:TIME_ZONE,
+  weekday:"short",
+  day:"2-digit",
+  month:"2-digit",
+  year:"numeric"
+ }).format(now);
+
+ const lunar=getLunarDateFormatted(now);
+
+ ["cardClock","extClock"].forEach(id=>setText(id,parts));
+ ["cardSolar","extSolar"].forEach(id=>setText(id,dateParts));
+ ["cardLunar","extLunar"].forEach(id=>setText(id,lunar));
+}
+
+function startClock(){
+ if(clockTimer)clearInterval(clockTimer);
+ updateClockAndCalendar();
+ clockTimer=setInterval(updateClockAndCalendar,1000);
+}
+
+function stopClock(){
+ if(clockTimer){
+  clearInterval(clockTimer);
+  clockTimer=null;
+ }
+}
+
+/* =========================================================
+   CANVAS - HIỆU ỨNG THỜI TIẾT
+   ========================================================= */
+
+const canvas=$("weatherFxCanvas");
+
+try{
+ canvasCtx=canvas.getContext("2d",{alpha:true});
+}catch(_){
+ canvasCtx=null;
+}
+
+function resizeCanvas(){
+ if(!canvasCtx)return;
+
+ const dpr=Math.min(window.devicePixelRatio||1,1.5);
+ const w=window.innerWidth;
+ const h=window.innerHeight;
+
+ canvas.width=Math.round(w*dpr);
+ canvas.height=Math.round(h*dpr);
+ canvas.style.width=w+"px";
+ canvas.style.height=h+"px";
+
+ canvasCtx.setTransform(dpr,0,0,dpr,0,0);
+
+ if(fxType==="stars"){
+  initParticles("stars",28);
+ }else if(fxType!=="none"){
+  initParticles(fxType,particleCount(fxType));
+ }
+}
+
+function particleCount(type){
+ return({
+  sunny:24,
+  snow:32,
+  drizzle:28,
+  rain:42,
+  storm:50,
+  fog:5,
+  stars:28
+ })[type]||0;
+}
+
+function initParticles(type,count){
+ particles=[];
+
+ const w=window.innerWidth;
+ const h=window.innerHeight;
+
+ for(let i=0;i<count;i++){
+  if(type==="sunny"){
+   particles.push({
+    x:Math.random()*w,
+    y:Math.random()*h,
+    r:Math.random()*2+1,
+    dx:(Math.random()-.5)*.25,
+    dy:(Math.random()-.5)*.25,
+    a:Math.random()*.35+.1
+   });
+  }else if(type==="snow"){
+   particles.push({
+    x:Math.random()*w,
+    y:Math.random()*h,
+    r:Math.random()*2.5+1,
+    dy:Math.random()*.8+.4,
+    dx:(Math.random()-.5)*.35,
+    a:Math.random()*Math.PI*2
+   });
+  }else if(type==="drizzle"||type==="rain"||type==="storm"){
+   particles.push({
+    x:Math.random()*w,
+    y:Math.random()*h,
+    len:type==="drizzle"?Math.random()*8+5:Math.random()*17+10,
+    s:type==="drizzle"?Math.random()*3+2:Math.random()*7+8
+   });
+  }else if(type==="fog"){
+   particles.push({
+    x:Math.random()*w,
+    y:Math.random()*h,
+    w:Math.random()*180+100,
+    h:Math.random()*30+15,
+    s:Math.random()*.35+.15,
+    a:Math.random()*.08+.035
+   });
+  }else if(type==="stars"){
+   particles.push({
+    x:Math.random()*w,
+    y:Math.random()*h,
+    r:Math.random()*1.4+.2,
+    a:Math.random(),
+    da:Math.random()*.012+.003
+   });
+  }
+ }
+}
+
+function drawFrame(){
+ if(!pageActive||!canvasCtx)return;
+
+ const c=canvasCtx;
+ const w=window.innerWidth;
+ const h=window.innerHeight;
+
+ c.clearRect(0,0,w,h);
+
+ if(fxType==="stars"){
+  for(const p of particles){
+   p.a+=p.da;
+
+   if(p.a>1||p.a<.1)p.da*=-1;
+
+   c.fillStyle=`rgba(255,255,255,${Math.max(.08,Math.min(1,p.a))})`;
+   c.beginPath();
+   c.arc(p.x,p.y,p.r,0,Math.PI*2);
+   c.fill();
+  }
+ }else if(fxType==="sunny"){
+  for(const p of particles){
+   c.fillStyle=`rgba(255,235,150,${p.a})`;
+   c.beginPath();
+   c.arc(p.x,p.y,p.r,0,Math.PI*2);
+   c.fill();
+
+   p.x=(p.x+p.dx+w)%w;
+   p.y=(p.y+p.dy+h)%h;
+  }
+ }else if(fxType==="snow"){
+  c.fillStyle="rgba(255,255,255,.65)";
+
+  for(const p of particles){
+   c.beginPath();
+   c.arc(p.x,p.y,p.r,0,Math.PI*2);
+   c.fill();
+
+   p.y+=p.dy;
+   p.a+=.02;
+   p.x+=Math.sin(p.a)*.35+p.dx;
+
+   if(p.y>h+5){
+    p.y=-5;
+    p.x=Math.random()*w;
+   }
+  }
+ }else if(fxType==="drizzle"||fxType==="rain"||fxType==="storm"){
+  c.strokeStyle=fxType==="drizzle"?"rgba(174,219,255,.25)":"rgba(174,219,255,.38)";
+  c.lineWidth=fxType==="drizzle"?1:1.3;
+  c.beginPath();
+
+  for(const p of particles){
+   c.moveTo(p.x,p.y);
+   c.lineTo(p.x-1,p.y+p.len);
+
+   p.y+=p.s;
+   p.x-=.6;
+
+   if(p.y>h){
+    p.y=-20;
+    p.x=Math.random()*w;
+   }
+  }
+
+  c.stroke();
+ }else if(fxType==="fog"){
+  for(const p of particles){
+   const g=c.createLinearGradient(p.x,p.y,p.x+p.w,p.y);
+
+   g.addColorStop(0,"rgba(200,220,240,0)");
+   g.addColorStop(.5,`rgba(200,220,240,${p.a})`);
+   g.addColorStop(1,"rgba(200,220,240,0)");
+
+   c.fillStyle=g;
+   c.fillRect(p.x,p.y,p.w,p.h);
+
+   p.x+=p.s;
+   if(p.x>w)p.x=-p.w;
+  }
+ }
+
+ if(!reducedMotion){
+  rafId=requestAnimationFrame(drawFrame);
+ }
+}
+
+function startCanvas(){
+ if(!pageActive||reducedMotion||rafId||!canvasCtx)return;
+ rafId=requestAnimationFrame(drawFrame);
+}
+
+function stopCanvas(){
+ if(rafId){
+  cancelAnimationFrame(rafId);
+  rafId=0;
+ }
+
+ if(canvasCtx){
+  canvasCtx.clearRect(0,0,window.innerWidth,window.innerHeight);
+ }
+}
+
+function triggerLightning(){
+ if(!pageActive||fxType!=="storm")return;
+
+ const flash=document.createElement("div");
+ flash.style.cssText="position:fixed;inset:0;background:rgba(255,255,255,.28);z-index:3;pointer-events:none";
+
+ document.body.appendChild(flash);
+ setTimeout(()=>flash.remove(),90);
+}
+
+function setWeatherFX(code){
+ if(lightningTimer){
+  clearInterval(lightningTimer);
+  lightningTimer=null;
+ }
+
+ lastWeatherCode=code;
+
+ const hour=Number(new Intl.DateTimeFormat("en-US",{
+  timeZone:TIME_ZONE,
+  hour:"2-digit",
+  hourCycle:"h23"
+ }).format(new Date()));
+
+ if(code===0||code===1){
+  fxType="sunny";
+ }else if(code===2||code===3){
+  fxType=(hour>=19||hour<5)?"stars":"none";
+ }else if(code===45||code===48){
+  fxType="fog";
+ }else if(code>=51&&code<=57){
+  fxType="drizzle";
+ }else if((code>=61&&code<=67)||(code>=80&&code<=82)){
+  fxType="rain";
+ }else if((code>=71&&code<=77)||(code>=85&&code<=86)){
+  fxType="snow";
+ }else if(code>=95){
+  fxType="storm";
+ }else{
+  fxType="none";
+ }
+
+ initParticles(fxType,particleCount(fxType));
+
+ if(fxType==="storm"){
+  lightningTimer=setInterval(()=>{
+   if(Math.random()<.3)triggerLightning();
+  },5000);
+ }
+
+ if(pageActive)startCanvas();
+}
+
+/* =========================================================
+   GIAO DIỆN VÀ ĐỘ TRONG SUỐT
+   ========================================================= */
+
+function updateCardScale(){
+ const widget=$("widgetShape");
+
+ if(currentMode==="card"){
+  const maxW=window.innerWidth-20;
+  const maxH=window.innerHeight-70;
+  const scale=Math.max(.55,Math.min(maxW/290,maxH/470,1.2));
+
+  widget.style.transform=`scale(${scale})`;
+ }else{
+  widget.style.transform="none";
+ }
+}
+
+function setLayoutMode(mode,save=true){
+ currentMode=mode;
+
+ const widget=$("widgetShape");
+ const btn=$("modeToggleBtn");
+
+ widget.classList.add("switching");
+ widget.style.transform="scale(.94) rotateY(8deg)";
+
+ setTimeout(()=>{
+  widget.classList.remove("bubble","card");
+  widget.classList.add(mode);
+
+  $("cardTimeBlock").style.display=mode==="card"?"flex":"none";
+  $("externalTimeBar").style.display=mode==="bubble"?"flex":"none";
+
+  btn.textContent=mode==="bubble"?"▭ Hình chữ nhật":"◯ Hình tròn";
+
+  widget.style.transform="none";
+
+  updateCardScale();
+  widget.classList.remove("switching");
+  loadOpacity();
+ },140);
+
+ if(save)safeStorageSet(LAYOUT_KEY,mode);
+}
+
+function loadSavedLayout(){
+ const m=safeStorageGet(LAYOUT_KEY);
+ setLayoutMode(m==="card"?"card":"bubble",false);
+}
+
+function loadOpacity(){
+ const key=OPACITY_KEYS[currentMode];
+ const saved=Number(safeStorageGet(key));
+
+ const value=Number.isFinite(saved)&&saved>=10&&saved<=100?saved:75;
+
+ $("opacitySlider").value=String(value);
+ applyOpacity(value);
+}
+
+function applyOpacity(value){
+ const v=Math.max(10,Math.min(100,Number(value)||75));
+
+ document.documentElement.style.setProperty("--surface-opacity",String(v/100));
+ setText("opacityValue",`${Math.round(v)}%`);
+
+ safeStorageSet(OPACITY_KEYS[currentMode],String(v));
+}
+
+$("modeToggleBtn").addEventListener("click",()=>{
+ setLayoutMode(currentMode==="bubble"?"card":"bubble");
+});
+
+$("opacitySlider").addEventListener("input",e=>{
+ applyOpacity(e.target.value);
+});
+
+window.addEventListener("resize",()=>{
+ resizeCanvas();
+ updateCardScale();
+});
+
+/* =========================================================
+   XỬ LÝ DỮ LIỆU THỜI TIẾT
+   ========================================================= */
+
+function weatherDescription(code){
+ if(code===0)return{text:"Trời quang",icon:"☀️"};
+ if(code===1)return{text:"Ít mây",icon:"🌤️"};
+ if(code===2)return{text:"Có mây",icon:"⛅"};
+ if(code===3)return{text:"Nhiều mây",icon:"☁️"};
+ if(code===45||code===48)return{text:"Sương mù",icon:"🌫️"};
+ if(code>=51&&code<=57)return{text:"Mưa phùn",icon:"🌦️"};
+ if(code>=61&&code<=67)return{text:"Trời mưa",icon:"🌧️"};
+ if(code>=71&&code<=77)return{text:"Có tuyết",icon:"🌨️"};
+ if(code>=80&&code<=82)return{text:"Mưa rào",icon:"🌧️"};
+ if(code===85||code===86)return{text:"Mưa tuyết",icon:"🌨️"};
+ if(code>=95)return{text:"Giông bão",icon:"⛈️"};
+
+ return{text:"Chưa rõ thời tiết",icon:"🌡️"};
+}
+
+function parseApiLocalTime(v){
+ return typeof v==="string"?v.slice(0,16):"";
+}
+
+function findCurrentHourIndex(data){
+ const times=data?.hourly?.time;
+
+ if(!Array.isArray(times))return -1;
+
+ const now=new Intl.DateTimeFormat("sv-SE",{
+  timeZone:TIME_ZONE,
+  year:"numeric",
+  month:"2-digit",
+  day:"2-digit",
+  hour:"2-digit",
+  hourCycle:"h23"
+ }).format(new Date()).replace(" ","T");
+
+ let idx=0;
+
+ for(let i=0;i<times.length;i++){
+  if(times[i].slice(0,13)<=now.slice(0,13)){
+   idx=i;
+  }else{
+   break;
+  }
+ }
+
+ return idx;
+}
+
+function getNextHoursForecast(data){
+ const times=data?.hourly?.time;
+ const probs=data?.hourly?.precipitation_probability;
+
+ if(!Array.isArray(times)||!Array.isArray(probs))return null;
+
+ const idx=findCurrentHourIndex(data);
+ if(idx<0)return null;
+
+ const a=[];
+
+ for(let n=1;n<=FORECAST_HOURS;n++){
+  const i=idx+n;
+  const p=Number(probs[i]);
+
+  if(i<times.length&&Number.isFinite(p)){
+   a.push({
+    probability:p,
+    time:parseApiLocalTime(times[i])
+   });
+  }
+ }
+
+ return a.length?a.reduce((best,x)=>x.probability>best.probability?x:best):null;
+}
+
+function formatHourRange(t){
+ if(!t)return"Chưa có mốc dự báo";
+
+ const h=Number(t.slice(11,13));
+ const m=t.slice(14,16);
+
+ return`${t.slice(11,16)}–${String((h+1)%24).padStart(2,"0")}:${m}`;
+}
+
+function applyRainLevel(p){
+ const widget=$("widgetShape");
+
+ widget.classList.remove("level-low","level-mild","level-warn","level-high");
+
+ let cls="level-low";
+ let msg="Khả năng mưa thấp";
+
+ if(p>=80){
+  cls="level-high";
+  msg="⚠️ Cảnh báo mưa rất cao";
+ }else if(p>=60){
+  cls="level-warn";
+  msg="⚠️ Cảnh báo mưa";
+ }else if(p>=40){
+  cls="level-mild";
+  msg="Chú ý khả năng có mưa";
+ }
+
+ widget.classList.add(cls);
+ setText("rain-msg",msg);
+
+ return cls;
+}
+
+function renderHourly(data){
+ const list=$("hourlyList");
+ const times=data?.hourly?.time;
+ const temps=data?.hourly?.temperature_2m;
+ const probs=data?.hourly?.precipitation_probability;
+ const codes=data?.hourly?.weather_code;
+
+ if(!list)return;
+
+ list.replaceChildren();
+
+ const idx=findCurrentHourIndex(data);
+
+ if(idx<0){
+  list.textContent="Chưa có dữ liệu";
+  return;
+ }
+
+ for(let n=1;n<=6;n++){
+  const i=idx+n;
+
+  if(i>=times.length)break;
+
+  const condition=weatherDescription(Number(codes?.[i]??-1));
+
+  const item=document.createElement("div");
+  item.className="hour-item";
+
+  const time=document.createElement("span");
+  time.className="hour-time";
+  time.textContent=(times[i]||"").slice(11,16);
+
+  const icon=document.createElement("span");
+  icon.className="hour-icon";
+  icon.textContent=condition.icon;
+
+  const temp=document.createElement("span");
+  temp.className="hour-temp";
+  temp.textContent=Number.isFinite(Number(temps?.[i]))?`${Math.round(Number(temps[i]))}°`:"--";
+
+  const rain=document.createElement("span");
+  rain.className="hour-rain";
+  rain.textContent=Number.isFinite(Number(probs?.[i]))?`💧${Math.round(Number(probs[i]))}%`:"--";
+
+  item.append(time,icon,temp,rain);
+  list.appendChild(item);
+ }
+}
+
+/* =========================================================
+   CACHE DỮ LIỆU
+   ========================================================= */
+
+function loadFromCache(){
+ try{
+  const d=JSON.parse(safeStorageGet(CACHE_KEY)||"null");
+
+  if(!d||!d.temp)return;
+
+  for(const [id,key] of [
+   ["temp","temp"],
+   ["aqi-uv","aqiUvText"],
+   ["temp-range","tempRange"],
+   ["humidity","humidity"],
+   ["wind","wind"],
+   ["desc","desc"],
+   ["weather-icon","weatherIcon"],
+   ["rain-pct","rainPct"],
+   ["rain-period","rainPeriod"],
+   ["rain-msg","rainMsg"],
+   ["updated","updated"]
+  ]){
+   if(d[key]!=null)setText(id,d[key]);
+  }
+
+  if(d.city)updateCityDisplay(d.city);
+
+  if(d.levelClass){
+   $("widgetShape").classList.remove("level-low","level-mild","level-warn","level-high");
+   $("widgetShape").classList.add(d.levelClass);
+  }
+
+  if(Number.isFinite(d.weatherCode)){
+   setWeatherFX(d.weatherCode);
+  }
+
+  if(d.hourlyHtml){
+   $("hourlyList").innerHTML=d.hourlyHtml;
+  }
+ }catch(_){}
+}
+
+function saveToCache(levelClass,weatherCode,data){
+ try{
+  const d={
+   temp:$("temp").textContent,
+   aqiUvText:$("aqi-uv").textContent,
+   tempRange:$("temp-range").textContent,
+   humidity:$("humidity").textContent,
+   wind:$("wind").textContent,
+   desc:$("desc").textContent,
+   weatherIcon:$("weather-icon").textContent,
+   rainPct:$("rain-pct").textContent,
+   rainPeriod:$("rain-period").textContent,
+   rainMsg:$("rain-msg").textContent,
+   city:$("cityText")?.textContent||DEFAULT_LOCATION.name,
+   updated:$("updated").textContent,
+   levelClass,
+   weatherCode,
+   hourlyHtml:$("hourlyList").innerHTML,
+   savedAt:Date.now()
+  };
+
+  safeStorageSet(CACHE_KEY,JSON.stringify(d));
+ }catch(_){}
+}
+
+/* =========================================================
+   KẾT NỐI API
+   ========================================================= */
+
+async function fetchWithTimeout(url,ms=12000){
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),ms);
+
+ try{
+  return await fetch(url,{
+   signal:controller.signal,
+   cache:"no-store"
+  });
+ }finally{
+  clearTimeout(timer);
+ }
+}
+
+async function fetchWeather(lat,lon){
+ if(refreshInFlight)return;
+
+ refreshInFlight=true;
+
+ const wp=new URLSearchParams({
+  latitude:String(lat),
+  longitude:String(lon),
+  current:"temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,uv_index",
+  daily:"temperature_2m_min,temperature_2m_max",
+  hourly:"precipitation_probability,temperature_2m,weather_code",
+  timezone:TIME_ZONE,
+  forecast_days:"2",
+  wind_speed_unit:"kmh"
+ });
+
+ const ap=new URLSearchParams({
+  latitude:String(lat),
+  longitude:String(lon),
+  current:"european_aqi"
+ });
+
+ try{
+  const results=await Promise.allSettled([
+   fetchWithTimeout(`https://api.open-meteo.com/v1/forecast?${wp}`),
+   fetchWithTimeout(`https://air-quality-api.open-meteo.com/v1/air-quality?${ap}`,9000)
+  ]);
+
+  const wr=results[0];
+
+  if(wr.status!=="fulfilled"||!wr.value.ok){
+   throw new Error("Weather API unavailable");
+  }
+
+  const data=await wr.value.json();
+
+  if(!data.current){
+   throw new Error("Missing current weather");
+  }
+
+  let aqi="--";
+
+  if(results[1].status==="fulfilled"&&results[1].value.ok){
+   try{
+    const ad=await results[1].value.json();
+
+    if(Number.isFinite(Number(ad.current?.european_aqi))){
+     aqi=Math.round(Number(ad.current.european_aqi));
     }
-    updateAmbianceAura();
-    setInterval(updateAmbianceAura, 60 * 1000); // Kiểm tra lại mỗi phút
-
-    // --- CẬP NHẬT TÊN VỊ TRÍ & MARQUEE ---
-    function updateCityDisplay(nameText) {
-      const track = $('cityTrack');
-      const viewport = $('cityViewport');
-      
-      track.className = "city-track";
-      track.innerHTML = `<span class="city-text" id="cityText">${nameText}</span>`;
-
-      requestAnimationFrame(() => {
-        const textSpan = $('cityText');
-        if (!textSpan || !viewport) return;
-        
-        const textWidth = textSpan.offsetWidth;
-        const viewportWidth = viewport.offsetWidth;
-
-        if (textWidth > viewportWidth) {
-          track.innerHTML = `
-            <span class="city-text">${nameText}</span>
-            <span class="city-text" style="padding-left: 40px;">${nameText}</span>
-          `;
-          track.classList.add('marquee-active');
-        }
-      });
-    }
-
-    // --- ĐỔI DƯƠNG LỊCH SANG ÂM LỊCH ---
-    function jdFromDate(dd, mm, yy) {
-      var a = Math.floor((14 - mm) / 12);
-      var y = yy + 4800 - a;
-      var m = mm + 12 * a - 3;
-      var jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
-      return jd;
-    }
-
-    function getLunarDateFormatted(dateObj) {
-      const d = dateObj.getDate();
-      const m = dateObj.getMonth() + 1;
-      const y = dateObj.getFullYear();
-      const jd = jdFromDate(d, m, y);
-      const lunarDays = ((jd - 2451545.0 + 0.5) % 29.53058885);
-      let lunarDay = Math.floor(lunarDays) + 1;
-      if (lunarDay > 30) lunarDay = 30;
-      if (lunarDay < 1) lunarDay = 1;
-      
-      let lunarMonth = ((Math.floor((jd - 2451545.0) / 29.53058885) + 2) % 12) + 1;
-      if (lunarMonth <= 0) lunarMonth += 12;
-      
-      return `Ngày ${lunarDay} tháng ${lunarMonth} Âm lịch`;
-    }
-
-    // --- ĐỒNG HỒ & LỊCH THỰC ---
-    function updateClockAndCalendar() {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      const timeStr = `${hours} : ${minutes} : ${seconds}`;
-
-      const daysOfWeek = ["CN", "Th 2", "Th 3", "Th 4", "Th 5", "Th 6", "Th 7"];
-      const dayOfWeek = daysOfWeek[now.getDay()];
-      const day = String(now.getDate()).padStart(2, '0');
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const year = now.getFullYear();
-      
-      const solarStr = `${dayOfWeek}, ngày ${day}/${month}/${year}`;
-      const lunarStr = getLunarDateFormatted(now);
-
-      if ($('cardClock')) $('cardClock').textContent = timeStr;
-      if ($('cardSolar')) $('cardSolar').textContent = solarStr;
-      if ($('cardLunar')) $('cardLunar').textContent = lunarStr;
-
-      if ($('extClock')) $('extClock').textContent = timeStr;
-      if ($('extSolar')) $('extSolar').textContent = solarStr;
-      if ($('extLunar')) $('extLunar').textContent = lunarStr;
-    }
-    setInterval(updateClockAndCalendar, 1000);
-    updateClockAndCalendar();
-
-    // --- HIỆU ỨNG CANVAS THỜI TIẾT & SAO ĐÊM ---
-    const canvas = $("weatherFxCanvas");
-    const ctx = canvas.getContext("2d");
-    let particles = [];
-    let fxType = "none";
-    let lightningTimer = null;
-
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    }
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
-
-    function initParticles(type, count) {
-      particles = [];
-      for (let i = 0; i < count; i++) {
-        if (type === "sunny") {
-          particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            radius: Math.random() * 2 + 1,
-            speedY: (Math.random() - 0.5) * 0.3,
-            speedX: (Math.random() - 0.5) * 0.3,
-            opacity: Math.random() * 0.4 + 0.1
-          });
-        } else if (type === "snow") {
-          particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            radius: Math.random() * 3 + 1.5,
-            speedY: Math.random() * 0.8 + 0.5,
-            speedX: Math.random() * 0.5 - 0.25,
-            opacity: Math.random() * 0.6 + 0.2,
-            angle: Math.random() * Math.PI * 2
-          });
-        } else if (type === "drizzle") {
-          particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            length: Math.random() * 10 + 5,
-            speed: Math.random() * 4 + 3,
-            opacity: Math.random() * 0.3 + 0.15
-          });
-        } else if (type === "rain" || type === "storm") {
-          particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            length: Math.random() * 22 + 12,
-            speed: Math.random() * 12 + 10,
-            opacity: Math.random() * 0.5 + 0.3
-          });
-        } else if (type === "fog") {
-          particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            width: Math.random() * 200 + 100,
-            height: Math.random() * 40 + 20,
-            speed: Math.random() * 0.4 + 0.2,
-            opacity: Math.random() * 0.12 + 0.05
-          });
-        } else if (type === "stars") {
-          particles.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            radius: Math.random() * 1.5,
-            alpha: Math.random(),
-            deltaAlpha: Math.random() * 0.02 + 0.005
-          });
-        }
-      }
-    }
-
-    function animateWeatherFX() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Thêm hiệu ứng sao lấp lánh nếu là ban đêm trời quang
-      const currentHour = new Date().getHours();
-      if ((currentHour >= 19 || currentHour < 5) && fxType === "none") {
-        if (!particles.length || particles[0].radius > 3) initParticles("stars", 40);
-        for (let p of particles) {
-          p.alpha += p.deltaAlpha;
-          if (p.alpha <= 0 || p.alpha >= 1) p.deltaAlpha *= -1;
-          ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(p.alpha)})`;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      } else {
-        if (fxType === "sunny") {
-          for (let p of particles) {
-            ctx.fillStyle = `rgba(255, 235, 150, ${p.opacity})`;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.fill();
-            p.y += p.speedY; p.x += p.speedX;
-            if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
-            if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
-          }
-        } else if (fxType === "snow") {
-          ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-          for (let p of particles) {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.fill();
-            p.y += p.speedY; p.angle += 0.02;
-            p.x += Math.sin(p.angle) * 0.4 + p.speedX;
-            if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
-          }
-        } else if (fxType === "drizzle") {
-          ctx.strokeStyle = "rgba(174, 219, 255, 0.25)";
-          ctx.lineWidth = 1;
-          for (let p of particles) {
-            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - 0.5, p.y + p.length); ctx.stroke();
-            p.y += p.speed;
-            if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
-          }
-        } else if (fxType === "rain" || fxType === "storm") {
-          ctx.strokeStyle = "rgba(174, 219, 255, 0.45)";
-          ctx.lineWidth = 1.5; ctx.lineCap = "round";
-          for (let p of particles) {
-            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - 1.5, p.y + p.length); ctx.stroke();
-            p.y += p.speed; p.x -= 0.8;
-            if (p.y > canvas.height) { p.y = -20; p.x = Math.random() * canvas.width; }
-          }
-        } else if (fxType === "fog") {
-          for (let p of particles) {
-            let grad = ctx.createLinearGradient(p.x, p.y, p.x + p.width, p.y);
-            grad.addColorStop(0, `rgba(200, 220, 240, 0)`);
-            grad.addColorStop(0.5, `rgba(200, 220, 240, ${p.opacity})`);
-            grad.addColorStop(1, `rgba(200, 220, 240, 0)`);
-            ctx.fillStyle = grad;
-            ctx.fillRect(p.x, p.y, p.width, p.height);
-            p.x += p.speed;
-            if (p.x > canvas.width) p.x = -p.width;
-          }
-        }
-      }
-      requestAnimationFrame(animateWeatherFX);
-    }
-    animateWeatherFX();
-
-    function triggerLightning() {
-      if (fxType !== "storm") return;
-      const flash = document.createElement("div");
-      flash.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.35); z-index:3; pointer-events:none; transition: opacity 0.2s ease;";
-      document.body.appendChild(flash);
-      setTimeout(() => flash.style.opacity = "0", 60);
-      setTimeout(() => flash.remove(), 250);
-    }
-
-    function setWeatherFX(code) {
-      if (lightningTimer) { clearInterval(lightningTimer); lightningTimer = null; }
-
-      if (code === 0 || code === 1) {
-        fxType = "sunny"; initParticles("sunny", 35);
-      } else if (code === 2 || code === 3) {
-        fxType = "none"; particles = [];
-      } else if (code === 45 || code === 48) {
-        fxType = "fog"; initParticles("fog", 6);
-      } else if (code >= 51 && code <= 57) {
-        fxType = "drizzle"; initParticles("drizzle", 40);
-      } else if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) {
-        fxType = "rain"; initParticles("rain", 70);
-      } else if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) {
-        fxType = "snow"; initParticles("snow", 50);
-      } else if (code >= 95) {
-        fxType = "storm"; initParticles("storm", 100);
-        lightningTimer = setInterval(() => {
-          if (Math.random() < 0.35) triggerLightning();
-        }, 3500);
-      } else {
-        fxType = "none"; particles = [];
-      }
-    }
-
-    function setText(id, value) { 
-      const el = $(id);
-      if (el) el.textContent = value; 
-    }
-
-    function updateCardScale() {
-      const widget = $("widgetShape");
-      if (currentMode === "card") {
-        const containerW = window.innerWidth - 20;
-        const containerH = window.innerHeight - 20;
-        currentScale = Math.min(containerW / 290, containerH / 420, 1.3);
-        widget.style.transform = `scale(${currentScale})`;
-      } else {
-        currentScale = 1;
-        widget.style.transform = "none";
-      }
-    }
-
-    function setLayoutMode(mode, save = true) {
-      currentMode = mode;
-      const widget = $("widgetShape");
-      const btn = $("modeToggleBtn");
-      const cardTime = $("cardTimeBlock");
-      const extTime = $("externalTimeBar");
-
-      widget.style.transform = `scale(${currentScale * 0.85}) rotateY(90deg)`;
-
-      setTimeout(() => {
-        if (mode === "card") {
-          widget.className = widget.className.replace("bubble", "card");
-          btn.textContent = "⭕ Hình Tròn";
-          if (cardTime) cardTime.style.display = "flex";
-          if (extTime) extTime.style.display = "none";
-        } else {
-          widget.className = widget.className.replace("card", "bubble");
-          btn.textContent = "📱 Hình Chữ Nhật";
-          if (cardTime) cardTime.style.display = "none";
-          if (extTime) extTime.style.display = "flex";
-        }
-        updateCardScale();
-      }, 200);
-
-      if (save) { localStorage.setItem(LAYOUT_KEY, mode); }
-    }
-
-    function toggleLayoutMode(event) {
-      event.stopPropagation();
-      const newMode = currentMode === "bubble" ? "card" : "bubble";
-      setLayoutMode(newMode);
-    }
-
-    window.addEventListener("resize", () => updateCardScale());
-
-    function loadSavedLayout() {
-      const savedMode = localStorage.getItem(LAYOUT_KEY);
-      if (savedMode === "card" || savedMode === "bubble") {
-        setLayoutMode(savedMode, false);
-      } else {
-        setLayoutMode("bubble", false);
-      }
-    }
-
-    function loadFromCache() {
-      try {
-        const cached = localStorage.getItem(CACHE_KEY);
-        if (cached) {
-          const data = JSON.parse(cached);
-          if (data.temp && data.temp !== "--°") {
-            setText("temp", data.temp);
-            setText("aqi-uv", data.aqiUvText || "AQI: -- · UV: --");
-            setText("temp-range", data.tempRange);
-            setText("humidity", data.humidity);
-            setText("wind", data.wind);
-            setText("desc", data.desc);
-            setText("weather-icon", data.weatherIcon);
-            setText("rain-pct", data.rainPct);
-            setText("rain-period", data.rainPeriod);
-            setText("rain-msg", data.rainMsg);
-            
-            if (data.city) updateCityDisplay(data.city.replace(/^📍\s*/, ""));
-            setText("updated", data.updated + " (Lưu trữ)");
-            
-            if (data.levelClass) {
-              const widget = $("widgetShape");
-              widget.classList.remove("level-low", "level-mild", "level-warn", "level-high");
-              widget.classList.add(data.levelClass);
-            }
-            if (typeof data.weatherCode === "number") setWeatherFX(data.weatherCode);
-          }
-        }
-      } catch (e) {}
-    }
-
-    function saveToCache(levelClass, weatherCode) {
-      try {
-        const cityTextEl = $('cityText');
-        const data = {
-          temp: $("temp").textContent,
-          aqiUvText: $("aqi-uv").textContent,
-          tempRange: $("temp-range").textContent,
-          humidity: $("humidity").textContent,
-          wind: $("wind").textContent,
-          desc: $("desc").textContent,
-          weatherIcon: $("weather-icon").textContent,
-          rainPct: $("rain-pct").textContent,
-          rainPeriod: $("rain-period").textContent,
-          rainMsg: $("rain-msg").textContent,
-          city: cityTextEl ? cityTextEl.textContent : DEFAULT_LOCATION.name,
-          updated: $("updated").textContent,
-          levelClass: levelClass,
-          weatherCode: weatherCode
-        };
-        localStorage.setItem(CACHE_KEY, JSON.stringify(data));
-      } catch (e) {}
-    }
-
-    function weatherDescription(code) {
-      if (code === 0) return { text: "Trời quang", icon: "☀️" };
-      if (code === 1) return { text: "Ít mây", icon: "🌤️" };
-      if (code === 2) return { text: "Có mây", icon: "⛅" };
-      if (code === 3) return { text: "Nhiều mây", icon: "☁️" };
-      if (code === 45 || code === 48) return { text: "Sương mù", icon: "🌫️" };
-      if (code >= 51 && code <= 57) return { text: "Mưa phùn", icon: "🌦️" };
-      if (code >= 61 && code <= 67) return { text: "Trời mưa", icon: "🌧️" };
-      if (code >= 71 && code <= 77) return { text: "Có tuyết", icon: "🌨️" };
-      if (code >= 80 && code <= 82) return { text: "Mưa rào", icon: "🌧️" };
-      if (code === 85 || code === 86) return { text: "Mưa tuyết", icon: "🌨️" };
-      if (code >= 95 && code <= 99) return { text: "Giông bão", icon: "⛈️" };
-      return { text: "Chưa rõ thời tiết", icon: "🌡️" };
-    }
-
-    function parseApiLocalTime(value) { return typeof value === "string" ? value.slice(0, 16) : ""; }
-
-    function getNextHoursForecast(data) {
-      const times = data?.hourly?.time;
-      const probabilities = data?.hourly?.precipitation_probability;
-      const currentApiTime = parseApiLocalTime(data?.current?.time);
-
-      if (!Array.isArray(times) || !Array.isArray(probabilities) || !currentApiTime) return null;
-
-      let currentIndex = -1;
-      for (let i = 0; i < times.length; i++) {
-        if (parseApiLocalTime(times[i]) <= currentApiTime) currentIndex = i;
-        else break;
-      }
-      if (currentIndex < 0) currentIndex = 0;
-
-      const candidates = [];
-      for (let offset = 1; offset <= FORECAST_HOURS; offset++) {
-        const index = currentIndex + offset;
-        if (index >= times.length) break;
-        const raw = probabilities[index];
-        if (raw === null || raw === undefined || !Number.isFinite(Number(raw))) continue;
-        candidates.push({ probability: Number(raw), time: parseApiLocalTime(times[index]) });
-      }
-
-      if (!candidates.length) return null;
-      return candidates.reduce((best, item) => item.probability > best.probability ? item : best);
-    }
-
-    function formatHourRange(localTime) {
-      if (!localTime) return "Chưa có mốc dự báo";
-      const startHour = localTime.slice(11, 16);
-      const [hour, minute] = startHour.split(":").map(Number);
-      if (!Number.isFinite(hour) || !Number.isFinite(minute)) return startHour;
-      const endHour = `${String((hour + 1) % 24).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-      return `${startHour}–${endHour}`;
-    }
-
-    function applyRainLevel(probability) {
-      const widget = $("widgetShape");
-      const pct = $("rain-pct");
-      const message = $("rain-msg");
-
-      widget.classList.remove("level-low", "level-mild", "level-warn", "level-high");
-
-      let levelClass = "level-low";
-      let messageText = "Khả năng mưa thấp";
-      if (probability >= 80) {
-        levelClass = "level-high";
-        messageText = "⚠️ Cảnh báo mưa rất cao";
-      } else if (probability >= 60) {
-        levelClass = "level-warn";
-        messageText = "⚠️ Cảnh báo mưa";
-      } else if (probability >= 40) {
-        levelClass = "level-mild";
-        messageText = "Chú ý khả năng có mưa";
-      }
-
-      widget.classList.add(levelClass);
-      pct.style.color = "var(--accent)";
-      message.style.color = "var(--accent)";
-      message.textContent = messageText;
-      return levelClass;
-    }
-
-    async function fetchWeather(latitude, longitude) {
-      const weatherParams = new URLSearchParams({
-        latitude: String(latitude),
-        longitude: String(longitude),
-        current: "temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,uv_index",
-        daily: "temperature_2m_min,temperature_2m_max",
-        hourly: "precipitation_probability",
-        timezone: TIME_ZONE,
-        forecast_days: "1",
-        wind_speed_unit: "kmh"
-      });
-
-      const aqiParams = new URLSearchParams({
-        latitude: String(latitude),
-        longitude: String(longitude),
-        current: "european_aqi"
-      });
-
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 12000);
-
-      try {
-        const [weatherRes, aqiRes] = await Promise.allSettled([
-          fetch(`https://api.open-meteo.com/v1/forecast?${weatherParams.toString()}`, { signal: controller.signal, cache: "no-store" }),
-          fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?${aqiParams.toString()}`, { signal: controller.signal, cache: "no-store" })
-        ]);
-
-        if (weatherRes.status !== "fulfilled" || !weatherRes.value.ok) throw new Error();
-
-        const data = await weatherRes.value.json();
-        if (!data.current) throw new Error();
-
-        const temperature = Number(data.current.temperature_2m);
-        const humidity = Number(data.current.relative_humidity_2m);
-        const wind = Number(data.current.wind_speed_10m);
-        const code = Number(data.current.weather_code);
-        const uvIndex = data.current.uv_index !== undefined ? Math.round(Number(data.current.uv_index)) : "--";
-
-        let aqiVal = "--";
-        if (aqiRes.status === "fulfilled" && aqiRes.value.ok) {
-          const aqiData = await aqiRes.value.json();
-          if (aqiData.current && aqiData.current.european_aqi !== undefined) {
-            aqiVal = Math.round(Number(aqiData.current.european_aqi));
-          }
-        }
-        setText("aqi-uv", `AQI: ${aqiVal} · UV: ${uvIndex}`);
-
-        let minTempStr = "--°", maxTempStr = "--°";
-        if (data.daily && Array.isArray(data.daily.temperature_2m_min)) {
-          minTempStr = `${Math.round(Number(data.daily.temperature_2m_min[0]))}°`;
-          maxTempStr = `${Math.round(Number(data.daily.temperature_2m_max[0]))}°`;
-        }
-        setText("temp-range", `${minTempStr} - ${maxTempStr}`);
-
-        setWeatherFX(code);
-
-        setText("temp", Number.isFinite(temperature) ? `${Math.round(temperature)}°` : "--°");
-        setText("humidity", Number.isFinite(humidity) ? `${Math.round(humidity)}%` : "--%");
-        setText("wind", Number.isFinite(wind) ? Math.round(wind) : "--");
-
-        const condition = weatherDescription(code);
-        setText("desc", condition.text);
-        setText("weather-icon", condition.icon);
-
-        let activeLevelClass = "level-low";
-        const forecast = getNextHoursForecast(data);
-        if (forecast) {
-          setText("rain-pct", `${Math.round(forecast.probability)}%`);
-          setText("rain-period", `Cao nhất: ${formatHourRange(forecast.time)}`);
-          activeLevelClass = applyRainLevel(forecast.probability);
-        } else {
-          setText("rain-pct", "--%");
-          setText("rain-period", "Không có dữ liệu dự báo");
-          activeLevelClass = applyRainLevel(0);
-        }
-
-        $("widgetShape").classList.remove("error");
-        const updatedAt = new Intl.DateTimeFormat("vi-VN", {
-          timeZone: TIME_ZONE, hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", hour12: false
-        }).format(new Date());
-
-        setText("updated", `Cập nhật ${updatedAt}`);
-        saveToCache(activeLevelClass, code);
-      } finally {
-        clearTimeout(timeout);
-      }
-    }
-
-    async function fetchCityName(latitude, longitude) {
-      const now = Date.now();
-      if (now - lastReverseGeocodeAt < 30 * 60 * 1000) return;
-      lastReverseGeocodeAt = now;
-
-      try {
-        const params = new URLSearchParams({ format: "jsonv2", lat: String(latitude), lon: String(longitude), "accept-language": "vi" });
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, { headers: { "Accept": "application/json" }, cache: "no-store" });
-        if (!res.ok) throw new Error();
-
-        const data = await res.json();
-        const address = data.address || {};
-
-        let subLoc = address.ward || address.suburb || address.village || address.quarter || "";
-        let subPrefix = "";
-        if (subLoc) {
-          const lower = subLoc.toLowerCase();
-          if (lower.startsWith("xã")) { subPrefix = "X. "; subLoc = subLoc.replace(/^xã\s*/i, ""); }
-          else if (lower.startsWith("phường")) { subPrefix = "P. "; subLoc = subLoc.replace(/^phường\s*/i, ""); }
-          else if (lower.startsWith("thị trấn")) { subPrefix = "TT. "; subLoc = subLoc.replace(/^thị trấn\s*/i, ""); }
-        }
-
-        let cityLoc = address.city || address.town || address.municipality || address.county || address.state || "";
-        let cityPrefix = "";
-        if (cityLoc) {
-          const lowerCity = cityLoc.toLowerCase();
-          if (lowerCity.startsWith("thành phố")) { cityPrefix = "TP. "; cityLoc = cityLoc.replace(/^thành phố\s*/i, ""); }
-          else if (lowerCity.startsWith("tỉnh")) { cityPrefix = "T. "; cityLoc = cityLoc.replace(/^tỉnh\s*/i, ""); }
-          else if (lowerCity.startsWith("quận")) { cityPrefix = "Q. "; cityLoc = cityLoc.replace(/^quận\s*/i, ""); }
-          else if (lowerCity.startsWith("huyện")) { cityPrefix = "H. "; cityLoc = cityLoc.replace(/^huyện\s*/i, ""); }
-        }
-
-        let formattedName = (subLoc && cityLoc) ? `${subPrefix}${subLoc}, ${cityPrefix}${cityLoc}` : (cityLoc ? `${cityPrefix}${cityLoc}` : "Vị trí hiện tại");
-        updateCityDisplay(formattedName);
-      } catch (error) {}
-    }
-
-    function useFallbackLocation(reason) {
-      currentLocation = { latitude: DEFAULT_LOCATION.latitude, longitude: DEFAULT_LOCATION.longitude, name: DEFAULT_LOCATION.name };
-      updateCityDisplay(DEFAULT_LOCATION.name);
-      if (reason) setText("updated", reason);
-      refreshForCurrentLocation();
-    }
-
-    async function refreshForCurrentLocation() {
-      if (!currentLocation) return;
-      try {
-        await fetchWeather(currentLocation.latitude, currentLocation.longitude);
-      } catch (error) {
-        $("widgetShape").classList.add("error");
-        setText("desc", "Mất kết nối mạng");
-        setText("rain-msg", "Đang dùng dữ liệu cũ");
-        setText("updated", "Lỗi mạng · Chạm để thử lại");
-      }
-    }
-
-    function getLocationAndWeather() {
-      setText("updated", "Đang định vị GPS...");
-      if (!navigator.geolocation) {
-        useFallbackLocation("GPS không khả dụng");
-        return;
-      }
-
-      let geolocationResolved = false;
-      const safetyTimer = setTimeout(() => {
-        if (!geolocationResolved) {
-          geolocationResolved = true;
-          useFallbackLocation("GPS phản hồi chậm · Dùng vị trí mặc định");
-        }
-      }, 5000);
-
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          if (geolocationResolved) return;
-          geolocationResolved = true;
-          clearTimeout(safetyTimer);
-
-          const latitude = position.coords.latitude;
-          const longitude = position.coords.longitude;
-          currentLocation = { latitude, longitude, name: "Vị trí hiện tại" };
-          await Promise.allSettled([refreshForCurrentLocation(), fetchCityName(latitude, longitude)]);
-        },
-        () => {
-          if (geolocationResolved) return;
-          geolocationResolved = true;
-          clearTimeout(safetyTimer);
-          useFallbackLocation("Chưa cấp quyền GPS");
-        },
-        { enableHighAccuracy: false, timeout: 4000, maximumAge: 60 * 1000 }
-      );
-    }
-
-    function refreshData() {
-      setText("updated", "Đang làm mới dữ liệu...");
-      getLocationAndWeather();
-    }
-
-    function startWeatherWidget() {
-      loadSavedLayout();
-      loadFromCache();
-      getLocationAndWeather();
-
-      if (refreshTimer) clearInterval(refreshTimer);
-      refreshTimer = setInterval(() => {
-        if (!navigator.geolocation) { refreshForCurrentLocation(); return; }
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            currentLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude, name: "Vị trí hiện tại" };
-            refreshForCurrentLocation();
-            fetchCityName(position.coords.latitude, position.coords.longitude);
-          },
-          () => refreshForCurrentLocation(),
-          { enableHighAccuracy: false, timeout: 5000, maximumAge: 10 * 60 * 1000 }
-        );
-      }, REFRESH_INTERVAL_MS);
-    }
-
-    startWeatherWidget();
-  </script>
+   }catch(_){}
+  }
+
+  const cur=data.current;
+
+  const temperature=Number(cur.temperature_2m);
+  const humidity=Number(cur.relative_humidity_2m);
+  const wind=Number(cur.wind_speed_10m);
+  const code=Number(cur.weather_code);
+  const uv=Number.isFinite(Number(cur.uv_index))?Math.round(Number(cur.uv_index)):"--";
+
+  setText("aqi-uv",`AQI: ${aqi} · UV: ${uv}`);
+
+  const min=Number(data.daily?.temperature_2m_min?.[0]);
+  const max=Number(data.daily?.temperature_2m_max?.[0]);
+
+  setText("temp-range",`${Number.isFinite(min)?Math.round(min):"--"}° / ${Number.isFinite(max)?Math.round(max):"--"}°`);
+  setText("temp",Number.isFinite(temperature)?`${Math.round(temperature)}°`:"--°");
+  setText("humidity",Number.isFinite(humidity)?`${Math.round(humidity)}%`:"--%");
+  setText("wind",Number.isFinite(wind)?Math.round(wind):"--");
+
+  const cond=weatherDescription(code);
+
+  setText("desc",cond.text);
+  setText("weather-icon",cond.icon);
+
+  setWeatherFX(code);
+
+  const rain=getNextHoursForecast(data);
+  let level="level-low";
+
+  if(rain){
+   setText("rain-pct",`${Math.round(rain.probability)}%`);
+   setText("rain-period",`Cao nhất: ${formatHourRange(rain.time)}`);
+   level=applyRainLevel(rain.probability);
+  }else{
+   setText("rain-pct","--%");
+   setText("rain-period","Không có dữ liệu dự báo");
+   level=applyRainLevel(0);
+  }
+
+  renderHourly(data);
+
+  $("widgetShape").classList.remove("error");
+
+  const stamp=new Intl.DateTimeFormat("vi-VN",{
+   timeZone:TIME_ZONE,
+   hour:"2-digit",
+   minute:"2-digit",
+   day:"2-digit",
+   month:"2-digit",
+   hour12:false
+  }).format(new Date());
+
+  setText("updated",`Cập nhật ${stamp}`);
+
+  window.lastWeatherFetchAt=Date.now();
+
+  saveToCache(level,code,data);
+ }finally{
+  refreshInFlight=false;
+ }
+}
+
+/* =========================================================
+   ĐỊNH VỊ VÀ TÊN ĐỊA ĐIỂM
+   ========================================================= */
+
+async function fetchCityName(lat,lon){
+ const key=`${lat.toFixed(3)},${lon.toFixed(3)}`;
+
+ if(key===lastLocationKey&&Date.now()-lastReverseGeocodeAt<30*60*1000)return;
+ if(Date.now()-lastReverseGeocodeAt<30*60*1000)return;
+
+ lastReverseGeocodeAt=Date.now();
+ lastLocationKey=key;
+
+ try{
+  const p=new URLSearchParams({
+   format:"jsonv2",
+   lat:String(lat),
+   lon:String(lon),
+   "accept-language":"vi"
+  });
+
+  const res=await fetchWithTimeout(`https://nominatim.openstreetmap.org/reverse?${p}`,10000);
+
+  if(!res.ok)throw new Error();
+
+  const d=await res.json();
+  const a=d.address||{};
+
+  let sub=a.ward||a.suburb||a.village||a.quarter||a.hamlet||"";
+  let city=a.city||a.town||a.municipality||a.county||a.state||"";
+
+  const short=s=>String(s)
+   .replace(/^thành phố\s*/i,"TP. ")
+   .replace(/^tỉnh\s*/i,"T. ")
+   .replace(/^quận\s*/i,"Q. ")
+   .replace(/^huyện\s*/i,"H. ")
+   .replace(/^phường\s*/i,"P. ")
+   .replace(/^xã\s*/i,"X. ")
+   .replace(/^thị trấn\s*/i,"TT. ");
+
+  updateCityDisplay(sub&&city?`${short(sub)}, ${short(city)}`:short(city||"Vị trí hiện tại"));
+ }catch(_){}
+}
+
+function useFallbackLocation(reason){
+ currentLocation={
+  latitude:DEFAULT_LOCATION.latitude,
+  longitude:DEFAULT_LOCATION.longitude,
+  name:DEFAULT_LOCATION.name
+ };
+
+ updateCityDisplay(DEFAULT_LOCATION.name);
+
+ if(reason)setText("updated",reason);
+
+ refreshForCurrentLocation();
+}
+
+async function refreshForCurrentLocation(){
+ if(!currentLocation||!pageActive)return;
+
+ try{
+  await fetchWeather(currentLocation.latitude,currentLocation.longitude);
+ }catch(_){
+  $("widgetShape").classList.add("error");
+  setText("desc","Mất kết nối mạng");
+  setText("rain-msg","Đang dùng dữ liệu cũ");
+  setText("updated","Lỗi mạng · Chạm nút đổi form để thử lại");
+ }
+}
+
+/* Host có thể gọi hàm này để truyền tọa độ GPS */
+window.setCarPlayLocation=function(lat,lon,accuracy){
+ lat=Number(lat);
+ lon=Number(lon);
+
+ if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return;
+
+ currentLocation={
+  latitude:lat,
+  longitude:lon,
+  name:"Vị trí từ host"
+ };
+
+ if(geoSafetyTimer){
+  clearTimeout(geoSafetyTimer);
+  geoSafetyTimer=null;
+ }
+
+ geoInFlight=false;
+
+ updateCityDisplay("Vị trí hiện tại");
+ refreshForCurrentLocation();
+ fetchCityName(lat,lon);
+};
+
+function getLocationAndWeather(){
+ if(!pageActive||geoInFlight)return;
+
+ setText("updated","Đang định vị GPS...");
+
+ if(!navigator.geolocation){
+  useFallbackLocation("GPS không khả dụng");
+  return;
+ }
+
+ geoInFlight=true;
+
+ let resolved=false;
+
+ geoSafetyTimer=setTimeout(()=>{
+  if(resolved)return;
+
+  resolved=true;
+  geoInFlight=false;
+
+  if(!currentLocation){
+   useFallbackLocation("GPS chậm · Dùng vị trí mặc định");
+  }else{
+   refreshForCurrentLocation();
+  }
+ },6500);
+
+ navigator.geolocation.getCurrentPosition(
+  async pos=>{
+   if(resolved)return;
+
+   resolved=true;
+   geoInFlight=false;
+
+   clearTimeout(geoSafetyTimer);
+
+   const lat=pos.coords.latitude;
+   const lon=pos.coords.longitude;
+
+   currentLocation={
+    latitude:lat,
+    longitude:lon,
+    name:"Vị trí hiện tại"
+   };
+
+   await Promise.allSettled([
+    refreshForCurrentLocation(),
+    fetchCityName(lat,lon)
+   ]);
+  },
+  ()=>{
+   if(resolved)return;
+
+   resolved=true;
+   geoInFlight=false;
+
+   clearTimeout(geoSafetyTimer);
+
+   if(!currentLocation){
+    useFallbackLocation("Chưa cấp quyền GPS · Dùng vị trí mặc định");
+   }else{
+    refreshForCurrentLocation();
+   }
+  },
+  {
+   enableHighAccuracy:false,
+   timeout:5500,
+   maximumAge:5*60*1000
+  }
+ );
+}
+
+function refreshData(){
+ if(refreshInFlight)return;
+
+ setText("updated","Đang làm mới dữ liệu...");
+
+ if(currentLocation){
+  refreshForCurrentLocation();
+ }else{
+  getLocationAndWeather();
+ }
+}
+
+/* =========================================================
+   DUY TRÌ HOẠT ĐỘNG VÀ TIẾT KIỆM TÀI NGUYÊN
+   ========================================================= */
+
+function startPeriodicRefresh(){
+ if(refreshTimer)clearInterval(refreshTimer);
+
+ refreshTimer=setInterval(()=>{
+  if(!pageActive||document.hidden)return;
+
+  if(currentLocation){
+   refreshForCurrentLocation();
+  }else{
+   getLocationAndWeather();
+  }
+ },REFRESH_INTERVAL_MS);
+}
+
+function handleVisibility(){
+ pageActive=!document.hidden;
+
+ if(pageActive){
+  updateAmbianceAura();
+  updateClockAndCalendar();
+  startCanvas();
+
+  if(!currentLocation){
+   getLocationAndWeather();
+  }else if(Date.now()-(window.lastWeatherFetchAt||0)>REFRESH_INTERVAL_MS){
+   refreshForCurrentLocation();
+  }
+ }else{
+  stopCanvas();
+
+  if(lightningTimer){
+   clearInterval(lightningTimer);
+   lightningTimer=null;
+  }
+ }
+}
+
+document.addEventListener("visibilitychange",handleVisibility);
+
+window.addEventListener("pagehide",()=>{
+ pageActive=false;
+ stopCanvas();
+ stopClock();
+});
+
+window.addEventListener("pageshow",()=>{
+ pageActive=!document.hidden;
+
+ if(pageActive){
+  startClock();
+  startCanvas();
+ }
+});
+
+/* =========================================================
+   KHỞI TẠO WIDGET
+   ========================================================= */
+
+function startWeatherWidget(){
+ loadSavedLayout();
+ loadOpacity();
+ loadFromCache();
+
+ updateAmbianceAura();
+
+ auraTimer=setInterval(updateAmbianceAura,5*60*1000);
+
+ startClock();
+ resizeCanvas();
+ startCanvas();
+
+ getLocationAndWeather();
+ startPeriodicRefresh();
+}
+
+startWeatherWidget();
+
+/* Host có thể gọi thủ công khi WebView được kích hoạt */
+window.refreshWeatherWidget=refreshData;
+
+</script>
 </body>
 </html>
