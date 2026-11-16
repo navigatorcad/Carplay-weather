@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Weather CarPlay Widget - Balanced Typography</title>
+<title>Weather CarPlay Widget - Perfect Centered Balance</title>
 <style>
 :root{
   --accent:#90caf9;
@@ -18,7 +18,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;min-height:100%;overflow-y:auto;overflow-x:hidden;background:#050811;color:var(--text)}
-body{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:12px 10px;position:relative;isolation:isolate;min-height:100vh}
+body{display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:16px 12px;position:relative;isolation:isolate;min-height:100vh}
 
 /* KHÔNG GIAN NỀN ĐỘNG AURA */
 .aura-bg{position:fixed;inset:0;pointer-events:none;z-index:0;transition:opacity 2s}
@@ -32,7 +32,9 @@ body.aura-sunset{background:radial-gradient(circle at 50% 30%,#4d2132 0%,#24101f
 body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 60%,#010204 100%)}
 
 .weather-fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
-.main-wrapper{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2;max-width:100%;margin:auto;width:100%}
+
+/* CÂN CHỈNH LAYOUT CHÍNH GIỮA, CÓ KHOẢNG ĐỆM ĐỂ KHÔNG BỊ TRỐNG PHẦN TRÊN */
+.main-wrapper{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2;width:100%;margin:auto;flex:1}
 .widget-container{display:flex;justify-content:center;align-items:center;perspective:1000px;width:100%}
 
 /* HIỆU ỨNG LIQUID GLASS */
@@ -77,7 +79,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 
 /* Form Tròn: Chuẩn 1:1 */
 .bubble{
-  width: min(300px, 92vw);
+  width: min(320px, 94vw);
   aspect-ratio: 1/1;
   border-radius: 50%;
   justify-content: center;
@@ -85,101 +87,113 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   gap: 2px;
 }
 
-/* Form Chữ nhật: Chiều dài linh hoạt (height: auto), tự giãn nở theo nội dung */
+/* Form Chữ nhật: Mở rộng bề ngang tối ưu, thu hẹp khoảng cách thừa, phóng to chữ từ xa */
 .card{
-  width: min(300px, 92vw);
+  width: min(340px, 94vw);
   height: auto;
-  min-height: 480px;
-  border-radius: 26px;
+  min-height: 500px;
+  border-radius: 28px;
   justify-content: space-between;
-  padding: 16px 14px;
+  padding: 18px 14px;
   gap: 8px;
 }
 
 .bubble:active,.card:active{transform:scale(.985)}
 
-.city-container{display:flex;align-items:center;max-width:85%;overflow:hidden;font-size:14px;font-weight:650;color:#f1f5f9;text-shadow:0 1px 3px rgba(0,0,0,0.45);position:relative;flex-shrink:0}
-.city-pin{flex-shrink:0;margin-right:3px}
+.city-container{display:flex;align-items:center;max-width:90%;overflow:hidden;font-size:15px;font-weight:700;color:#f1f5f9;text-shadow:0 1px 3px rgba(0,0,0,0.45);position:relative;flex-shrink:0}
+.city-pin{flex-shrink:0;margin-right:4px}
 .city-viewport{overflow:hidden;width:100%;position:relative;white-space:nowrap}
 .city-track{display:inline-block;white-space:nowrap}
 .city-track.marquee-active{display:inline-flex;animation:smoothScroll 14s linear infinite}
 .city-text{display:inline-block;white-space:nowrap}
 @keyframes smoothScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
-/* PHẦN THỜI GIAN & NGÀY CHO KHUNG CHỮ NHẬT (ĐÃ TĂNG SIZE TƯƠNG ĐỐI 1.5X) */
+/* PHẦN THỜI GIAN & NGÀY CHO KHUNG CHỮ NHẬT (TO RÕ, RẤT DỄ NHÌN TỪ XA) */
 .card-time-block{width:100%;display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0}
-.card-time-block .clock-text{font-size:27px;font-weight:800;color:var(--accent);text-shadow:0 0 14px rgba(var(--accent-rgb),.8);letter-spacing:1px}
+.card-time-block .clock-text{font-size:28px;font-weight:850;color:var(--accent);text-shadow:0 0 14px rgba(var(--accent-rgb),.8);letter-spacing:1px}
 .card-time-block .solar-date{font-size:14px;font-weight:700;color:#f1f5f9;text-shadow:0 1px 3px rgba(0,0,0,0.45)}
 .card-time-block .lunar-date{font-size:13px;font-weight:700;color:#ffd54f;text-shadow:0 1px 3px rgba(0,0,0,0.45)}
 
 /* Thanh thời gian dùng cho khung tròn */
-.external-time-bar{display:none;width:min(300px, 92vw);margin-top:8px;text-align:center;flex-direction:column;align-items:center;gap:3px}
-.external-time-bar .clock-text{font-size:22px;font-weight:900;color:#fff;width:100%;text-shadow:0 0 8px var(--accent),0 0 16px var(--accent);letter-spacing:.5px;white-space:nowrap}
-.external-time-bar .solar-date,.external-time-bar .lunar-date{font-size:11px;font-weight:750;width:100%;white-space:nowrap}
+.external-time-bar{display:none;width:min(320px, 94vw);margin-top:10px;text-align:center;flex-direction:column;align-items:center;gap:3px}
+.external-time-bar .clock-text{font-size:23px;font-weight:900;color:#fff;width:100%;text-shadow:0 0 8px var(--accent),0 0 16px var(--accent);letter-spacing:.5px;white-space:nowrap}
+.external-time-bar .solar-date,.external-time-bar .lunar-date{font-size:12px;font-weight:750;width:100%;white-space:nowrap}
 .external-time-bar .solar-date{color:#f1f5f9;text-shadow:0 0 5px var(--accent)}
 .external-time-bar .lunar-date{color:#ffe082;text-shadow:0 0 5px #ffd54f}
 
-.main-temp{display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0}
-.temp{font-size:46px;line-height:1;font-weight:750;letter-spacing:-2px;text-shadow:0 2px 10px rgba(0,0,0,0.35)}
-.weather-icon{font-size:34px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35))}
-.desc{color:#e2e8f0;font-size:13px;font-weight:550;max-width:90%;flex-shrink:0;text-shadow:0 1px 3px rgba(0,0,0,0.4)}
-.aqi-uv{font-size:11px;font-weight:650;color:var(--accent);letter-spacing:.3px;flex-shrink:0}
-.temp-range{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.5px}
+.main-temp{display:flex;align-items:center;justify-content:center;gap:10px;flex-shrink:0}
+.temp{font-size:52px;line-height:1;font-weight:800;letter-spacing:-2px;text-shadow:0 2px 10px rgba(0,0,0,0.35)}
+.weather-icon{font-size:38px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35))}
+.desc{color:#e2e8f0;font-size:15px;font-weight:600;max-width:95%;flex-shrink:0;text-shadow:0 1px 3px rgba(0,0,0,0.4)}
+.aqi-uv{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.3px;flex-shrink:0}
+.temp-range{font-size:12px;font-weight:650;color:var(--muted);letter-spacing:.5px}
 
-.divider{width:88%;height:1px;background:linear-gradient(90deg, transparent, rgba(255,255,255,.32), transparent);margin:4px 0;flex-shrink:0}
-.details{display:flex;justify-content:space-around;align-items:center;width:91%;flex-shrink:0}
-.detail-box{min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px}
-.detail-val{display:flex;align-items:center;justify-content:center;gap:5px;font-size:15px;font-weight:750;white-space:nowrap}
-.detail-icon{font-size:17px;line-height:1}
-.detail-unit{font-size:11px;font-weight:550;color:#cbd5e1;margin-left:1px}
-.detail-lbl{font-size:11px;color:var(--muted)}
-.vertical-divider{width:1px;height:26px;background:linear-gradient(180deg, transparent, rgba(255,255,255,.32), transparent)}
+.divider{width:92%;height:1px;background:linear-gradient(90deg, transparent, rgba(255,255,255,.32), transparent);margin:5px 0;flex-shrink:0}
+.details{display:flex;justify-content:space-around;align-items:center;width:95%;flex-shrink:0}
+.detail-box{min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px}
+.detail-val{display:flex;align-items:center;justify-content:center;gap:6px;font-size:17px;font-weight:800;white-space:nowrap}
+.detail-icon{font-size:19px;line-height:1}
+.detail-unit{font-size:12px;font-weight:600;color:#cbd5e1;margin-left:1px}
+.detail-lbl{font-size:12px;color:var(--muted);font-weight:600}
+.vertical-divider{width:1px;height:30px;background:linear-gradient(180deg, transparent, rgba(255,255,255,.32), transparent)}
 
 .rain-section{width:100%;flex-shrink:0}
-.rain-prob{display:flex;justify-content:center;align-items:center;gap:5px;font-size:12px;font-weight:600;white-space:nowrap}
-.rain-icon{font-size:17px}
-.rain-prob strong{font-size:17px;font-weight:800;color:var(--accent)}
-.rain-period{font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap}
-.rain-alert{font-size:10px;font-weight:650;margin-top:2px;color:var(--accent);white-space:nowrap}
-.updated{width:100%;color:#94a3b8;font-size:8px;opacity:.9;flex-shrink:0}
+.rain-prob{display:flex;justify-content:center;align-items:center;gap:6px;font-size:13px;font-weight:650;white-space:nowrap}
+.rain-icon{font-size:18px}
+.rain-prob strong{font-size:18px;font-weight:850;color:var(--accent)}
+.rain-period{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;font-weight:600}
+.rain-alert{font-size:11px;font-weight:700;margin-top:2px;color:var(--accent);white-space:nowrap}
+.updated{width:100%;color:#94a3b8;font-size:9px;opacity:.95;flex-shrink:0;font-weight:600}
 
-.hourly-section{display:none;width:100%;margin-top:4px;padding-top:6px;border-top:1px solid rgba(255,255,255,.22);flex-shrink:0}
+.hourly-section{display:none;width:100%;margin-top:6px;padding-top:8px;border-top:1px solid rgba(255,255,255,.22);flex-shrink:0}
 .card .hourly-section{display:block}
-.hourly-title{font-size:10px;color:var(--muted);font-weight:700;margin-bottom:4px;text-align:left}
-.hourly-list{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px}
+.hourly-title{font-size:11px;color:var(--muted);font-weight:750;margin-bottom:5px;text-align:left}
+.hourly-list{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
 .hour-item{
-  display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;padding:4px 1px;border-radius:10px;
-  background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.03));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
+  display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;padding:6px 2px;border-radius:10px;
+  background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.03));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
 }
-.hour-time{font-size:9px;color:#e2e8f0}
-.hour-icon{font-size:15px;line-height:1.2}
-.hour-temp{font-size:11px;font-weight:750}
-.hour-rain{font-size:8px;color:#90caf9}
+.hour-time{font-size:10px;color:#e2e8f0;font-weight:650}
+.hour-icon{font-size:16px;line-height:1.2}
+.hour-temp{font-size:12px;font-weight:800}
+.hour-rain{font-size:9px;color:#90caf9;font-weight:700}
 
-/* THANH ĐIỀU KHIỂN */
-.mode-controls{position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:9999;display:flex;align-items:center;gap:10px;max-width:390px;margin:auto}
+/* CỤM ĐIỀU KHIỂN: XẾP DỌC, CĂN GIỮA, ĐẶT DƯỚI NÚT ĐỔI FORM, KHÔNG BỊ TRÀN VIỀN */
+.mode-controls{
+  width:100%;
+  max-width:320px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  margin:12px auto 0 auto;
+  flex-shrink:0;
+  z-index:9999;
+}
 .mode-toggle-btn{
+  width:100%;
   background:linear-gradient(160deg, rgba(255,255,255,.16), rgba(20,30,45,.75));
   border:1.5px solid rgba(var(--accent-rgb),.8);
-  color:#fff;font-size:12px;font-weight:700;padding:8px 12px;border-radius:15px;cursor:pointer;
+  color:#fff;font-size:13px;font-weight:750;padding:10px 14px;border-radius:16px;cursor:pointer;
   backdrop-filter:blur(16px) saturate(160%);
   -webkit-backdrop-filter:blur(16px) saturate(160%);
   box-shadow:0 6px 18px rgba(0,0,0,.5), inset 0 1px 1px rgba(255,255,255,.4);
-  white-space:nowrap;
+  text-align:center;
 }
 .opacity-control{
-  flex:1;min-width:0;display:flex;align-items:center;gap:7px;padding:7px 11px;
-  border:1.5px solid rgba(var(--accent-rgb),.65);border-radius:15px;
+  width:100%;
+  display:flex;align-items:center;gap:10px;padding:9px 14px;
+  border:1.5px solid rgba(var(--accent-rgb),.65);border-radius:16px;
   background:linear-gradient(160deg, rgba(255,255,255,.14), rgba(20,30,45,.7));
   backdrop-filter:blur(16px) saturate(160%);
   -webkit-backdrop-filter:blur(16px) saturate(160%);
   box-shadow:0 6px 18px rgba(0,0,0,.45), inset 0 1px 1px rgba(255,255,255,.35);
-  color:#fff;font-size:10px;
+  color:#fff;font-size:11px;
 }
-.opacity-control label{white-space:nowrap;color:#e0f2fe;font-weight:600}
-.opacity-control input{width:100%;min-width:35px;accent-color:var(--accent);height:18px;cursor:pointer}
-.opacity-value{width:29px;text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+.opacity-control label{white-space:nowrap;color:#e0f2fe;font-weight:700}
+.opacity-control input{flex:1;min-width:40px;accent-color:var(--accent);height:20px;cursor:pointer}
+.opacity-value{width:32px;text-align:right;font-variant-numeric:tabular-nums;font-weight:800}
 
 .level-low{--accent:#90caf9;--accent-rgb:144,202,249}
 .level-mild{--accent:#ffd54f;--accent-rgb:255,213,79}
@@ -202,15 +216,6 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 <body>
 <div class="aura-bg"><div class="aura-orb orb-1"></div><div class="aura-orb orb-2"></div></div>
 <canvas class="weather-fx" id="weatherFxCanvas"></canvas>
-
-<div class="mode-controls">
-  <button class="mode-toggle-btn" id="modeToggleBtn" type="button">🔄 Đổi Form</button>
-  <div class="opacity-control">
-    <label for="opacitySlider">Kính</label>
-    <input id="opacitySlider" type="range" min="5" max="95" step="1" value="45">
-    <span class="opacity-value" id="opacityValue">45%</span>
-  </div>
-</div>
 
 <div class="main-wrapper">
  <div class="widget-container">
@@ -282,6 +287,16 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
  </div>
 </div>
 
+<!-- CỤM ĐIỀU KHIỂN ĐÃ ĐƯỢC CHUYỂN XUỐNG DƯỚI, CÂN ĐỐI VÀ KHÔNG BỊ TRÀN VIỀN -->
+<div class="mode-controls">
+  <button class="mode-toggle-btn" id="modeToggleBtn" type="button">🔄 Đổi Form</button>
+  <div class="opacity-control">
+    <label for="opacitySlider">Độ trong suốt</label>
+    <input id="opacitySlider" type="range" min="5" max="95" step="1" value="45">
+    <span class="opacity-value" id="opacityValue">45%</span>
+  </div>
+</div>
+
 <script>
 "use strict";
 
@@ -289,7 +304,7 @@ const DEFAULT_LOCATION={latitude:20.5453,longitude:105.9122,name:"Phủ Lý (m�
 const REFRESH_INTERVAL_MS=15*60*1000;
 const FORECAST_HOURS=3;
 const TIME_ZONE="Asia/Ho_Chi_Minh";
-const CACHE_KEY="carplay_weather_cache_v29";
+const CACHE_KEY="carplay_weather_cache_v30";
 const LAYOUT_KEY="carplay_layout_mode_v17";
 const OPACITY_KEYS={bubble:"carplay_opacity_bubble_v24",card:"carplay_opacity_card_v24"};
 const $=id=>document.getElementById(id);
@@ -610,7 +625,7 @@ function setLayoutMode(mode,save=true){
 
  $("cardTimeBlock").style.display=mode==="card"?"flex":"none";
  $("externalTimeBar").style.display=mode==="bubble"?"flex":"none";
- btn.textContent=mode==="bubble"?"▭ Hình chữ nhật":"◯ Hình tròn";
+ btn.textContent=mode==="bubble"?"▭ Chuyển sang khung Chữ nhật":"◯ Chuyển sang khung Tròn";
 
  updateCardScale();
  loadOpacity();
