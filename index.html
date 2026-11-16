@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Weather CarPlay Widget - Liquid Glass Edition</title>
+<title>Weather CarPlay Widget - Balanced Typography</title>
 <style>
 :root{
   --accent:#90caf9;
@@ -17,8 +17,8 @@
   --glass-specular:.22;
 }
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;min-height:100%;overflow:hidden;background:#050811;color:var(--text)}
-body{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:10px;position:relative;isolation:isolate}
+html,body{width:100%;height:100%;min-height:100%;overflow-y:auto;overflow-x:hidden;background:#050811;color:var(--text)}
+body{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:12px 10px;position:relative;isolation:isolate;min-height:100vh}
 
 /* KHÔNG GIAN NỀN ĐỘNG AURA */
 .aura-bg{position:fixed;inset:0;pointer-events:none;z-index:0;transition:opacity 2s}
@@ -32,10 +32,10 @@ body.aura-sunset{background:radial-gradient(circle at 50% 30%,#4d2132 0%,#24101f
 body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 60%,#010204 100%)}
 
 .weather-fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
-.main-wrapper{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2;max-width:100%;max-height:100%}
-.widget-container{display:flex;justify-content:center;align-items:center;perspective:1000px}
+.main-wrapper{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2;max-width:100%;margin:auto;width:100%}
+.widget-container{display:flex;justify-content:center;align-items:center;perspective:1000px;width:100%}
 
-/* HIỆU ỨNG LIQUID GLASS (KÍNH LỎNG PHẢN QUANG) */
+/* HIỆU ỨNG LIQUID GLASS */
 .bubble,.card{
   background:
     radial-gradient(120% 100% at 15% 0%, rgba(255, 255, 255, var(--glass-specular)) 0%, rgba(255, 255, 255, 0.03) 45%, transparent 75%),
@@ -55,12 +55,11 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   align-items:center;
   text-align:center;
   position:relative;
-  transition:transform .35s cubic-bezier(.4,.2,.2,1),border-color .4s,box-shadow .4s;
+  transition:border-color .4s,box-shadow .4s;
   overflow:hidden;
   cursor:pointer;
 }
 
-/* Lớp vệt sáng lướt nhẹ trên bề mặt kính */
 .bubble::before, .card::before {
   content: "";
   position: absolute;
@@ -76,8 +75,27 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   z-index: 1;
 }
 
-.bubble{width:min(min(310px,92vw),92vh);aspect-ratio:1/1;border-radius:50%;justify-content:center;padding:22px 19px;gap:2px}
-.card{width:290px;height:470px;flex-shrink:0;border-radius:28px;justify-content:space-between;padding:15px 15px 12px;gap:3px}
+/* Form Tròn: Chuẩn 1:1 */
+.bubble{
+  width: min(300px, 92vw);
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+  justify-content: center;
+  padding: 18px 14px;
+  gap: 2px;
+}
+
+/* Form Chữ nhật: Chiều dài linh hoạt (height: auto), tự giãn nở theo nội dung */
+.card{
+  width: min(300px, 92vw);
+  height: auto;
+  min-height: 480px;
+  border-radius: 26px;
+  justify-content: space-between;
+  padding: 16px 14px;
+  gap: 8px;
+}
+
 .bubble:active,.card:active{transform:scale(.985)}
 
 .city-container{display:flex;align-items:center;max-width:85%;overflow:hidden;font-size:14px;font-weight:650;color:#f1f5f9;text-shadow:0 1px 3px rgba(0,0,0,0.45);position:relative;flex-shrink:0}
@@ -88,42 +106,44 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 .city-text{display:inline-block;white-space:nowrap}
 @keyframes smoothScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
-.card-time-block{width:100%;display:flex;flex-direction:column;align-items:center;gap:1px;margin-top:0;flex-shrink:0}
-.card-time-block .clock-text{font-size:18px;font-weight:800;color:var(--accent);text-shadow:0 0 12px rgba(var(--accent-rgb),.7);letter-spacing:.5px}
-.solar-date{font-size:11px;font-weight:600;color:#f1f5f9;text-shadow:0 1px 2px rgba(0,0,0,0.4)}
-.lunar-date{font-size:10px;font-weight:600;color:#ffd54f;text-shadow:0 1px 2px rgba(0,0,0,0.4)}
+/* PHẦN THỜI GIAN & NGÀY CHO KHUNG CHỮ NHẬT (ĐÃ TĂNG SIZE TƯƠNG ĐỐI 1.5X) */
+.card-time-block{width:100%;display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0}
+.card-time-block .clock-text{font-size:27px;font-weight:800;color:var(--accent);text-shadow:0 0 14px rgba(var(--accent-rgb),.8);letter-spacing:1px}
+.card-time-block .solar-date{font-size:14px;font-weight:700;color:#f1f5f9;text-shadow:0 1px 3px rgba(0,0,0,0.45)}
+.card-time-block .lunar-date{font-size:13px;font-weight:700;color:#ffd54f;text-shadow:0 1px 3px rgba(0,0,0,0.45)}
 
-.external-time-bar{display:none;width:min(min(310px,92vw),92vh);margin-top:10px;text-align:center;flex-direction:column;align-items:center;gap:3px}
+/* Thanh thời gian dùng cho khung tròn */
+.external-time-bar{display:none;width:min(300px, 92vw);margin-top:8px;text-align:center;flex-direction:column;align-items:center;gap:3px}
 .external-time-bar .clock-text{font-size:22px;font-weight:900;color:#fff;width:100%;text-shadow:0 0 8px var(--accent),0 0 16px var(--accent);letter-spacing:.5px;white-space:nowrap}
 .external-time-bar .solar-date,.external-time-bar .lunar-date{font-size:11px;font-weight:750;width:100%;white-space:nowrap}
 .external-time-bar .solar-date{color:#f1f5f9;text-shadow:0 0 5px var(--accent)}
 .external-time-bar .lunar-date{color:#ffe082;text-shadow:0 0 5px #ffd54f}
 
-.main-temp{display:flex;align-items:center;justify-content:center;gap:9px;flex-shrink:0}
-.temp{font-size:48px;line-height:1;font-weight:750;letter-spacing:-2px;text-shadow:0 2px 10px rgba(0,0,0,0.35)}
-.weather-icon{font-size:36px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35))}
-.desc{color:#e2e8f0;font-size:14px;font-weight:550;max-width:90%;flex-shrink:0;text-shadow:0 1px 3px rgba(0,0,0,0.4)}
+.main-temp{display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0}
+.temp{font-size:46px;line-height:1;font-weight:750;letter-spacing:-2px;text-shadow:0 2px 10px rgba(0,0,0,0.35)}
+.weather-icon{font-size:34px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,0.35))}
+.desc{color:#e2e8f0;font-size:13px;font-weight:550;max-width:90%;flex-shrink:0;text-shadow:0 1px 3px rgba(0,0,0,0.4)}
 .aqi-uv{font-size:11px;font-weight:650;color:var(--accent);letter-spacing:.3px;flex-shrink:0}
 .temp-range{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.5px}
 
-.divider{width:88%;height:1px;background:linear-gradient(90deg, transparent, rgba(255,255,255,.32), transparent);margin:3px 0;flex-shrink:0}
+.divider{width:88%;height:1px;background:linear-gradient(90deg, transparent, rgba(255,255,255,.32), transparent);margin:4px 0;flex-shrink:0}
 .details{display:flex;justify-content:space-around;align-items:center;width:91%;flex-shrink:0}
 .detail-box{min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px}
-.detail-val{display:flex;align-items:center;justify-content:center;gap:5px;font-size:16px;font-weight:750;white-space:nowrap}
-.detail-icon{font-size:18px;line-height:1}
+.detail-val{display:flex;align-items:center;justify-content:center;gap:5px;font-size:15px;font-weight:750;white-space:nowrap}
+.detail-icon{font-size:17px;line-height:1}
 .detail-unit{font-size:11px;font-weight:550;color:#cbd5e1;margin-left:1px}
 .detail-lbl{font-size:11px;color:var(--muted)}
-.vertical-divider{width:1px;height:28px;background:linear-gradient(180deg, transparent, rgba(255,255,255,.32), transparent)}
+.vertical-divider{width:1px;height:26px;background:linear-gradient(180deg, transparent, rgba(255,255,255,.32), transparent)}
 
 .rain-section{width:100%;flex-shrink:0}
-.rain-prob{display:flex;justify-content:center;align-items:center;gap:5px;font-size:13px;font-weight:600;white-space:nowrap}
-.rain-icon{font-size:18px}
-.rain-prob strong{font-size:18px;font-weight:800;color:var(--accent)}
+.rain-prob{display:flex;justify-content:center;align-items:center;gap:5px;font-size:12px;font-weight:600;white-space:nowrap}
+.rain-icon{font-size:17px}
+.rain-prob strong{font-size:17px;font-weight:800;color:var(--accent)}
 .rain-period{font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap}
 .rain-alert{font-size:10px;font-weight:650;margin-top:2px;color:var(--accent);white-space:nowrap}
 .updated{width:100%;color:#94a3b8;font-size:8px;opacity:.9;flex-shrink:0}
 
-.hourly-section{display:none;width:100%;margin-top:2px;padding-top:6px;border-top:1px solid rgba(255,255,255,.22);flex-shrink:0}
+.hourly-section{display:none;width:100%;margin-top:4px;padding-top:6px;border-top:1px solid rgba(255,255,255,.22);flex-shrink:0}
 .card .hourly-section{display:block}
 .hourly-title{font-size:10px;color:var(--muted);font-weight:700;margin-bottom:4px;text-align:left}
 .hourly-list{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px}
@@ -137,7 +157,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 .hour-temp{font-size:11px;font-weight:750}
 .hour-rain{font-size:8px;color:#90caf9}
 
-/* THANH ĐIỀU KHIỂN DẠNG LIQUID GLASS */
+/* THANH ĐIỀU KHIỂN */
 .mode-controls{position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:9999;display:flex;align-items:center;gap:10px;max-width:390px;margin:auto}
 .mode-toggle-btn{
   background:linear-gradient(160deg, rgba(255,255,255,.16), rgba(20,30,45,.75));
@@ -176,7 +196,6 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 }
 
 .error .desc{color:#ffb4ab}
-@media(max-height:520px){body{padding:4px}.bubble{width:min(min(270px,88vw),80vh);padding:15px}.external-time-bar{margin-top:4px}.external-time-bar .clock-text{font-size:18px}.mode-controls{bottom:4px}.card{height:390px;padding:9px 12px}.temp{font-size:40px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
@@ -270,7 +289,7 @@ const DEFAULT_LOCATION={latitude:20.5453,longitude:105.9122,name:"Phủ Lý (m�
 const REFRESH_INTERVAL_MS=15*60*1000;
 const FORECAST_HOURS=3;
 const TIME_ZONE="Asia/Ho_Chi_Minh";
-const CACHE_KEY="carplay_weather_cache_v24";
+const CACHE_KEY="carplay_weather_cache_v29";
 const LAYOUT_KEY="carplay_layout_mode_v17";
 const OPACITY_KEYS={bubble:"carplay_opacity_bubble_v24",card:"carplay_opacity_card_v24"};
 const $=id=>document.getElementById(id);
@@ -579,30 +598,22 @@ function setWeatherFX(code){
 
 function updateCardScale(){
  const widget=$("widgetShape");
- if(currentMode==="card"){
-  const maxW=window.innerWidth-20,maxH=window.innerHeight-70;
-  const scale=Math.max(.55,Math.min(maxW/290,maxH/470,1.2));
-  widget.style.transform=`scale(${scale})`;
- }else widget.style.transform="none";
+ widget.style.transform="none";
 }
 
 function setLayoutMode(mode,save=true){
  currentMode=mode;
  const widget=$("widgetShape"),btn=$("modeToggleBtn");
- widget.classList.add("switching");
- widget.style.transform="scale(.94) rotateY(8deg)";
 
- setTimeout(()=>{
-  widget.classList.remove("bubble","card");
-  widget.classList.add(mode);
-  $("cardTimeBlock").style.display=mode==="card"?"flex":"none";
-  $("externalTimeBar").style.display=mode==="bubble"?"flex":"none";
-  btn.textContent=mode==="bubble"?"▭ Hình chữ nhật":"◯ Hình tròn";
-  widget.style.transform="none";
-  updateCardScale();
-  widget.classList.remove("switching");
-  loadOpacity();
- },140);
+ widget.classList.remove("bubble","card");
+ widget.classList.add(mode);
+
+ $("cardTimeBlock").style.display=mode==="card"?"flex":"none";
+ $("externalTimeBar").style.display=mode==="bubble"?"flex":"none";
+ btn.textContent=mode==="bubble"?"▭ Hình chữ nhật":"◯ Hình tròn";
+
+ updateCardScale();
+ loadOpacity();
 
  if(save)safeStorageSet(LAYOUT_KEY,mode);
 }
@@ -623,7 +634,6 @@ function loadOpacity(){
 function applyOpacity(value){
  const v=Math.max(5,Math.min(95,Number(value)||45));
  const ratio=v/100;
- // Tự động cân chỉnh độ phản quang (specular) khi kính trong hơn để giữ cảm giác chất lỏng
  const specular=Math.max(0.10, Math.min(0.32, 0.34 - ratio*0.22));
  document.documentElement.style.setProperty("--surface-opacity",String(ratio));
  document.documentElement.style.setProperty("--glass-specular",specular.toFixed(2));
