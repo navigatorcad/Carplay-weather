@@ -120,7 +120,7 @@ body.aura-night{
 }
 
 /*
-  LIQUID GLASS + DUAL TONE BORDER (TỐI ƯU WEBKIT RENDER)
+  LIQUID GLASS + CSS MASK DUAL TONE BORDER (ĐÃ KHẮC PHỤC LỖI TRONG SUỐT)
 */
 .bubble,.card{
   background:
@@ -129,24 +129,14 @@ body.aura-night{
       rgba(255,255,255,calc(var(--glass-specular)*1.25)) 0%,
       rgba(255,255,255,.05) 50%,
       transparent 80%
-    ) padding-box,
+    ),
     linear-gradient(
       160deg,
       rgba(255,255,255,var(--glass-highlight-opacity)) 0%,
       rgba(255,255,255,.02) 45%,
       rgba(0,0,0,.2) 100%
-    ) padding-box,
-    rgba(14,22,36,var(--surface-opacity)) padding-box,
-    linear-gradient(
-      to bottom,
-      var(--temp-accent) 0%,
-      var(--temp-accent) 48%,
-      var(--rain-accent) 52%,
-      var(--rain-accent) 100%
-    ) border-box;
-
-  background-clip:padding-box,padding-box,padding-box,border-box;
-  background-origin:padding-box,padding-box,padding-box,border-box;
+    ),
+    rgba(14,22,36,var(--surface-opacity));
 
   backdrop-filter:blur(28px) saturate(210%) brightness(1.12);
   -webkit-backdrop-filter:blur(28px) saturate(210%) brightness(1.12);
@@ -155,8 +145,8 @@ body.aura-night{
   transform:translateZ(0);
   will-change:backdrop-filter,transform;
 
-  border:2.5px solid transparent;
   border-radius:28px;
+  border:none;
 
   box-shadow:
     0 20px 45px rgba(0,0,0,.5),
@@ -174,6 +164,29 @@ body.aura-night{
   overflow:hidden;
   cursor:pointer;
 }
+
+/* VIỀN HAI MÀU (NỬA TRÊN NHIỆT ĐỘ - NỬA DƯỚI MƯA) DÙNG CSS MASK */
+.bubble::after,.card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  padding:2.5px;
+  background:linear-gradient(
+    to bottom,
+    var(--temp-accent) 0%,
+    var(--temp-accent) 48%,
+    var(--rain-accent) 52%,
+    var(--rain-accent) 100%
+  );
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  mask-composite:exclude;
+  pointer-events:none;
+  z-index:2;
+}
+
 .bubble::before,.card::before{
   content:"";
   position:absolute;
@@ -190,7 +203,7 @@ body.aura-night{
 }
 .bubble>*,.card>*{
   position:relative;
-  z-index:1;
+  z-index:3;
 }
 .bubble{
   width:min(320px,94vw);
@@ -199,6 +212,10 @@ body.aura-night{
   justify-content:center;
   padding:18px 14px;
   gap:2px;
+}
+/* Khi ở dạng bong bóng tròn, tự động điều chỉnh bo viền thẻ giả thành hình tròn */
+.bubble::after{
+  border-radius:50%;
 }
 .card{
   width:min(340px,94vw);
@@ -329,7 +346,7 @@ body.aura-night{
   font-weight:800;
   letter-spacing:-2px;
   text-shadow:0 2px 10px rgba(0,0,0,.35);
-  color: var(--temp-accent);
+  color:var(--temp-accent);
 }
 .weather-icon{
   font-size:38px;
