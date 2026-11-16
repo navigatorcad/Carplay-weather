@@ -6,11 +6,11 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Weather CarPlay Widget - Dual Tone Edition</title>
+<title>Weather CarPlay Widget - Animated Edition</title>
 
 <style>
 :root{
-  --temp-accent:#ffb74d;
+  --temp-accent:#34d399;
   --rain-accent:#4fc3f7;
   --text:#f8fafc;
   --muted:#aebdce;
@@ -37,9 +37,9 @@ html,body{
 body{
   display:flex;
   flex-direction:column;
-  justify-content:space-between;
+  justify-content:center;
   align-items:center;
-  padding:16px 12px calc(24px + env(safe-area-inset-bottom)) 12px;
+  padding: calc(16px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom)) 12px;
   position:relative;
   isolation:isolate;
   min-height:100vh;
@@ -72,14 +72,14 @@ body{
   height:380px;
   bottom:-15%;
   right:-10%;
-  background:rgba(255,183,77,.45);
+  background:rgba(52,211,153,.45);
   animation-delay:-5s;
 }
 @keyframes floatAura{
   to{transform:translate(35px,45px) scale(1.18)}
 }
 body.aura-dawn{
-  background:radial-gradient(circle at 50% 30%,#38213d 0%,#1a1124 60%,#08060c 100%);
+  background:radial-gradient(circle at 50% 30%,#1b324f 0%,#0e1a2b 60%,#05080f 100%);
 }
 body.aura-noon{
   background:radial-gradient(circle at 50% 30%,#193563 0%,#0c1830 60%,#03060c 100%);
@@ -119,9 +119,7 @@ body.aura-night{
   width:100%;
 }
 
-/*
-  LIQUID GLASS + CSS MASK DUAL TONE BORDER (ĐÃ KHẮC PHỤC LỖI TRONG SUỐT)
-*/
+/* LIQUID GLASS + CSS MASK DUAL TONE BORDER */
 .bubble,.card{
   background:
     radial-gradient(
@@ -165,7 +163,7 @@ body.aura-night{
   cursor:pointer;
 }
 
-/* VIỀN HAI MÀU (NỬA TRÊN NHIỆT ĐỘ - NỬA DƯỚI MƯA) DÙNG CSS MASK */
+/* VIỀN HAI MÀU (NỬA TRÊN NHIỆT ĐỘ - NỬA DƯỚI MƯA) */
 .bubble::after,.card::after{
   content:"";
   position:absolute;
@@ -213,7 +211,6 @@ body.aura-night{
   padding:18px 14px;
   gap:2px;
 }
-/* Khi ở dạng bong bóng tròn, tự động điều chỉnh bo viền thẻ giả thành hình tròn */
 .bubble::after{
   border-radius:50%;
 }
@@ -348,11 +345,37 @@ body.aura-night{
   text-shadow:0 2px 10px rgba(0,0,0,.35);
   color:var(--temp-accent);
 }
+
+/* WEATHER ICON ANIMATIONS */
 .weather-icon{
   font-size:38px;
   line-height:1;
+  display:inline-block;
+  transform-origin:center;
   filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));
 }
+@keyframes floatCloud {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-4px) translateX(3px); }
+}
+@keyframes pulseSun {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(5deg); }
+}
+@keyframes bounceRain {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+@keyframes shakeStorm {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px) rotate(-3deg); }
+  75% { transform: translateX(2px) rotate(3deg); }
+}
+.weather-icon.anim-sunny { animation: pulseSun 4s ease-in-out infinite; }
+.weather-icon.anim-cloudy { animation: floatCloud 5s ease-in-out infinite; }
+.weather-icon.anim-rain { animation: bounceRain 2s ease-in-out infinite; }
+.weather-icon.anim-storm { animation: shakeStorm 0.8s ease-in-out infinite; }
+
 .desc{
   color:#e2e8f0;
   font-size:15px;
@@ -706,7 +729,7 @@ const TIME_ZONE="Asia/Ho_Chi_Minh";
 const WEATHER_LOCATION_MIN_DISTANCE=1000;
 const WEATHER_MIN_FETCH_INTERVAL_MS=60*1000;
 
-const CACHE_KEY="carplay_weather_cache_v33";
+const CACHE_KEY="carplay_weather_cache_v34";
 const LAYOUT_KEY="carplay_layout_mode_v17";
 
 const OPACITY_KEYS={
@@ -1398,18 +1421,18 @@ window.addEventListener("resize",()=>{
 });
 
 function weatherDescription(code){
-  if(code===0)return{text:"Trời quang",icon:"☀️"};
-  if(code===1)return{text:"Ít mây",icon:"🌤️"};
-  if(code===2)return{text:"Có mây",icon:"⛅"};
-  if(code===3)return{text:"Nhiều mây",icon:"☁️"};
-  if(code===45||code===48)return{text:"Sương mù",icon:"🌫️"};
-  if(code>=51&&code<=57)return{text:"Mưa phùn",icon:"🌦️"};
-  if(code>=61&&code<=67)return{text:"Trời mưa",icon:"🌧️"};
-  if(code>=71&&code<=77)return{text:"Có tuyết",icon:"🌨️"};
-  if(code>=80&&code<=82)return{text:"Mưa rào",icon:"🌧️"};
-  if(code===85||code===86)return{text:"Mưa tuyết",icon:"🌨️"};
-  if(code>=95)return{text:"Giông bão",icon:"⛈️"};
-  return{text:"Chưa rõ thời tiết",icon:"🌡️"};
+  if(code===0)return{text:"Trời quang",icon:"☀️",anim:"anim-sunny"};
+  if(code===1)return{text:"Ít mây",icon:"🌤️",anim:"anim-sunny"};
+  if(code===2)return{text:"Có mây",icon:"⛅",anim:"anim-cloudy"};
+  if(code===3)return{text:"Nhiều mây",icon:"☁️",anim:"anim-cloudy"};
+  if(code===45||code===48)return{text:"Sương mù",icon:"🌫️",anim:"anim-cloudy"};
+  if(code>=51&&code<=57)return{text:"Mưa phùn",icon:"🌦️",anim:"anim-rain"};
+  if(code>=61&&code<=67)return{text:"Trời mưa",icon:"🌧️",anim:"anim-rain"};
+  if(code>=71&&code<=77)return{text:"Có tuyết",icon:"🌨️",anim:"anim-rain"};
+  if(code>=80&&code<=82)return{text:"Mưa rào",icon:"🌧️",anim:"anim-rain"};
+  if(code===85||code===86)return{text:"Mưa tuyết",icon:"🌨️",anim:"anim-rain"};
+  if(code>=95)return{text:"Giông bão",icon:"⛈️",anim:"anim-storm"};
+  return{text:"Chưa rõ thời tiết",icon:"🌡️",anim:""};
 }
 
 function parseApiLocalTime(value){
@@ -1497,20 +1520,24 @@ function updateRainTheme(probability,hasData=true){
 
 function updateTemperatureTheme(temp){
   if(!isValidNumber(temp))return;
-  const value=Number(temp);
-  let tempColor="#ffb74d";
-  if(value>=35){
-    tempColor="#ff3d00";
-  }else if(value>=30){
-    tempColor="#ff9100";
-  }else if(value>=25){
-    tempColor="#ffb74d";
-  }else if(value>=20){
-    tempColor="#ffee58";
+  const t=Number(temp);
+  let tempColor="#34d399";
+
+  if(t >= 38){
+    tempColor = "#e11d48";
+  }else if(t >= 32){
+    tempColor = "#f97316";
+  }else if(t >= 26){
+    tempColor = "#facc15";
+  }else if(t >= 20){
+    tempColor = "#34d399";
+  }else if(t >= 15){
+    tempColor = "#22d3ee";
   }else{
-    tempColor="#ab47bc";
+    tempColor = "#38bdf8";
   }
-  document.documentElement.style.setProperty("--temp-accent",tempColor);
+
+  document.documentElement.style.setProperty("--temp-accent", tempColor);
 }
 
 function renderHourly(data){
@@ -1590,7 +1617,6 @@ function loadFromCache(){
       ["humidity","humidity"],
       ["wind","wind"],
       ["desc","desc"],
-      ["weather-icon","weatherIcon"],
       ["rain-pct","rainPct"],
       ["rain-period","rainPeriod"],
       ["rain-msg","rainMsg"],
@@ -1605,6 +1631,17 @@ function loadFromCache(){
 
     if(data.city){
       updateCityDisplay(data.city);
+    }
+
+    if(data.weatherIcon){
+      const iconEl=$("weather-icon");
+      if(iconEl){
+        iconEl.textContent=data.weatherIcon;
+        if(Number.isFinite(data.weatherCode)){
+          const cond=weatherDescription(data.weatherCode);
+          iconEl.className="weather-icon "+(cond.anim||"");
+        }
+      }
     }
 
     const cachedTemperature=isValidNumber(data.temperatureValue)
@@ -1792,7 +1829,12 @@ async function requestWeatherData(lat,lon){
 
   const condition=weatherDescription(code===null?-1:code);
   setText("desc",condition.text);
-  setText("weather-icon",condition.icon);
+  
+  const iconEl=$("weather-icon");
+  if(iconEl){
+    iconEl.textContent=condition.icon;
+    iconEl.className="weather-icon "+(condition.anim||"");
+  }
 
   if(code!==null){
     setWeatherFX(code);
