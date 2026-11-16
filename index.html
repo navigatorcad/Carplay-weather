@@ -6,14 +6,13 @@
   <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Weather CarPlay Widget</title>
+  <title>Weather CarPlay Widget - Aura Edition</title>
   <style>
     :root {
       --accent: #90caf9;
       --accent-rgb: 144, 202, 249;
       --text: #f8fafc;
       --muted: #aebdce;
-      --bg-gradient: radial-gradient(circle at 50% 38%, #202b3a 0%, #111923 52%, #080c12 100%);
     }
 
     * {
@@ -28,8 +27,9 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #000;
+      background: #050811;
       color: var(--text);
+      transition: background 2s ease;
     }
 
     body {
@@ -41,7 +41,41 @@
       position: relative;
     }
 
-    /* LỚP PHỦ HIỆU ỨNG CANVAS TOÀN TRANG */
+    /* KHÔNG GIAN NỀN ĐỘNG (EMOTIONAL AMBIANCE AURA) */
+    .aura-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      transition: opacity 2s ease;
+    }
+
+    .aura-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.35;
+      animation: floatAura 15s ease-in-out infinite alternate;
+    }
+
+    .orb-1 { width: 300px; height: 300px; top: -10%; left: -10%; background: rgba(var(--accent-rgb), 0.4); }
+    .orb-2 { width: 350px; height: 350px; bottom: -15%; right: -10%; background: rgba(59, 130, 246, 0.25); animation-delay: -5s; }
+
+    @keyframes floatAura {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(30px, 40px) scale(1.15); }
+    }
+
+    /* TRẠNG THÁI AURA THEO THỜI GIAN TRONG NGÀY */
+    body.aura-dawn { background: radial-gradient(circle at 50% 30%, #2a1b2d 0%, #16101d 60%, #08060c 100%); }
+    body.aura-noon { background: radial-gradient(circle at 50% 30%, #14284b 0%, #0a1326 60%, #03060c 100%); }
+    body.aura-sunset { background: radial-gradient(circle at 50% 30%, #3d1c28 0%, #1f0f1b 60%, #0a0408 100%); }
+    body.aura-night { background: radial-gradient(circle at 50% 30%, #0b0f19 0%, #05070c 60%, #010204 100%); }
+
+    /* LỚP PHỦ HIỆU ỨNG CANVAS THỜI TIẾT */
     .weather-fx {
       position: fixed;
       top: 0;
@@ -51,14 +85,6 @@
       pointer-events: none;
       z-index: 1;
     }
-
-    body.weather-sunny { background: radial-gradient(circle at 50% 20%, #1c2b42 0%, #0d1522 60%, #04070c 100%); }
-    body.weather-cloudy { background: radial-gradient(circle at 50% 20%, #182230 0%, #0a0f18 60%, #030508 100%); }
-    body.weather-fog { background: radial-gradient(circle at 50% 20%, #1f252d 0%, #0f1217 60%, #050608 100%); }
-    body.weather-drizzle { background: radial-gradient(circle at 50% 20%, #111d2e 0%, #070e17 60%, #020408 100%); }
-    body.weather-rain { background: radial-gradient(circle at 50% 20%, #0f1c2e 0%, #080e18 60%, #020408 100%); }
-    body.weather-snow { background: radial-gradient(circle at 50% 20%, #1b2636 0%, #0d131d 60%, #04060a 100%); }
-    body.weather-storm { background: radial-gradient(circle at 50% 20%, #22121a 0%, #11080d 60%, #050204 100%); }
 
     @keyframes pulse-high {
       0% { box-shadow: 0 0 25px rgba(255, 69, 58, .7), inset 0 0 18px rgba(255, 69, 58, .3); }
@@ -83,7 +109,9 @@
     }
 
     .bubble, .card {
-      background: var(--bg-gradient);
+      background: rgba(13, 20, 32, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 4px solid var(--accent);
       box-shadow: 0 0 25px rgba(var(--accent-rgb), .68), inset 0 0 18px rgba(var(--accent-rgb), .22);
       display: flex;
@@ -114,7 +142,7 @@
 
     .bubble:active, .card:active { transform: scale(0.97); }
 
-    /* KHUNG HIỂN THỊ TÊN VỊ TRÍ & HIỆU ỨNG CHẠY CHỮ (MARQUEE) */
+    /* KHUNG VỊ TRÍ & MARQUEE */
     .city-container {
       display: flex;
       align-items: center;
@@ -146,7 +174,7 @@
 
     .city-track.marquee-active {
       display: inline-flex;
-      animation: smoothScroll 14s linear infinite; /* Điều chỉnh thời gian: số giây càng lớn chạy càng chậm */
+      animation: smoothScroll 14s linear infinite;
     }
 
     .city-text {
@@ -338,7 +366,7 @@
     .rain-alert { font-size: 10px; font-weight: 650; margin-top: 2px; color: var(--accent); white-space: nowrap; }
     .updated { width: 100%; color: #8190a3; font-size: 8px; opacity: .9; }
 
-    /* NÚT CHUYỂN ĐỔI GIAO DIỆN Ở GÓC DƯỚI BÊN TRÁI */
+    /* NÚT ĐỔI FORM */
     .mode-toggle-btn {
       position: fixed;
       bottom: 20px;
@@ -378,7 +406,13 @@
 </head>
 <body>
 
-  <!-- LỚP PHỦ HIỆU ỨNG CANVAS TOÀN TRANG -->
+  <!-- LỚP KHÔNG GIAN NỀN ĐỘNG (AURA) -->
+  <div class="aura-bg" id="auraBg">
+    <div class="aura-orb orb-1"></div>
+    <div class="aura-orb orb-2"></div>
+  </div>
+
+  <!-- LỚP PHỦ HIỆU ỨNG CANVAS THỜI TIẾT -->
   <canvas class="weather-fx" id="weatherFxCanvas"></canvas>
 
   <!-- NÚT CHUYỂN ĐỔI GIAO DIỆN -->
@@ -388,7 +422,7 @@
     <div class="widget-container">
       <main class="bubble level-low" id="widgetShape" aria-live="polite" onclick="refreshData()">
         
-        <!-- VỊ TRÍ VỚI ICON 📍 CỐ ĐỊNH VÀ HIỆU ỨNG CHẠY CHỮ KHI DÀI -->
+        <!-- VỊ TRÍ VỚI ICON 📍 CỐ ĐỊNH & MARQUEE -->
         <div class="city-container" id="cityContainer">
           <span class="city-pin">📍</span>
           <div class="city-viewport" id="cityViewport">
@@ -398,7 +432,7 @@
           </div>
         </div>
         
-        <!-- Khối thời gian hiển thị riêng cho Form Chữ Nhật -->
+        <!-- THỜI GIAN CHO FORM CHỮ NHẬT -->
         <div class="card-time-block" id="cardTimeBlock" style="display: none;">
           <div class="clock-text" id="cardClock">-- : -- : --</div>
           <div class="solar-date" id="cardSolar">--</div>
@@ -453,7 +487,7 @@
       </main>
     </div>
 
-    <!-- Khối thời gian bên ngoài cho Form Tròn -->
+    <!-- THỜI GIAN CHO FORM TRÒN -->
     <div class="external-time-bar" id="externalTimeBar">
       <div class="clock-text" id="extClock">-- : -- : --</div>
       <div class="solar-date" id="extSolar">--</div>
@@ -468,7 +502,7 @@
     const REFRESH_INTERVAL_MS = 15 * 60 * 1000;
     const FORECAST_HOURS = 3;
     const TIME_ZONE = "Asia/Bangkok";
-    const CACHE_KEY = "carplay_weather_cache_v20";
+    const CACHE_KEY = "carplay_weather_cache_v21";
     const LAYOUT_KEY = "carplay_layout_mode_v17";
 
     const $ = (id) => document.getElementById(id);
@@ -478,16 +512,35 @@
     let currentMode = "bubble";
     let currentScale = 1;
 
-    // --- HÀM CẬP NHẬT TÊN VỊ TRÍ & XỬ LÝ CHẠY CHỮ (MARQUEE) ---
+    // --- CẬP NHẬT TRẠNG THÁI KHÔNG GIAN NỀN AURA THEO THỜI GIAN THỰC ---
+    function updateAmbianceAura() {
+      const now = new Date();
+      const hour = now.getHours();
+      const body = document.body;
+
+      body.classList.remove("aura-dawn", "aura-noon", "aura-sunset", "aura-night");
+
+      if (hour >= 5 && hour < 8) {
+        body.classList.add("aura-dawn"); // Bình minh: 5h - 8h
+      } else if (hour >= 8 && hour < 17) {
+        body.classList.add("aura-noon"); // Trưa chiều: 8h - 17h
+      } else if (hour >= 17 && hour < 19) {
+        body.classList.add("aura-sunset"); // Hoàng hôn: 17h - 19h
+      } else {
+        body.classList.add("aura-night"); // Đêm sâu: 19h - 5h
+      }
+    }
+    updateAmbianceAura();
+    setInterval(updateAmbianceAura, 60 * 1000); // Kiểm tra lại mỗi phút
+
+    // --- CẬP NHẬT TÊN VỊ TRÍ & MARQUEE ---
     function updateCityDisplay(nameText) {
       const track = $('cityTrack');
       const viewport = $('cityViewport');
       
-      // Đặt nội dung chữ tạm thời để đo kích thước
       track.className = "city-track";
       track.innerHTML = `<span class="city-text" id="cityText">${nameText}</span>`;
 
-      // Kiểm tra độ dài sau khi render DOM
       requestAnimationFrame(() => {
         const textSpan = $('cityText');
         if (!textSpan || !viewport) return;
@@ -495,7 +548,6 @@
         const textWidth = textSpan.offsetWidth;
         const viewportWidth = viewport.offsetWidth;
 
-        // Nếu chiều dài tên vị trí lớn hơn khung chứa thì kích hoạt chạy chữ mượt mà
         if (textWidth > viewportWidth) {
           track.innerHTML = `
             <span class="city-text">${nameText}</span>
@@ -506,7 +558,7 @@
       });
     }
 
-    // --- THUẬT TOÁN ĐỔI DƯƠNG LỊCH sang ÂM LỊCH (Việt Nam) ---
+    // --- ĐỔI DƯƠNG LỊCH SANG ÂM LỊCH ---
     function jdFromDate(dd, mm, yy) {
       var a = Math.floor((14 - mm) / 12);
       var y = yy + 4800 - a;
@@ -531,7 +583,7 @@
       return `Ngày ${lunarDay} tháng ${lunarMonth} Âm lịch`;
     }
 
-    // --- CẬP NHẬT ĐỒNG HỒ & THỜI GIAN THỰC MỖI GIÂY ---
+    // --- ĐỒNG HỒ & LỊCH THỰC ---
     function updateClockAndCalendar() {
       const now = new Date();
       const hours = String(now.getHours()).padStart(2, '0');
@@ -559,7 +611,7 @@
     setInterval(updateClockAndCalendar, 1000);
     updateClockAndCalendar();
 
-    // --- HỆ THỐNG HIỆU ỨNG CANVAS ĐA TRẠNG THÁI THỜI TIẾT ---
+    // --- HIỆU ỨNG CANVAS THỜI TIẾT & SAO ĐÊM ---
     const canvas = $("weatherFxCanvas");
     const ctx = canvas.getContext("2d");
     let particles = [];
@@ -620,6 +672,14 @@
             speed: Math.random() * 0.4 + 0.2,
             opacity: Math.random() * 0.12 + 0.05
           });
+        } else if (type === "stars") {
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: Math.random() * 1.5,
+            alpha: Math.random(),
+            deltaAlpha: Math.random() * 0.02 + 0.005
+          });
         }
       }
     }
@@ -627,64 +687,66 @@
     function animateWeatherFX() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      if (fxType === "sunny") {
+      // Thêm hiệu ứng sao lấp lánh nếu là ban đêm trời quang
+      const currentHour = new Date().getHours();
+      if ((currentHour >= 19 || currentHour < 5) && fxType === "none") {
+        if (!particles.length || particles[0].radius > 3) initParticles("stars", 40);
         for (let p of particles) {
-          ctx.fillStyle = `rgba(255, 235, 150, ${p.opacity})`;
+          p.alpha += p.deltaAlpha;
+          if (p.alpha <= 0 || p.alpha >= 1) p.deltaAlpha *= -1;
+          ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(p.alpha)})`;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
           ctx.fill();
-          p.y += p.speedY;
-          p.x += p.speedX;
-          if (p.y < 0) p.y = canvas.height;
-          if (p.y > canvas.height) p.y = 0;
-          if (p.x < 0) p.x = canvas.width;
-          if (p.x > canvas.width) p.x = 0;
         }
-      } else if (fxType === "snow") {
-        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-        for (let p of particles) {
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-          ctx.fill();
-          p.y += p.speedY;
-          p.angle += 0.02;
-          p.x += Math.sin(p.angle) * 0.4 + p.speedX;
-          if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
-        }
-      } else if (fxType === "drizzle") {
-        ctx.strokeStyle = "rgba(174, 219, 255, 0.25)";
-        ctx.lineWidth = 1;
-        for (let p of particles) {
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(p.x - 0.5, p.y + p.length);
-          ctx.stroke();
-          p.y += p.speed;
-          if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
-        }
-      } else if (fxType === "rain" || fxType === "storm") {
-        ctx.strokeStyle = "rgba(174, 219, 255, 0.45)";
-        ctx.lineWidth = 1.5;
-        ctx.lineCap = "round";
-        for (let p of particles) {
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(p.x - 1.5, p.y + p.length);
-          ctx.stroke();
-          p.y += p.speed;
-          p.x -= 0.8;
-          if (p.y > canvas.height) { p.y = -20; p.x = Math.random() * canvas.width; }
-        }
-      } else if (fxType === "fog") {
-        for (let p of particles) {
-          let grad = ctx.createLinearGradient(p.x, p.y, p.x + p.width, p.y);
-          grad.addColorStop(0, `rgba(200, 220, 240, 0)`);
-          grad.addColorStop(0.5, `rgba(200, 220, 240, ${p.opacity})`);
-          grad.addColorStop(1, `rgba(200, 220, 240, 0)`);
-          ctx.fillStyle = grad;
-          ctx.fillRect(p.x, p.y, p.width, p.height);
-          p.x += p.speed;
-          if (p.x > canvas.width) p.x = -p.width;
+      } else {
+        if (fxType === "sunny") {
+          for (let p of particles) {
+            ctx.fillStyle = `rgba(255, 235, 150, ${p.opacity})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fill();
+            p.y += p.speedY; p.x += p.speedX;
+            if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
+            if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+          }
+        } else if (fxType === "snow") {
+          ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+          for (let p of particles) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fill();
+            p.y += p.speedY; p.angle += 0.02;
+            p.x += Math.sin(p.angle) * 0.4 + p.speedX;
+            if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
+          }
+        } else if (fxType === "drizzle") {
+          ctx.strokeStyle = "rgba(174, 219, 255, 0.25)";
+          ctx.lineWidth = 1;
+          for (let p of particles) {
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - 0.5, p.y + p.length); ctx.stroke();
+            p.y += p.speed;
+            if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
+          }
+        } else if (fxType === "rain" || fxType === "storm") {
+          ctx.strokeStyle = "rgba(174, 219, 255, 0.45)";
+          ctx.lineWidth = 1.5; ctx.lineCap = "round";
+          for (let p of particles) {
+            ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - 1.5, p.y + p.length); ctx.stroke();
+            p.y += p.speed; p.x -= 0.8;
+            if (p.y > canvas.height) { p.y = -20; p.x = Math.random() * canvas.width; }
+          }
+        } else if (fxType === "fog") {
+          for (let p of particles) {
+            let grad = ctx.createLinearGradient(p.x, p.y, p.x + p.width, p.y);
+            grad.addColorStop(0, `rgba(200, 220, 240, 0)`);
+            grad.addColorStop(0.5, `rgba(200, 220, 240, ${p.opacity})`);
+            grad.addColorStop(1, `rgba(200, 220, 240, 0)`);
+            ctx.fillStyle = grad;
+            ctx.fillRect(p.x, p.y, p.width, p.height);
+            p.x += p.speed;
+            if (p.x > canvas.width) p.x = -p.width;
+          }
         }
       }
       requestAnimationFrame(animateWeatherFX);
@@ -701,44 +763,27 @@
     }
 
     function setWeatherFX(code) {
-      const body = document.body;
-      body.classList.remove("weather-sunny", "weather-cloudy", "weather-fog", "weather-drizzle", "weather-rain", "weather-snow", "weather-storm");
-      
       if (lightningTimer) { clearInterval(lightningTimer); lightningTimer = null; }
 
       if (code === 0 || code === 1) {
-        body.classList.add("weather-sunny");
-        fxType = "sunny";
-        initParticles("sunny", 35);
+        fxType = "sunny"; initParticles("sunny", 35);
       } else if (code === 2 || code === 3) {
-        body.classList.add("weather-cloudy");
-        fxType = "none";
+        fxType = "none"; particles = [];
       } else if (code === 45 || code === 48) {
-        body.classList.add("weather-fog");
-        fxType = "fog";
-        initParticles("fog", 6);
+        fxType = "fog"; initParticles("fog", 6);
       } else if (code >= 51 && code <= 57) {
-        body.classList.add("weather-drizzle");
-        fxType = "drizzle";
-        initParticles("drizzle", 40);
+        fxType = "drizzle"; initParticles("drizzle", 40);
       } else if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) {
-        body.classList.add("weather-rain");
-        fxType = "rain";
-        initParticles("rain", 70);
+        fxType = "rain"; initParticles("rain", 70);
       } else if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) {
-        body.classList.add("weather-snow");
-        fxType = "snow";
-        initParticles("snow", 50);
+        fxType = "snow"; initParticles("snow", 50);
       } else if (code >= 95) {
-        body.classList.add("weather-storm");
-        fxType = "storm";
-        initParticles("storm", 100);
+        fxType = "storm"; initParticles("storm", 100);
         lightningTimer = setInterval(() => {
           if (Math.random() < 0.35) triggerLightning();
         }, 3500);
       } else {
-        body.classList.add("weather-cloudy");
-        fxType = "none";
+        fxType = "none"; particles = [];
       }
     }
 
@@ -793,9 +838,7 @@
       setLayoutMode(newMode);
     }
 
-    window.addEventListener("resize", () => {
-      updateCardScale();
-    });
+    window.addEventListener("resize", () => updateCardScale());
 
     function loadSavedLayout() {
       const savedMode = localStorage.getItem(LAYOUT_KEY);
@@ -823,19 +866,15 @@
             setText("rain-period", data.rainPeriod);
             setText("rain-msg", data.rainMsg);
             
-            if (data.city) {
-              updateCityDisplay(data.city.replace(/^📍\s*/, ""));
-            }
-            
+            if (data.city) updateCityDisplay(data.city.replace(/^📍\s*/, ""));
             setText("updated", data.updated + " (Lưu trữ)");
+            
             if (data.levelClass) {
               const widget = $("widgetShape");
               widget.classList.remove("level-low", "level-mild", "level-warn", "level-high");
               widget.classList.add(data.levelClass);
             }
-            if (typeof data.weatherCode === "number") {
-              setWeatherFX(data.weatherCode);
-            }
+            if (typeof data.weatherCode === "number") setWeatherFX(data.weatherCode);
           }
         }
       } catch (e) {}
@@ -971,12 +1010,10 @@
           fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?${aqiParams.toString()}`, { signal: controller.signal, cache: "no-store" })
         ]);
 
-        if (weatherRes.status !== "fulfilled" || !weatherRes.value.ok) {
-          throw new Error("Không tải được dữ liệu thời tiết.");
-        }
+        if (weatherRes.status !== "fulfilled" || !weatherRes.value.ok) throw new Error();
 
         const data = await weatherRes.value.json();
-        if (!data.current) throw new Error("Không có dữ liệu hiện tại.");
+        if (!data.current) throw new Error();
 
         const temperature = Number(data.current.temperature_2m);
         const humidity = Number(data.current.relative_humidity_2m);
@@ -993,13 +1030,10 @@
         }
         setText("aqi-uv", `AQI: ${aqiVal} · UV: ${uvIndex}`);
 
-        let minTempStr = "--°";
-        let maxTempStr = "--°";
-        if (data.daily && Array.isArray(data.daily.temperature_2m_min) && Array.isArray(data.daily.temperature_2m_max)) {
-          const minVal = Number(data.daily.temperature_2m_min[0]);
-          const maxVal = Number(data.daily.temperature_2m_max[0]);
-          if (Number.isFinite(minVal)) minTempStr = `${Math.round(minVal)}°`;
-          if (Number.isFinite(maxVal)) maxTempStr = `${Math.round(maxVal)}°`;
+        let minTempStr = "--°", maxTempStr = "--°";
+        if (data.daily && Array.isArray(data.daily.temperature_2m_min)) {
+          minTempStr = `${Math.round(Number(data.daily.temperature_2m_min[0]))}°`;
+          maxTempStr = `${Math.round(Number(data.daily.temperature_2m_max[0]))}°`;
         }
         setText("temp-range", `${minTempStr} - ${maxTempStr}`);
 
@@ -1054,46 +1088,22 @@
         let subPrefix = "";
         if (subLoc) {
           const lower = subLoc.toLowerCase();
-          if (lower.startsWith("xã")) {
-            subPrefix = "X. ";
-            subLoc = subLoc.replace(/^xã\s*/i, "");
-          } else if (lower.startsWith("phường")) {
-            subPrefix = "P. ";
-            subLoc = subLoc.replace(/^phường\s*/i, "");
-          } else if (lower.startsWith("thị trấn")) {
-            subPrefix = "TT. ";
-            subLoc = subLoc.replace(/^thị trấn\s*/i, "");
-          }
+          if (lower.startsWith("xã")) { subPrefix = "X. "; subLoc = subLoc.replace(/^xã\s*/i, ""); }
+          else if (lower.startsWith("phường")) { subPrefix = "P. "; subLoc = subLoc.replace(/^phường\s*/i, ""); }
+          else if (lower.startsWith("thị trấn")) { subPrefix = "TT. "; subLoc = subLoc.replace(/^thị trấn\s*/i, ""); }
         }
 
         let cityLoc = address.city || address.town || address.municipality || address.county || address.state || "";
         let cityPrefix = "";
         if (cityLoc) {
           const lowerCity = cityLoc.toLowerCase();
-          if (lowerCity.startsWith("thành phố")) {
-            cityPrefix = "TP. ";
-            cityLoc = cityLoc.replace(/^thành phố\s*/i, "");
-          } else if (lowerCity.startsWith("tỉnh")) {
-            cityPrefix = "T. ";
-            cityLoc = cityLoc.replace(/^tỉnh\s*/i, "");
-          } else if (lowerCity.startsWith("quận")) {
-            cityPrefix = "Q. ";
-            cityLoc = cityLoc.replace(/^quận\s*/i, "");
-          } else if (lowerCity.startsWith("huyện")) {
-            cityPrefix = "H. ";
-            cityLoc = cityLoc.replace(/^huyện\s*/i, "");
-          }
+          if (lowerCity.startsWith("thành phố")) { cityPrefix = "TP. "; cityLoc = cityLoc.replace(/^thành phố\s*/i, ""); }
+          else if (lowerCity.startsWith("tỉnh")) { cityPrefix = "T. "; cityLoc = cityLoc.replace(/^tỉnh\s*/i, ""); }
+          else if (lowerCity.startsWith("quận")) { cityPrefix = "Q. "; cityLoc = cityLoc.replace(/^quận\s*/i, ""); }
+          else if (lowerCity.startsWith("huyện")) { cityPrefix = "H. "; cityLoc = cityLoc.replace(/^huyện\s*/i, ""); }
         }
 
-        let formattedName = "";
-        if (subLoc && cityLoc) {
-          formattedName = `${subPrefix}${subLoc}, ${cityPrefix}${cityLoc}`;
-        } else if (cityLoc) {
-          formattedName = `${cityPrefix}${cityLoc}`;
-        } else {
-          formattedName = "Vị trí hiện tại";
-        }
-
+        let formattedName = (subLoc && cityLoc) ? `${subPrefix}${subLoc}, ${cityPrefix}${cityLoc}` : (cityLoc ? `${cityPrefix}${cityLoc}` : "Vị trí hiện tại");
         updateCityDisplay(formattedName);
       } catch (error) {}
     }
