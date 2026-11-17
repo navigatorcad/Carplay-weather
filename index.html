@@ -74,6 +74,10 @@ body{
 @keyframes floatAura{
   to{transform:translate(25px,35px) scale(1.15)}
 }
+body.page-paused .aura-orb,
+body.page-paused .weather-icon{
+  animation-play-state:paused!important;
+}
 body.aura-dawn{background:radial-gradient(circle at 50% 30%,#1b324f 0%,#0e1a2b 60%,#05080f 100%);}
 body.aura-noon{background:radial-gradient(circle at 50% 30%,#193563 0%,#0c1830 60%,#03060c 100%);}
 body.aura-sunset{background:radial-gradient(circle at 50% 30%,#4d2132 0%,#24101f 60%,#0a0408 100%);}
@@ -478,6 +482,27 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 .weather-icon.anim-rain { animation: rainDropPulse 1.8s ease-in-out infinite; }
 .weather-icon.anim-storm { animation: stormFlashShake 1.4s ease-in-out infinite; }
 .weather-icon.anim-fog { animation: fogPulse 4s ease-in-out infinite; }
+.weather-icon svg{
+  width:1.18em;
+  height:1.18em;
+  display:block;
+  overflow:visible;
+}
+.weather-icon svg .sun-core{fill:#fbbf24}
+.weather-icon svg .sun-ray{stroke:#fde68a;stroke-width:3;stroke-linecap:round}
+.weather-icon svg .cloud-shape{fill:#dbeafe;stroke:#bfdbfe;stroke-width:1.5}
+.weather-icon svg .rain-line{stroke:#38bdf8;stroke-width:2.5;stroke-linecap:round}
+.weather-icon svg .snowflake{stroke:#bae6fd;stroke-width:2;stroke-linecap:round}
+.weather-icon svg .bolt{fill:#facc15;stroke:#fef08a;stroke-width:1}
+.weather-icon.anim-sunny svg{animation:svgSunRotate 12s linear infinite}
+.weather-icon.anim-rain svg .rain-line{animation:svgRainFall .9s ease-in-out infinite alternate}
+.weather-icon.anim-storm svg .bolt{animation:svgBoltFlash 1.4s steps(2,end) infinite}
+.weather-icon.anim-cloudy svg .cloud-shape{animation:svgCloudFloat 4s ease-in-out infinite}
+@keyframes svgSunRotate{to{transform:rotate(360deg)}}
+@keyframes svgRainFall{to{transform:translateY(3px);opacity:.55}}
+@keyframes svgBoltFlash{0%,75%,100%{opacity:1}80%,90%{opacity:.25}}
+@keyframes svgCloudFloat{50%{transform:translateX(2px)}}
+
 
 .desc{
   color:#e2e8f0;
@@ -846,6 +871,10 @@ const TIME_ZONE="Asia/Ho_Chi_Minh";
 
 const WEATHER_LOCATION_MIN_DISTANCE=1000;
 const WEATHER_MIN_FETCH_INTERVAL_MS=60*1000;
+const WEATHER_RETRY_BASE_MS=15*1000;
+const CACHE_FRESH_MS=15*60*1000;
+const CACHE_WARNING_MS=30*60*1000;
+const CACHE_STALE_MS=60*60*1000;
 
 const CACHE_KEY="carplay_weather_cache_v51";
 const LAYOUT_KEY="carplay_layout_mode_v20";
@@ -863,6 +892,9 @@ const $=id=>document.getElementById(id);
 let currentLocation=null;
 let lastReverseGeocodeAt=0;
 let lastReverseGeocodePosition=null;
+let reverseGeocodeTimer=null;
+let reverseGeocodeInFlight=false;
+let pendingReverseGeocode=null;
 let reverseGeocodeSequence=0;
 
 let refreshTimer=null;
@@ -879,7 +911,12 @@ let weatherQueueRunning=false;
 let weatherRequestSequence=0;
 
 let lastWeatherRequestAt=0;
+let lastWeatherSuccessAt=0;
+let weatherFailureCount=0;
 let lastWeatherRequestLocation=null;
+let weatherRetryTimer=null;
+let pendingLocationRefreshTimer=null;
+let pendingLocationCandidate=null;
 
 let fxType="none";
 let particles=[];
@@ -891,10 +928,20 @@ let lastWeatherCode=null;
 
 let pageActive=!document.hidden;
 
-const reducedMotion=!!(
-  window.matchMedia&&
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches
-);
+const motionQuery=window.matchMedia?window.matchMedia("(prefers-reduced-motion: reduce)"):null;
+let reducedMotion=!!(motionQuery&&motionQuery.matches);
+
+if(motionQuery){
+  const onMotionChange=event=>{
+    reducedMotion=!!event.matches;
+    if(reducedMotion)stopCanvas();
+    else startCanvas();
+    if(reducedMotion)clearLightning();
+    else startLightning();
+  };
+  if(typeof motionQuery.addEventListener==="function")motionQuery.addEventListener("change",onMotionChange);
+  else if(typeof motionQuery.addListener==="function")motionQuery.addListener(onMotionChange);
+}
 
 /* CƠ CHẾ VUỐT LÊN / TỰ ĐỘNG ẨN SAU 2 GIÂY */
 let touchStartY=0;
@@ -929,12 +976,15 @@ function setControlsVisibility(visible){
 }
 
 window.addEventListener("touchstart",e=>{
-  if(e.touches.length>0){
-    touchStartY=e.touches[0].clientY;
+  const target=e.target;
+  if(target&&target.closest&&target.closest("button,input,select,textarea,.mode-controls")){
+    touchStartY=0;return;
   }
+  if(e.touches.length>0)touchStartY=e.touches[0].clientY;
 },{passive:true});
 
 window.addEventListener("touchend",e=>{
+  if(!touchStartY)return;
   if(e.changedTouches.length>0){
     const touchEndY=e.changedTouches[0].clientY;
     const diffY=touchStartY-touchEndY;
@@ -1433,7 +1483,7 @@ function drawFrame(){
     }
   }
 
-  if(!reducedMotion&&pageActive){
+  if(fxType!=="none"&&!reducedMotion&&pageActive){
     rafId=requestAnimationFrame(drawFrame);
   }else{
     rafId=0;
@@ -1441,7 +1491,7 @@ function drawFrame(){
 }
 
 function startCanvas(){
-  if(!pageActive||reducedMotion||rafId||!canvasCtx)return;
+  if(!pageActive||reducedMotion||fxType==="none"||rafId||!canvasCtx)return;
   rafId=requestAnimationFrame(drawFrame);
 }
 
@@ -1515,6 +1565,10 @@ function setWeatherFX(code){
   }
 
   initParticles(fxType,particleCount(fxType));
+  if(fxType==="none"){
+    stopCanvas();
+    return;
+  }
   if(pageActive){
     if(rafId){
       cancelAnimationFrame(rafId);
@@ -1595,6 +1649,23 @@ window.addEventListener("resize",()=>{
   updateCardScale();
 });
 
+function weatherIconMarkup(code){
+  const sun='<circle class="sun-core" cx="24" cy="22" r="8"/><g class="sun-ray"><path d="M24 3v5M24 36v5M5 22h5M38 22h5M10.5 8.5l3.5 3.5M34 32l3.5 3.5M37.5 8.5L34 12M14 32l-3.5 3.5"/></g>';
+  const cloud='<path class="cloud-shape" d="M13 34h21a8 8 0 0 0 .5-16 12 12 0 0 0-23-1A8.5 8.5 0 0 0 13 34Z"/>';
+  if(code===0)return `<svg viewBox="0 0 48 48" aria-hidden="true">${sun}</svg>`;
+  if(code===1)return `<svg viewBox="0 0 48 48" aria-hidden="true"><g transform="translate(-5 -5) scale(.78)">${sun}</g>${cloud}</svg>`;
+  if(code===2||code===3||code===45||code===48)return `<svg viewBox="0 0 48 48" aria-hidden="true">${cloud}${(code===45||code===48)?'<path class="rain-line" d="M8 40h30M13 44h22"/>':''}</svg>`;
+  if(code>=95)return `<svg viewBox="0 0 48 48" aria-hidden="true">${cloud}<path class="bolt" d="M25 27h-7l-4 10h7l-2 9 13-15h-8l3-4Z"/></svg>`;
+  if(code>=71&&code<=77||code===85||code===86)return `<svg viewBox="0 0 48 48" aria-hidden="true">${cloud}<g class="snowflake"><path d="M15 37v9m-4-4 8-1m-7-3 6 6M31 37v9m-4-4 8-1m-7-3 6 6"/></g></svg>`;
+  if(code>=51)return `<svg viewBox="0 0 48 48" aria-hidden="true">${cloud}<g class="rain-line"><path d="m16 37-2 6m12-6-2 6m12-6-2 6"/></g></svg>`;
+  return `<svg viewBox="0 0 48 48" aria-hidden="true">${cloud}</svg>`;
+}
+function renderWeatherIcon(element,code,animationClass=""){
+  if(!element)return;
+  element.className="weather-icon "+(animationClass||"");
+  element.innerHTML=weatherIconMarkup(Number(code));
+}
+
 function weatherDescription(code){
   if(code===0)return{text:"Trời quang",icon:"☀️",anim:"anim-sunny"};
   if(code===1)return{text:"Ít mây",icon:"🌤️",anim:"anim-sunny"};
@@ -1660,7 +1731,8 @@ function getNextHoursForecast(data){
     });
   }
   if(!candidates.length)return null;
-  return candidates.reduce((best,item)=>item.probability>best.probability?item:best);
+  const best=candidates.reduce((best,item)=>item.probability>best.probability?item:best);
+  return {...best,coverage:candidates.length,expected:FORECAST_HOURS};
 }
 
 function formatHourRange(time){
@@ -1803,6 +1875,13 @@ function loadFromCache(){
         setText(elementId,data[key]);
       }
     }
+    const cacheAge=Date.now()-Number(data.savedAt||0);
+    if(Number.isFinite(cacheAge)&&cacheAge>=0){
+      const ageMin=Math.floor(cacheAge/60000);
+      if(cacheAge>=CACHE_STALE_MS)setText("updated",`Dữ liệu cũ khoảng ${ageMin} phút · Đang làm mới`);
+      else if(cacheAge>=CACHE_WARNING_MS)setText("updated",`Cache ${ageMin} phút · Có thể đã cũ`);
+      else if(cacheAge>=CACHE_FRESH_MS)setText("updated",`Cache ${ageMin} phút · Đang làm mới`);
+    }
 
     if(data.city){
       updateCityDisplay(data.city);
@@ -1811,10 +1890,11 @@ function loadFromCache(){
     if(data.weatherIcon){
       const iconEl=$("weather-icon");
       if(iconEl){
-        iconEl.textContent=data.weatherIcon;
         if(Number.isFinite(data.weatherCode)){
           const cond=weatherDescription(data.weatherCode);
-          iconEl.className="weather-icon "+(cond.anim||"");
+          renderWeatherIcon(iconEl,data.weatherCode,cond.anim);
+        }else{
+          iconEl.textContent=data.weatherIcon;
         }
       }
     }
@@ -1918,7 +1998,8 @@ function buildWeatherUrl(lat,lon){
     hourly:[
       "precipitation_probability",
       "temperature_2m",
-      "weather_code"
+      "weather_code",
+      "uv_index"
     ].join(","),
     timezone:TIME_ZONE,
     forecast_days:"2",
@@ -1965,7 +2046,7 @@ async function requestWeatherData(lat,lon){
     }catch(_){}
   }
 
-  if(!isStillCurrentLocation(lat,lon)){
+  if(!pageActive||!isStillCurrentLocation(lat,lon)){
     return{ignored:true,requestId};
   }
 
@@ -1974,7 +2055,10 @@ async function requestWeatherData(lat,lon){
   const humidity=toFiniteNumber(current.relative_humidity_2m);
   const wind=toFiniteNumber(current.wind_speed_10m);
   const code=toFiniteNumber(current.weather_code);
-  const uvValue=toFiniteNumber(current.uv_index);
+  const uvCurrent=toFiniteNumber(current.uv_index);
+  const currentHourIndex=findCurrentHourIndex(data);
+  const uvHourly=toFiniteNumber(data.hourly?.uv_index?.[currentHourIndex]);
+  const uvValue=uvCurrent===null?uvHourly:uvCurrent;
   const uv=uvValue===null?"--":Math.round(uvValue);
 
   setText("aqi-uv",`AQI: ${aqi} · UV: ${uv}`);
@@ -2007,10 +2091,7 @@ async function requestWeatherData(lat,lon){
   setText("desc",condition.text);
   
   const iconEl=$("weather-icon");
-  if(iconEl){
-    iconEl.textContent=condition.icon;
-    iconEl.className="weather-icon "+(condition.anim||"");
-  }
+  renderWeatherIcon(iconEl,code===null?-1:code,condition.anim);
 
   if(code!==null){
     setWeatherFX(code);
@@ -2024,7 +2105,7 @@ async function requestWeatherData(lat,lon){
     rainKnown=true;
     rainProbability=rain.probability;
     setText("rain-pct",`${Math.round(rain.probability)}%`);
-    setText("rain-period",`Cao nhất: ${formatHourRange(rain.time)}`);
+    setText("rain-period",`${rain.coverage<rain.expected?`Dữ liệu ${rain.coverage}/${rain.expected} giờ · `:""}Cao nhất: ${formatHourRange(rain.time)}`);
     updateRainTheme(rain.probability,true);
   }else{
     setText("rain-pct","--%");
@@ -2052,17 +2133,35 @@ async function requestWeatherData(lat,lon){
     rainKnown,
     rainProbability
   });
+  lastWeatherSuccessAt=Date.now();
+  weatherFailureCount=0;
+  if(weatherRetryTimer){clearTimeout(weatherRetryTimer);weatherRetryTimer=null;}
 
   return{ignored:false,requestId};
+}
+
+function schedulePendingLocationRefresh(lat,lon){
+  pendingLocationCandidate={latitude:Number(lat),longitude:Number(lon)};
+  if(pendingLocationRefreshTimer)clearTimeout(pendingLocationRefreshTimer);
+  const elapsed=Date.now()-lastWeatherRequestAt;
+  const delay=Math.max(0,WEATHER_MIN_FETCH_INTERVAL_MS-elapsed);
+  pendingLocationRefreshTimer=setTimeout(()=>{
+    pendingLocationRefreshTimer=null;
+    const target=pendingLocationCandidate;
+    pendingLocationCandidate=null;
+    if(!pageActive||!target||!currentLocation)return;
+    if(distanceMeters(target.latitude,target.longitude,currentLocation.latitude,currentLocation.longitude)<100){
+      queueWeatherRefresh(currentLocation.latitude,currentLocation.longitude,false);
+    }
+  },delay);
 }
 
 function shouldFetchForLocation(lat,lon,force=false){
   if(force)return true;
   if(!lastWeatherRequestLocation)return true;
-  const elapsed=Date.now()-lastWeatherRequestAt;
-  if(elapsed<WEATHER_MIN_FETCH_INTERVAL_MS)return false;
   const moved=distanceMeters(lat,lon,lastWeatherRequestLocation.latitude,lastWeatherRequestLocation.longitude);
-  return moved>=WEATHER_LOCATION_MIN_DISTANCE;
+  if(moved<WEATHER_LOCATION_MIN_DISTANCE)return false;
+  return Date.now()-lastWeatherRequestAt>=WEATHER_MIN_FETCH_INTERVAL_MS;
 }
 
 function queueWeatherRefresh(lat,lon,force=false){
@@ -2098,7 +2197,14 @@ function queueWeatherRefresh(lat,lon,force=false){
             $("widgetShape").classList.add("error");
             setText("desc","Mất kết nối mạng");
             setText("rain-msg","Đang dùng dữ liệu cũ");
-            setText("updated","Lỗi mạng · Chạm vào khung để thử lại");
+            setText("updated","Lỗi mạng · Sẽ tự thử lại");
+            if(weatherRetryTimer)clearTimeout(weatherRetryTimer);
+            weatherFailureCount=Math.min(5,weatherFailureCount+1);
+            const retryDelay=Math.min(5*60*1000,WEATHER_RETRY_BASE_MS*Math.pow(2,weatherFailureCount-1));
+            weatherRetryTimer=setTimeout(()=>{
+              weatherRetryTimer=null;
+              if(pageActive&&currentLocation)queueWeatherRefresh(currentLocation.latitude,currentLocation.longitude,true);
+            },retryDelay);
           }
         }
       }
@@ -2127,16 +2233,29 @@ function formatAdminUnit(value){
 }
 
 async function fetchCityName(lat,lon,force=false){
+  if(!pageActive)return;
   const now=Date.now();
-  if(
-    !force&&
-    lastReverseGeocodePosition&&
-    distanceMeters(lat,lon,lastReverseGeocodePosition.latitude,lastReverseGeocodePosition.longitude)<REVERSE_GEOCODE_MIN_DISTANCE&&
-    (now-lastReverseGeocodeAt<REVERSE_GEOCODE_MIN_INTERVAL)
-  ){
+  const moved= !lastReverseGeocodePosition ||
+    distanceMeters(lat,lon,lastReverseGeocodePosition.latitude,lastReverseGeocodePosition.longitude)>=REVERSE_GEOCODE_MIN_DISTANCE;
+  if(!moved && now-lastReverseGeocodeAt<REVERSE_GEOCODE_MIN_INTERVAL)return;
+  if(reverseGeocodeInFlight){
+    pendingReverseGeocode={latitude:lat,longitude:lon};
+    return;
+  }
+  const wait=Math.max(0,REVERSE_GEOCODE_MIN_INTERVAL-(now-lastReverseGeocodeAt));
+  if(lastReverseGeocodeAt>0 && wait>0){
+    pendingReverseGeocode={latitude:lat,longitude:lon};
+    if(reverseGeocodeTimer)clearTimeout(reverseGeocodeTimer);
+    reverseGeocodeTimer=setTimeout(()=>{
+      reverseGeocodeTimer=null;
+      const next=pendingReverseGeocode;
+      pendingReverseGeocode=null;
+      if(next&&pageActive)fetchCityName(next.latitude,next.longitude,false);
+    },wait);
     return;
   }
 
+  reverseGeocodeInFlight=true;
   const sequence=++reverseGeocodeSequence;
   try{
     const params=new URLSearchParams({
@@ -2211,6 +2330,17 @@ async function fetchCityName(lat,lon,force=false){
     if($("cityText")?.textContent==="Đang tải địa điểm..."){
       updateCityDisplay(fallbackName);
     }
+  }finally{
+    reverseGeocodeInFlight=false;
+    if(pendingReverseGeocode&&pageActive&&!reverseGeocodeTimer){
+      const next=pendingReverseGeocode;
+      pendingReverseGeocode=null;
+      const delay=Math.max(0,REVERSE_GEOCODE_MIN_INTERVAL-(Date.now()-lastReverseGeocodeAt));
+      reverseGeocodeTimer=setTimeout(()=>{
+        reverseGeocodeTimer=null;
+        if(pageActive)fetchCityName(next.latitude,next.longitude,false);
+      },delay);
+    }
   }
 }
 
@@ -2230,27 +2360,31 @@ function useFallbackLocation(reason){
 function refreshForCurrentLocation(force=false){
   if(!currentLocation||!pageActive)return;
   queueWeatherRefresh(currentLocation.latitude,currentLocation.longitude,force);
+  if(!force&&lastWeatherRequestLocation){
+    const moved=distanceMeters(
+      currentLocation.latitude,currentLocation.longitude,
+      lastWeatherRequestLocation.latitude,lastWeatherRequestLocation.longitude
+    );
+    if(moved>=WEATHER_LOCATION_MIN_DISTANCE&&Date.now()-lastWeatherRequestAt<WEATHER_MIN_FETCH_INTERVAL_MS){
+      schedulePendingLocationRefresh(currentLocation.latitude,currentLocation.longitude);
+    }
+  }
 }
 
 window.setCarPlayLocation=function(lat,lon){
   lat=Number(lat);
   lon=Number(lon);
-  if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){
-    return;
-  }
-  currentLocation={
-    latitude:lat,
-    longitude:lon,
-    name:""
-  };
+  if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return;
+  const previous=currentLocation;
+  const movedFromWeatherAnchor=!lastWeatherRequestLocation||
+    distanceMeters(lat,lon,lastWeatherRequestLocation.latitude,lastWeatherRequestLocation.longitude)>=WEATHER_LOCATION_MIN_DISTANCE;
+  const keepName=previous?.name||"";
+  currentLocation={latitude:lat,longitude:lon,name:keepName};
   geoRequestSequence++;
-  if(geoSafetyTimer){
-    clearTimeout(geoSafetyTimer);
-    geoSafetyTimer=null;
-  }
+  if(geoSafetyTimer){clearTimeout(geoSafetyTimer);geoSafetyTimer=null;}
   geoInFlight=false;
-  refreshForCurrentLocation(false);
-  fetchCityName(lat,lon,true);
+  if(movedFromWeatherAnchor)refreshForCurrentLocation(false);
+  fetchCityName(lat,lon,false);
 };
 
 function getLocationAndWeather(){
@@ -2286,7 +2420,9 @@ function getLocationAndWeather(){
       }
       const lat=position.coords.latitude;
       const lon=position.coords.longitude;
-      currentLocation={latitude:lat,longitude:lon,name:""};
+      const previous=currentLocation;
+      const changed=!previous||distanceMeters(lat,lon,previous.latitude,previous.longitude)>=REVERSE_GEOCODE_MIN_DISTANCE;
+      currentLocation={latitude:lat,longitude:lon,name:changed?(previous?.name||""):(previous?.name||"")};
       await Promise.allSettled([
         Promise.resolve(refreshForCurrentLocation(false)),
         fetchCityName(lat,lon,true)
@@ -2311,13 +2447,14 @@ function refreshData(){
   setText("updated","Đang làm mới dữ liệu...");
   if(currentLocation){
     refreshForCurrentLocation(true);
-    fetchCityName(currentLocation.latitude,currentLocation.longitude,true);
+    fetchCityName(currentLocation.latitude,currentLocation.longitude,false);
   }else{
     getLocationAndWeather();
   }
 }
 
 function startPeriodicRefresh(){
+  if(!pageActive)return;
   if(refreshTimer){
     clearInterval(refreshTimer);
     refreshTimer=null;
@@ -2335,6 +2472,8 @@ function startPeriodicRefresh(){
 function handleVisibility(){
   pageActive=!document.hidden;
   if(pageActive){
+    document.body.classList.remove("page-paused");
+    startPeriodicRefresh();
     startClock();
     startAuraTimer();
     startCanvas();
@@ -2345,6 +2484,8 @@ function handleVisibility(){
       refreshForCurrentLocation(true);
     }
   }else{
+    document.body.classList.add("page-paused");
+    if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
     stopClock();
     stopAuraTimer();
     stopCanvas();
@@ -2356,6 +2497,11 @@ document.addEventListener("visibilitychange",handleVisibility);
 
 window.addEventListener("pagehide",()=>{
   pageActive=false;
+  document.body.classList.add("page-paused");
+  if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
+  if(pendingLocationRefreshTimer){clearTimeout(pendingLocationRefreshTimer);pendingLocationRefreshTimer=null;}
+  if(reverseGeocodeTimer){clearTimeout(reverseGeocodeTimer);reverseGeocodeTimer=null;}
+  if(weatherRetryTimer){clearTimeout(weatherRetryTimer);weatherRetryTimer=null;}
   stopCanvas();
   clearLightning();
   stopClock();
@@ -2372,6 +2518,8 @@ window.addEventListener("pagehide",()=>{
 window.addEventListener("pageshow",()=>{
   pageActive=!document.hidden;
   if(!pageActive)return;
+  document.body.classList.remove("page-paused");
+  startPeriodicRefresh();
   startClock();
   startAuraTimer();
   startCanvas();
