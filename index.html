@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Weather CarPlay Widget - Clean Edition</title>
+<title>Weather CarPlay Widget - Final Fix</title>
 
 <style>
 :root{
@@ -37,7 +37,7 @@ body{
   flex-direction:column;
   justify-content:center;
   align-items:center;
-  padding: calc(2px + env(safe-area-inset-top)) 4px calc(4px + env(safe-area-inset-bottom)) 4px;
+  padding: env(safe-area-inset-top) 4px env(safe-area-inset-bottom) 4px;
   position:relative;
   isolation:isolate;
 }
@@ -98,14 +98,14 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   position:relative;
   z-index:2;
   width:100%;
-  flex:1;
-  min-height:0;
+  height:100%;
 }
 .widget-container{
   display:flex;
   justify-content:center;
   align-items:center;
   width:100%;
+  height:100%;
 }
 
 /* LIQUID GLASS + DUAL TONE BORDER */
@@ -273,12 +273,12 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   display:none;
 }
 
-/* KHUNG CHỮ NHẬT (CARD) */
+/* KHUNG CHỮ NHẬT (CARD) VỪA KHÍT 100% KHÔNG TRÀN */
 .card{
   width:min(320px, 94vw);
-  height:auto;
-  max-height:92vh;
-  justify-content:space-evenly;
+  height:100%;
+  max-height:560px;
+  justify-content:space-between;
   padding:8px 8px;
   gap:2px;
 }
@@ -588,7 +588,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   font-weight:700;
 }
 
-/* THANH ĐIỀU KHIỂN TỰ ĐỘNG ẨN HOÀN TOÀN KHÔNG ĐÈ NỀN */
+/* THANH ĐIỀU KHIỂN TỰ ĐỘNG ẨN SAU 2 GIÂY */
 .mode-controls{
   position:fixed;
   bottom:0;
@@ -601,7 +601,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   align-items:center;
   gap:3px;
   padding:6px 10px;
-  background:rgba(10, 16, 28, 0.85);
+  background:rgba(10, 16, 28, 0.92);
   border:1px solid rgba(79, 195, 247, 0.4);
   border-bottom:none;
   border-top-left-radius:16px;
@@ -611,9 +611,11 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   box-shadow:0 -6px 20px rgba(0,0,0,0.6);
   transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   z-index:9999;
+  pointer-events:none;
 }
 .mode-controls.visible{
   transform:translateX(-50%) translateY(0);
+  pointer-events:auto;
 }
 .handle-bar{
   width:36px;
@@ -795,7 +797,7 @@ const TIME_ZONE="Asia/Ho_Chi_Minh";
 const WEATHER_LOCATION_MIN_DISTANCE=1000;
 const WEATHER_MIN_FETCH_INTERVAL_MS=60*1000;
 
-const CACHE_KEY="carplay_weather_cache_v41";
+const CACHE_KEY="carplay_weather_cache_v42";
 const LAYOUT_KEY="carplay_layout_mode_v18";
 
 const OPACITY_KEYS={
@@ -844,7 +846,7 @@ const reducedMotion=!!(
   window.matchMedia("(prefers-reduced-motion: reduce)").matches
 );
 
-/* CƠ CHẾ VUỐT LÊN / TỰ ĐỘNG ẨN SAU 2 GIÂY */
+/* CƠ CHẾ VUỐT LÊN / TỰ ĐỘNG ẨN SAU 2 GIÂY CHUẨN XÁC */
 let touchStartY=0;
 let controlsVisible=false;
 let autoHideTimer=null;
@@ -886,7 +888,7 @@ window.addEventListener("touchend",e=>{
   if(e.changedTouches.length>0){
     const touchEndY=e.changedTouches[0].clientY;
     const diffY=touchStartY-touchEndY;
-    // Vuốt lên trên trên 40px từ bất kỳ đâu ở màn hình thì hiện menu
+    // Vuốt lên trên trên 40px thì hiện menu
     if(diffY>40){
       setControlsVisibility(true);
     }
