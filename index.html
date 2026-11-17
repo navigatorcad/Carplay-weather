@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Weather CarPlay Widget - Perfect Fit</title>
+<title>Weather CarPlay Widget - Clean Edition</title>
 
 <style>
 :root{
@@ -273,7 +273,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   display:none;
 }
 
-/* KHUNG CHỮ NHẬT (CARD) - CHỐNG TRÀN VÀ VỪA KHÍT MÀN HÌNH */
+/* KHUNG CHỮ NHẬT (CARD) */
 .card{
   width:min(320px, 94vw);
   height:auto;
@@ -588,7 +588,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   font-weight:700;
 }
 
-/* THANH ĐIỀU KHIỂN TỰ ĐỘNG ẨN SAU 2 GIÂY */
+/* THANH ĐIỀU KHIỂN TỰ ĐỘNG ẨN HOÀN TOÀN KHÔNG ĐÈ NỀN */
 .mode-controls{
   position:fixed;
   bottom:0;
@@ -795,7 +795,7 @@ const TIME_ZONE="Asia/Ho_Chi_Minh";
 const WEATHER_LOCATION_MIN_DISTANCE=1000;
 const WEATHER_MIN_FETCH_INTERVAL_MS=60*1000;
 
-const CACHE_KEY="carplay_weather_cache_v40";
+const CACHE_KEY="carplay_weather_cache_v41";
 const LAYOUT_KEY="carplay_layout_mode_v18";
 
 const OPACITY_KEYS={
@@ -844,7 +844,7 @@ const reducedMotion=!!(
   window.matchMedia("(prefers-reduced-motion: reduce)").matches
 );
 
-/* CƠ CHẾ TỰ ĐỘNG TẮT SAU 2 GIÂY KHÔNG TƯƠNG TÁC */
+/* CƠ CHẾ VUỐT LÊN / TỰ ĐỘNG ẨN SAU 2 GIÂY */
 let touchStartY=0;
 let controlsVisible=false;
 let autoHideTimer=null;
@@ -886,9 +886,11 @@ window.addEventListener("touchend",e=>{
   if(e.changedTouches.length>0){
     const touchEndY=e.changedTouches[0].clientY;
     const diffY=touchStartY-touchEndY;
+    // Vuốt lên trên trên 40px từ bất kỳ đâu ở màn hình thì hiện menu
     if(diffY>40){
       setControlsVisibility(true);
     }
+    // Vuốt xuống dưới thì ẩn menu
     else if(diffY<-40){
       setControlsVisibility(false);
     }
