@@ -267,8 +267,10 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   font-size:7.5px;
 }
 .bubble .rain-alert,
-.bubble .updated,
 .hourly-section{
+  display:none;
+}
+.bubble .updated{
   display:none;
 }
 
@@ -335,11 +337,14 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   margin-bottom:2px;
 }
 
-/* HIỆU ỨNG CẦU VỒNG CHUYỂN ĐỘNG CHO ĐỒNG HỒ Ở FORM CHỮ NHẬT (CARD) */
-@keyframes rainbowFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+/* HIỆU ỨNG CẦU VỒNG CHUẨN TỪ MẪU CỦA BẠN (Áp dụng riêng cho Card) */
+@keyframes rainbow-move {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 .card .card-time-block .clock-text{
@@ -348,15 +353,26 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   letter-spacing:.5px;
   line-height:1.05;
   
-  /* Tạo dải màu cầu vồng */
-  background: linear-gradient(270deg, #ff3366, #ff9933, #ffff33, #33cc66, #3399ff, #9933ff, #ff3366);
-  background-size: 400% 400%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  /* Dải màu chuẩn 7 sắc có lặp đầu đuôi */
+  background: linear-gradient(
+    90deg, 
+    #ff0000, 
+    #ff7f00, 
+    #ffff00, 
+    #00ff00, 
+    #0000ff, 
+    #4b0082, 
+    #9400d3, 
+    #ff0000
+  );
+  background-size: 200% auto;
   
-  /* Chạy hiệu ứng chuyển màu liên tục nhưng số đứng yên */
-  animation: rainbowFlow 6s ease infinite;
-  text-shadow: 0 2px 8px rgba(0,0,0,.6);
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  
+  animation: rainbow-move 3s linear infinite;
+  text-shadow: 0 2px 8px rgba(0,0,0,.3);
 }
 
 .card-time-block .solar-date{
@@ -370,7 +386,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   color:#ffd54f;
 }
 
-/* EXTERNAL TIME BAR (BUBBLE) - GIỮ NGUYÊN MÀU CŨ */
+/* EXTERNAL TIME BAR (BUBBLE) - Giữ nguyên màu xanh truyền thống */
 .external-time-bar{
   display:none;
   width:min(310px, 90vw);
@@ -416,7 +432,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   color:var(--temp-accent);
 }
 
-/* WEATHER ICON ANIMATIONS - REFINED & EXPRESSIVE */
+/* WEATHER ICON ANIMATIONS */
 .weather-icon{
   font-size:clamp(18px, 9.5vw, 28px);
   line-height:1;
@@ -427,71 +443,32 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 }
 
 @keyframes sunGlowSpin {
-  0% {
-    transform: scale(1) rotate(0deg);
-    filter: drop-shadow(0 0 4px rgba(253, 224, 71, 0.35));
-  }
-  50% {
-    transform: scale(1.12) rotate(12deg);
-    filter: drop-shadow(0 0 12px rgba(253, 224, 71, 0.75));
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    filter: drop-shadow(0 0 4px rgba(253, 224, 71, 0.35));
-  }
+  0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 4px rgba(253, 224, 71, 0.35)); }
+  50% { transform: scale(1.12) rotate(12deg); filter: drop-shadow(0 0 12px rgba(253, 224, 71, 0.75)); }
+  100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 4px rgba(253, 224, 71, 0.35)); }
 }
 
 @keyframes cloudDrift {
-  0%, 100% {
-    transform: translate3d(-2px, 0, 0) scale(1);
-    filter: drop-shadow(0 3px 6px rgba(0,0,0,.35));
-  }
-  50% {
-    transform: translate3d(3px, -2.5px, 0) scale(1.04);
-    filter: drop-shadow(0 5px 8px rgba(148, 163, 184, 0.45));
-  }
+  0%, 100% { transform: translate3d(-2px, 0, 0) scale(1); filter: drop-shadow(0 3px 6px rgba(0,0,0,.35)); }
+  50% { transform: translate3d(3px, -2.5px, 0) scale(1.04); filter: drop-shadow(0 5px 8px rgba(148, 163, 184, 0.45)); }
 }
 
 @keyframes rainDropPulse {
-  0%, 100% {
-    transform: translate3d(0, -1.5px, 0) scale(1);
-    filter: drop-shadow(0 2px 5px rgba(56, 189, 248, 0.35));
-  }
-  50% {
-    transform: translate3d(0, 2.5px, 0) scale(1.06);
-    filter: drop-shadow(0 4px 10px rgba(56, 189, 248, 0.7));
-  }
+  0%, 100% { transform: translate3d(0, -1.5px, 0) scale(1); filter: drop-shadow(0 2px 5px rgba(56, 189, 248, 0.35)); }
+  50% { transform: translate3d(0, 2.5px, 0) scale(1.06); filter: drop-shadow(0 4px 10px rgba(56, 189, 248, 0.7)); }
 }
 
 @keyframes stormFlashShake {
-  0%, 100% {
-    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
-    filter: drop-shadow(0 2px 6px rgba(250, 204, 21, 0.3));
-  }
-  20% {
-    transform: translate3d(-2.5px, 0, 0) rotate(-4deg) scale(1.05);
-  }
-  40% {
-    transform: translate3d(2.5px, -1px, 0) rotate(4deg) scale(1.08);
-    filter: drop-shadow(0 0 14px rgba(250, 204, 21, 0.9));
-  }
-  60% {
-    transform: translate3d(-1.5px, 1px, 0) rotate(-2deg) scale(1.02);
-  }
-  80% {
-    transform: translate3d(1.5px, 0, 0) rotate(2deg) scale(1);
-  }
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); filter: drop-shadow(0 2px 6px rgba(250, 204, 21, 0.3)); }
+  20% { transform: translate3d(-2.5px, 0, 0) rotate(-4deg) scale(1.05); }
+  40% { transform: translate3d(2.5px, -1px, 0) rotate(4deg) scale(1.08); filter: drop-shadow(0 0 14px rgba(250, 204, 21, 0.9)); }
+  60% { transform: translate3d(-1.5px, 1px, 0) rotate(-2deg) scale(1.02); }
+  80% { transform: translate3d(1.5px, 0, 0) rotate(2deg) scale(1); }
 }
 
 @keyframes fogPulse {
-  0%, 100% {
-    transform: scale(0.98);
-    opacity: 0.82;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 1;
-  }
+  0%, 100% { transform: scale(0.98); opacity: 0.82; }
+  50% { transform: scale(1.05); opacity: 1; }
 }
 
 .weather-icon.anim-sunny { animation: sunGlowSpin 5s ease-in-out infinite; }
@@ -519,7 +496,6 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 @keyframes svgRainFall{to{transform:translateY(3px);opacity:.55}}
 @keyframes svgBoltFlash{0%,75%,100%{opacity:1}80%,90%{opacity:.25}}
 @keyframes svgCloudFloat{50%{transform:translateX(2px)}}
-
 
 .desc{
   color:#e2e8f0;
@@ -960,7 +936,6 @@ if(motionQuery){
   else if(typeof motionQuery.addListener==="function")motionQuery.addListener(onMotionChange);
 }
 
-/* CƠ CHẾ VUỐT LÊN / TỰ ĐỘNG ẨN SAU 2 GIÂY */
 let touchStartY=0;
 let controlsVisible=false;
 let autoHideTimer=null;
