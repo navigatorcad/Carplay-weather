@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Weather CarPlay Widget - True Circle Edition</title>
+<title>Weather CarPlay Widget - Auto Hide Controls</title>
 
 <style>
 :root{
@@ -35,7 +35,7 @@ html,body{
 body{
   display:flex;
   flex-direction:column;
-  justify-content:space-between;
+  justify-content:center;
   align-items:center;
   padding: calc(4px + env(safe-area-inset-top)) 4px calc(6px + env(safe-area-inset-bottom)) 4px;
   position:relative;
@@ -106,7 +106,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   justify-content:center;
   align-items:center;
   width:100%;
-  flex-shrink:0;
+  height:100%;
 }
 
 /* LIQUID GLASS + DUAL TONE BORDER */
@@ -189,7 +189,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   z-index:3;
 }
 
-/* KHÓA CỨNG HÌNH TRÒN 1:1 - TUYỆT ĐỐI KHÔNG BỊ MÉO */
+/* KHÓA CỨNG HÌNH TRÒN 1:1 */
 .bubble{
   width:min(320px, 92vw, 54vh);
   height:auto;
@@ -200,13 +200,12 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   justify-content:center;
   padding:7% 6%;
   gap:1px;
-  container-type:inline-size; /* Đo kích thước thực của vòng tròn để co chữ */
+  container-type:inline-size;
 }
 .bubble::after{
   border-radius:50%;
 }
 
-/* CỠ CHỮ BÊN TRONG CO GIÃN ĐÚNG TỶ LỆ ĐƯỜNG KÍNH HÌNH TRÒN (cqi) */
 .bubble .city-container{
   font-size:clamp(8px, 5.2cqi, 14px);
   max-width:74%;
@@ -275,13 +274,14 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   display:none;
 }
 
-/* KHUNG CHỮ NHẬT (CARD) */
+/* KHUNG CHỮ NHẬT (CARD) - TẬN DỤNG TỐI ĐA CHIỀU CAO */
 .card{
   width:min(330px, 95vw);
-  max-height:100%;
-  justify-content:space-evenly;
-  padding:8px 8px;
-  gap:3px;
+  height:100%;
+  max-height:580px;
+  justify-content:space-between;
+  padding:10px 8px;
+  gap:2px;
 }
 .bubble:active,.card:active{
   transform:scale(.985);
@@ -292,7 +292,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   align-items:center;
   max-width:92%;
   overflow:hidden;
-  font-size:clamp(10px, 5.5vw, 14px);
+  font-size:clamp(10px, 4.8vw, 13px);
   font-weight:700;
   color:#f1f5f9;
   text-shadow:0 1px 3px rgba(0,0,0,.45);
@@ -331,11 +331,11 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:1px;
+  gap:0px;
   flex-shrink:0;
 }
 .card-time-block .clock-text{
-  font-size:clamp(22px, 12vw, 34px);
+  font-size:clamp(22px, 11vw, 32px);
   font-weight:900;
   color:#64b5f6;
   text-shadow:0 2px 6px rgba(0,0,0,.95),0 0 12px rgba(100,181,246,.8);
@@ -343,12 +343,12 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   line-height:1.05;
 }
 .card-time-block .solar-date{
-  font-size:clamp(9px, 5vw, 12px);
+  font-size:clamp(8.5px, 4.2vw, 11px);
   font-weight:700;
   color:#f1f5f9;
 }
 .card-time-block .lunar-date{
-  font-size:clamp(8.5px, 4.6vw, 11px);
+  font-size:clamp(8px, 4vw, 10px);
   font-weight:700;
   color:#ffd54f;
 }
@@ -357,11 +357,11 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 .external-time-bar{
   display:none;
   width:96%;
-  margin-top:6px;
+  margin-top:4px;
   text-align:center;
   flex-direction:column;
   align-items:center;
-  gap:2px;
+  gap:1px;
   flex-shrink:0;
 }
 .external-time-bar .clock-text{
@@ -395,7 +395,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   flex-shrink:0;
 }
 .temp{
-  font-size:clamp(28px, 15vw, 44px);
+  font-size:clamp(26px, 13vw, 40px);
   line-height:1;
   font-weight:800;
   letter-spacing:-1.5px;
@@ -405,7 +405,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 
 /* WEATHER ICON ANIMATIONS */
 .weather-icon{
-  font-size:clamp(22px, 12vw, 34px);
+  font-size:clamp(20px, 11vw, 32px);
   line-height:1;
   display:inline-block;
   transform-origin:center;
@@ -435,27 +435,28 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 
 .desc{
   color:#e2e8f0;
-  font-size:clamp(10px, 5.5vw, 13px);
+  font-size:clamp(9.5px, 4.8vw, 12px);
   font-weight:600;
   max-width:95%;
   flex-shrink:0;
 }
 .aqi-uv{
-  font-size:clamp(9px, 4.8vw, 11px);
+  font-size:clamp(8.5px, 4.2vw, 10.5px);
   font-weight:700;
   color:var(--rain-accent);
   flex-shrink:0;
 }
 .temp-range{
-  font-size:clamp(9px, 4.8vw, 11px);
+  font-size:clamp(8.5px, 4.2vw, 10.5px);
   font-weight:650;
   color:var(--muted);
+  flex-shrink:0;
 }
 .divider{
   width:90%;
   height:1px;
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.32),transparent);
-  margin:2px 0;
+  margin:1px 0;
   flex-shrink:0;
 }
 .details{
@@ -476,27 +477,27 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   align-items:center;
   justify-content:center;
   gap:3px;
-  font-size:clamp(11px, 6vw, 15px);
+  font-size:clamp(10px, 5.2vw, 14px);
   font-weight:800;
   white-space:nowrap;
 }
 .detail-icon{
-  font-size:clamp(11px, 6vw, 16px);
+  font-size:clamp(10px, 5.2vw, 15px);
   line-height:1;
 }
 .detail-unit{
-  font-size:clamp(8.5px, 4.5vw, 11px);
+  font-size:clamp(8px, 4vw, 10.5px);
   font-weight:600;
   color:#cbd5e1;
 }
 .detail-lbl{
-  font-size:clamp(8.5px, 4.5vw, 11px);
+  font-size:clamp(8px, 4vw, 10.5px);
   color:var(--muted);
   font-weight:600;
 }
 .vertical-divider{
   width:1px;
-  height:20px;
+  height:16px;
   background:linear-gradient(180deg,transparent,rgba(255,255,255,.32),transparent);
 }
 
@@ -509,31 +510,31 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   justify-content:center;
   align-items:center;
   gap:4px;
-  font-size:clamp(9.5px, 5vw, 12px);
+  font-size:clamp(9px, 4.5vw, 11px);
   font-weight:650;
   white-space:nowrap;
 }
-.rain-icon{font-size:clamp(11px, 5.5vw, 15px)}
+.rain-icon{font-size:clamp(10px, 5vw, 14px)}
 .rain-prob strong{
-  font-size:clamp(11px, 6vw, 15px);
+  font-size:clamp(10px, 5.2vw, 14px);
   font-weight:850;
   color:var(--rain-accent);
 }
 .rain-period{
-  font-size:clamp(8px, 4.3vw, 10px);
+  font-size:clamp(7.5px, 3.8vw, 9.5px);
   color:var(--muted);
   margin-top:1px;
   font-weight:600;
 }
 .rain-alert{
-  font-size:clamp(8px, 4.3vw, 10px);
+  font-size:clamp(7.5px, 3.8vw, 9.5px);
   font-weight:700;
   color:var(--rain-accent);
 }
 .updated{
   width:100%;
   color:#94a3b8;
-  font-size:8px;
+  font-size:7.5px;
   opacity:.95;
   flex-shrink:0;
   font-weight:600;
@@ -542,14 +543,14 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 .hourly-section{
   display:none;
   width:100%;
-  margin-top:2px;
-  padding-top:3px;
+  margin-top:1px;
+  padding-top:2px;
   border-top:1px solid rgba(255,255,255,.22);
   flex-shrink:0;
 }
 .card .hourly-section{display:block}
 .hourly-title{
-  font-size:9px;
+  font-size:8.5px;
   color:var(--muted);
   font-weight:750;
   margin-bottom:2px;
@@ -565,53 +566,74 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   flex-direction:column;
   align-items:center;
   gap:1px;
-  padding:3px 1px;
+  padding:2px 1px;
   border-radius:6px;
   background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.02));
 }
 .hour-time{
-  font-size:7.5px;
+  font-size:7px;
   color:#e2e8f0;
   font-weight:650;
 }
 .hour-icon{
-  font-size:11px;
+  font-size:10px;
   line-height:1.1;
 }
 .hour-temp{
-  font-size:9.5px;
+  font-size:9px;
   font-weight:800;
 }
 .hour-rain{
-  font-size:7.5px;
+  font-size:7px;
   color:#90caf9;
   font-weight:700;
 }
 
-/* CONTROLS SIÊU GỌN */
+/* THANH ĐIỀU KHIỂN TỰ ĐỘNG ẨN/HIỆN (FLOATING AUTO-HIDE PANEL) */
 .mode-controls{
-  width:96%;
+  position:fixed;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%) translateY(110%);
+  width:94%;
   max-width:320px;
   display:flex;
   flex-direction:column;
   align-items:center;
   gap:4px;
-  margin-top:4px;
-  flex-shrink:0;
+  padding:8px 10px;
+  background:rgba(10, 16, 28, 0.85);
+  border:1px solid rgba(79, 195, 247, 0.4);
+  border-bottom:none;
+  border-top-left-radius:16px;
+  border-top-right-radius:16px;
+  backdrop-filter:blur(20px) saturate(190%);
+  -webkit-backdrop-filter:blur(20px) saturate(190%);
+  box-shadow:0 -6px 20px rgba(0,0,0,0.6);
+  transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   z-index:9999;
+}
+.mode-controls.visible{
+  transform:translateX(-50%) translateY(0);
+}
+.handle-bar{
+  width:36px;
+  height:4px;
+  background:rgba(255,255,255,0.35);
+  border-radius:2px;
+  margin-bottom:2px;
+  cursor:pointer;
 }
 .mode-toggle-btn{
   width:100%;
   background:linear-gradient(160deg,rgba(255,255,255,.18),rgba(20,30,45,.75));
   border:1px solid rgba(79,195,247,.85);
   color:#fff;
-  font-size:clamp(9.5px, 5vw, 12px);
+  font-size:clamp(9.5px, 4.5vw, 11.5px);
   font-weight:750;
-  padding:6px 8px;
+  padding:5px 8px;
   border-radius:10px;
   cursor:pointer;
-  backdrop-filter:blur(18px) saturate(180%);
-  -webkit-backdrop-filter:blur(18px) saturate(180%);
   text-align:center;
 }
 .opacity-control{
@@ -619,14 +641,12 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   display:flex;
   align-items:center;
   gap:6px;
-  padding:4px 8px;
+  padding:3px 8px;
   border:1px solid rgba(79,195,247,.7);
   border-radius:10px;
   background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(20,30,45,.7));
-  backdrop-filter:blur(18px) saturate(180%);
-  -webkit-backdrop-filter:blur(18px) saturate(180%);
   color:#fff;
-  font-size:clamp(8.5px, 4.5vw, 10px);
+  font-size:clamp(8.5px, 4vw, 10px);
 }
 .opacity-control label{
   white-space:nowrap;
@@ -646,6 +666,30 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   font-variant-numeric:tabular-nums;
   font-weight:800;
 }
+
+/* NÚT GỢI Ý MỞ MENU NHỎ Ở GÓC DƯỚI */
+.trigger-hint{
+  position:fixed;
+  bottom:4px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(255,255,255,0.15);
+  border:1px solid rgba(255,255,255,0.25);
+  color:#cbd5e1;
+  font-size:8px;
+  font-weight:700;
+  padding:2px 10px;
+  border-radius:10px;
+  backdrop-filter:blur(8px);
+  z-index:998;
+  cursor:pointer;
+  transition:opacity 0.3s;
+}
+.trigger-hint.hidden{
+  opacity:0;
+  pointer-events:none;
+}
+
 .error .desc{color:#ffb4ab}
 
 @media(prefers-reduced-motion:reduce){
@@ -666,7 +710,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 
 <canvas class="weather-fx" id="weatherFxCanvas"></canvas>
 
-<div class="main-wrapper">
+<div class="main-wrapper" id="mainWrapper">
   <div class="widget-container">
     <main class="bubble" id="widgetShape" aria-live="polite">
 
@@ -746,7 +790,10 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   </div>
 </div>
 
-<div class="mode-controls">
+<div class="trigger-hint" id="triggerHint">▲ Vuốt lên để mở menu</div>
+
+<div class="mode-controls" id="modeControls">
+  <div class="handle-bar" id="handleBar" title="Đóng menu"></div>
   <button class="mode-toggle-btn" id="modeToggleBtn" type="button">
     🔄 Đổi Form
   </button>
@@ -774,12 +821,12 @@ const TIME_ZONE="Asia/Ho_Chi_Minh";
 const WEATHER_LOCATION_MIN_DISTANCE=1000;
 const WEATHER_MIN_FETCH_INTERVAL_MS=60*1000;
 
-const CACHE_KEY="carplay_weather_cache_v37";
-const LAYOUT_KEY="carplay_layout_mode_v17";
+const CACHE_KEY="carplay_weather_cache_v38";
+const LAYOUT_KEY="carplay_layout_mode_v18";
 
 const OPACITY_KEYS={
-  bubble:"carplay_opacity_bubble_v25",
-  card:"carplay_opacity_card_v25"
+  bubble:"carplay_opacity_bubble_v26",
+  card:"carplay_opacity_card_v26"
 };
 
 const REVERSE_GEOCODE_MIN_INTERVAL=60*1000;
@@ -822,6 +869,47 @@ const reducedMotion=!!(
   window.matchMedia&&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches
 );
+
+/* CƠ CHẾ VUỐT LÊN / CHẠM ĐỂ HIỆN THANH ĐIỀU KHIỂN */
+let touchStartY=0;
+let controlsVisible=false;
+
+function setControlsVisibility(visible){
+  controlsVisible=visible;
+  const panel=$("modeControls");
+  const hint=$("triggerHint");
+  if(visible){
+    panel.classList.add("visible");
+    hint.classList.add("hidden");
+  }else{
+    panel.classList.remove("visible");
+    hint.classList.remove("hidden");
+  }
+}
+
+window.addEventListener("touchstart",e=>{
+  if(e.touches.length>0){
+    touchStartY=e.touches[0].clientY;
+  }
+},{passive:true});
+
+window.addEventListener("touchend",e=>{
+  if(e.changedTouches.length>0){
+    const touchEndY=e.changedTouches[0].clientY;
+    const diffY=touchStartY-touchEndY;
+    // Vuốt lên trên trên 40px thì hiện bảng điều khiển
+    if(diffY>40){
+      setControlsVisibility(true);
+    }
+    // Vuốt xuống dưới trên 40px thì ẩn bảng điều khiển
+    else if(diffY<-40){
+      setControlsVisibility(false);
+    }
+  }
+},{passive:true});
+
+$("triggerHint").addEventListener("click",()=>setControlsVisibility(true));
+$("handleBar").addEventListener("click",()=>setControlsVisibility(false));
 
 function safeStorageGet(key){
   try{return localStorage.getItem(key)}
