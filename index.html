@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Weather CarPlay Widget - Auto Hide Controls</title>
+<title>Weather CarPlay Widget - Perfect Fit</title>
 
 <style>
 :root{
@@ -37,7 +37,7 @@ body{
   flex-direction:column;
   justify-content:center;
   align-items:center;
-  padding: calc(4px + env(safe-area-inset-top)) 4px calc(6px + env(safe-area-inset-bottom)) 4px;
+  padding: calc(2px + env(safe-area-inset-top)) 4px calc(4px + env(safe-area-inset-bottom)) 4px;
   position:relative;
   isolation:isolate;
 }
@@ -106,7 +106,6 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   justify-content:center;
   align-items:center;
   width:100%;
-  height:100%;
 }
 
 /* LIQUID GLASS + DUAL TONE BORDER */
@@ -129,13 +128,13 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   backdrop-filter:blur(28px) saturate(210%) brightness(1.12);
   -webkit-backdrop-filter:blur(28px) saturate(210%) brightness(1.12);
 
-  border-radius:22px;
+  border-radius:20px;
   border:none;
 
   box-shadow:
-    0 12px 28px rgba(0,0,0,.5),
-    0 0 14px var(--temp-accent),
-    0 0 14px var(--rain-accent),
+    0 10px 24px rgba(0,0,0,.5),
+    0 0 12px var(--temp-accent),
+    0 0 12px var(--rain-accent),
     inset 0 1.5px 1.5px rgba(255,255,255,.6),
     inset 0 -1.5px 4px rgba(0,0,0,.4);
 
@@ -191,14 +190,14 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 
 /* KHÓA CỨNG HÌNH TRÒN 1:1 */
 .bubble{
-  width:min(320px, 92vw, 54vh);
+  width:min(320px, 92vw, 52vh);
   height:auto;
   aspect-ratio:1 / 1;
   flex-shrink:0;
   flex-grow:0;
   border-radius:50%;
   justify-content:center;
-  padding:7% 6%;
+  padding:6% 5%;
   gap:1px;
   container-type:inline-size;
 }
@@ -274,13 +273,13 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   display:none;
 }
 
-/* KHUNG CHỮ NHẬT (CARD) - TẬN DỤNG TỐI ĐA CHIỀU CAO */
+/* KHUNG CHỮ NHẬT (CARD) - CHỐNG TRÀN VÀ VỪA KHÍT MÀN HÌNH */
 .card{
-  width:min(330px, 95vw);
-  height:100%;
-  max-height:580px;
-  justify-content:space-between;
-  padding:10px 8px;
+  width:min(320px, 94vw);
+  height:auto;
+  max-height:92vh;
+  justify-content:space-evenly;
+  padding:8px 8px;
   gap:2px;
 }
 .bubble:active,.card:active{
@@ -292,7 +291,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   align-items:center;
   max-width:92%;
   overflow:hidden;
-  font-size:clamp(10px, 4.8vw, 13px);
+  font-size:clamp(9.5px, 4.2vw, 12px);
   font-weight:700;
   color:#f1f5f9;
   text-shadow:0 1px 3px rgba(0,0,0,.45);
@@ -300,7 +299,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 }
 .city-pin{
   flex-shrink:0;
-  margin-right:3px;
+  margin-right:2px;
 }
 .city-viewport{
   overflow:hidden;
@@ -335,7 +334,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   flex-shrink:0;
 }
 .card-time-block .clock-text{
-  font-size:clamp(22px, 11vw, 32px);
+  font-size:clamp(20px, 9.5vw, 29px);
   font-weight:900;
   color:#64b5f6;
   text-shadow:0 2px 6px rgba(0,0,0,.95),0 0 12px rgba(100,181,246,.8);
@@ -343,12 +342,12 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   line-height:1.05;
 }
 .card-time-block .solar-date{
-  font-size:clamp(8.5px, 4.2vw, 11px);
+  font-size:clamp(8px, 3.8vw, 10.5px);
   font-weight:700;
   color:#f1f5f9;
 }
 .card-time-block .lunar-date{
-  font-size:clamp(8px, 4vw, 10px);
+  font-size:clamp(7.5px, 3.6vw, 9.5px);
   font-weight:700;
   color:#ffd54f;
 }
@@ -391,11 +390,11 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:6px;
+  gap:5px;
   flex-shrink:0;
 }
 .temp{
-  font-size:clamp(26px, 13vw, 40px);
+  font-size:clamp(24px, 11vw, 36px);
   line-height:1;
   font-weight:800;
   letter-spacing:-1.5px;
@@ -405,7 +404,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 
 /* WEATHER ICON ANIMATIONS */
 .weather-icon{
-  font-size:clamp(20px, 11vw, 32px);
+  font-size:clamp(18px, 9.5vw, 28px);
   line-height:1;
   display:inline-block;
   transform-origin:center;
@@ -435,19 +434,19 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 
 .desc{
   color:#e2e8f0;
-  font-size:clamp(9.5px, 4.8vw, 12px);
+  font-size:clamp(9px, 4.2vw, 11.5px);
   font-weight:600;
   max-width:95%;
   flex-shrink:0;
 }
 .aqi-uv{
-  font-size:clamp(8.5px, 4.2vw, 10.5px);
+  font-size:clamp(8px, 3.8vw, 10px);
   font-weight:700;
   color:var(--rain-accent);
   flex-shrink:0;
 }
 .temp-range{
-  font-size:clamp(8.5px, 4.2vw, 10.5px);
+  font-size:clamp(8px, 3.8vw, 10px);
   font-weight:650;
   color:var(--muted);
   flex-shrink:0;
@@ -477,27 +476,27 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   align-items:center;
   justify-content:center;
   gap:3px;
-  font-size:clamp(10px, 5.2vw, 14px);
+  font-size:clamp(9.5px, 4.5vw, 13px);
   font-weight:800;
   white-space:nowrap;
 }
 .detail-icon{
-  font-size:clamp(10px, 5.2vw, 15px);
+  font-size:clamp(9.5px, 4.5vw, 14px);
   line-height:1;
 }
 .detail-unit{
-  font-size:clamp(8px, 4vw, 10.5px);
+  font-size:clamp(7.5px, 3.6vw, 10px);
   font-weight:600;
   color:#cbd5e1;
 }
 .detail-lbl{
-  font-size:clamp(8px, 4vw, 10.5px);
+  font-size:clamp(7.5px, 3.6vw, 10px);
   color:var(--muted);
   font-weight:600;
 }
 .vertical-divider{
   width:1px;
-  height:16px;
+  height:15px;
   background:linear-gradient(180deg,transparent,rgba(255,255,255,.32),transparent);
 }
 
@@ -510,31 +509,31 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   justify-content:center;
   align-items:center;
   gap:4px;
-  font-size:clamp(9px, 4.5vw, 11px);
+  font-size:clamp(8.5px, 4vw, 10.5px);
   font-weight:650;
   white-space:nowrap;
 }
-.rain-icon{font-size:clamp(10px, 5vw, 14px)}
+.rain-icon{font-size:clamp(9.5px, 4.5vw, 13px)}
 .rain-prob strong{
-  font-size:clamp(10px, 5.2vw, 14px);
+  font-size:clamp(9.5px, 4.5vw, 13px);
   font-weight:850;
   color:var(--rain-accent);
 }
 .rain-period{
-  font-size:clamp(7.5px, 3.8vw, 9.5px);
+  font-size:clamp(7px, 3.4vw, 9px);
   color:var(--muted);
   margin-top:1px;
   font-weight:600;
 }
 .rain-alert{
-  font-size:clamp(7.5px, 3.8vw, 9.5px);
+  font-size:clamp(7px, 3.4vw, 9px);
   font-weight:700;
   color:var(--rain-accent);
 }
 .updated{
   width:100%;
   color:#94a3b8;
-  font-size:7.5px;
+  font-size:7px;
   opacity:.95;
   flex-shrink:0;
   font-weight:600;
@@ -550,10 +549,10 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 }
 .card .hourly-section{display:block}
 .hourly-title{
-  font-size:8.5px;
+  font-size:8px;
   color:var(--muted);
   font-weight:750;
-  margin-bottom:2px;
+  margin-bottom:1px;
   text-align:left;
 }
 .hourly-list{
@@ -567,29 +566,29 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   align-items:center;
   gap:1px;
   padding:2px 1px;
-  border-radius:6px;
+  border-radius:5px;
   background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.02));
 }
 .hour-time{
-  font-size:7px;
+  font-size:6.5px;
   color:#e2e8f0;
   font-weight:650;
 }
 .hour-icon{
-  font-size:10px;
+  font-size:9.5px;
   line-height:1.1;
 }
 .hour-temp{
-  font-size:9px;
+  font-size:8.5px;
   font-weight:800;
 }
 .hour-rain{
-  font-size:7px;
+  font-size:6.5px;
   color:#90caf9;
   font-weight:700;
 }
 
-/* THANH ĐIỀU KHIỂN TỰ ĐỘNG ẨN/HIỆN (FLOATING AUTO-HIDE PANEL) */
+/* THANH ĐIỀU KHIỂN TỰ ĐỘNG ẨN SAU 2 GIÂY */
 .mode-controls{
   position:fixed;
   bottom:0;
@@ -600,8 +599,8 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:4px;
-  padding:8px 10px;
+  gap:3px;
+  padding:6px 10px;
   background:rgba(10, 16, 28, 0.85);
   border:1px solid rgba(79, 195, 247, 0.4);
   border-bottom:none;
@@ -621,7 +620,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   height:4px;
   background:rgba(255,255,255,0.35);
   border-radius:2px;
-  margin-bottom:2px;
+  margin-bottom:1px;
   cursor:pointer;
 }
 .mode-toggle-btn{
@@ -629,10 +628,10 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   background:linear-gradient(160deg,rgba(255,255,255,.18),rgba(20,30,45,.75));
   border:1px solid rgba(79,195,247,.85);
   color:#fff;
-  font-size:clamp(9.5px, 4.5vw, 11.5px);
+  font-size:clamp(9px, 4vw, 11px);
   font-weight:750;
-  padding:5px 8px;
-  border-radius:10px;
+  padding:4px 8px;
+  border-radius:8px;
   cursor:pointer;
   text-align:center;
 }
@@ -641,12 +640,12 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   display:flex;
   align-items:center;
   gap:6px;
-  padding:3px 8px;
+  padding:2px 8px;
   border:1px solid rgba(79,195,247,.7);
-  border-radius:10px;
+  border-radius:8px;
   background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(20,30,45,.7));
   color:#fff;
-  font-size:clamp(8.5px, 4vw, 10px);
+  font-size:clamp(8px, 3.8vw, 9.5px);
 }
 .opacity-control label{
   white-space:nowrap;
@@ -665,29 +664,6 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   text-align:right;
   font-variant-numeric:tabular-nums;
   font-weight:800;
-}
-
-/* NÚT GỢI Ý MỞ MENU NHỎ Ở GÓC DƯỚI */
-.trigger-hint{
-  position:fixed;
-  bottom:4px;
-  left:50%;
-  transform:translateX(-50%);
-  background:rgba(255,255,255,0.15);
-  border:1px solid rgba(255,255,255,0.25);
-  color:#cbd5e1;
-  font-size:8px;
-  font-weight:700;
-  padding:2px 10px;
-  border-radius:10px;
-  backdrop-filter:blur(8px);
-  z-index:998;
-  cursor:pointer;
-  transition:opacity 0.3s;
-}
-.trigger-hint.hidden{
-  opacity:0;
-  pointer-events:none;
 }
 
 .error .desc{color:#ffb4ab}
@@ -790,8 +766,6 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   </div>
 </div>
 
-<div class="trigger-hint" id="triggerHint">▲ Vuốt lên để mở menu</div>
-
 <div class="mode-controls" id="modeControls">
   <div class="handle-bar" id="handleBar" title="Đóng menu"></div>
   <button class="mode-toggle-btn" id="modeToggleBtn" type="button">
@@ -821,12 +795,12 @@ const TIME_ZONE="Asia/Ho_Chi_Minh";
 const WEATHER_LOCATION_MIN_DISTANCE=1000;
 const WEATHER_MIN_FETCH_INTERVAL_MS=60*1000;
 
-const CACHE_KEY="carplay_weather_cache_v38";
+const CACHE_KEY="carplay_weather_cache_v40";
 const LAYOUT_KEY="carplay_layout_mode_v18";
 
 const OPACITY_KEYS={
-  bubble:"carplay_opacity_bubble_v26",
-  card:"carplay_opacity_card_v26"
+  bubble:"carplay_opacity_bubble_v27",
+  card:"carplay_opacity_card_v27"
 };
 
 const REVERSE_GEOCODE_MIN_INTERVAL=60*1000;
@@ -870,20 +844,35 @@ const reducedMotion=!!(
   window.matchMedia("(prefers-reduced-motion: reduce)").matches
 );
 
-/* CƠ CHẾ VUỐT LÊN / CHẠM ĐỂ HIỆN THANH ĐIỀU KHIỂN */
+/* CƠ CHẾ TỰ ĐỘNG TẮT SAU 2 GIÂY KHÔNG TƯƠNG TÁC */
 let touchStartY=0;
 let controlsVisible=false;
+let autoHideTimer=null;
+
+function resetAutoHideTimer(){
+  if(autoHideTimer){
+    clearTimeout(autoHideTimer);
+    autoHideTimer=null;
+  }
+  if(controlsVisible){
+    autoHideTimer=setTimeout(()=>{
+      setControlsVisibility(false);
+    }, 2000);
+  }
+}
 
 function setControlsVisibility(visible){
   controlsVisible=visible;
   const panel=$("modeControls");
-  const hint=$("triggerHint");
   if(visible){
     panel.classList.add("visible");
-    hint.classList.add("hidden");
+    resetAutoHideTimer();
   }else{
     panel.classList.remove("visible");
-    hint.classList.remove("hidden");
+    if(autoHideTimer){
+      clearTimeout(autoHideTimer);
+      autoHideTimer=null;
+    }
   }
 }
 
@@ -897,18 +886,17 @@ window.addEventListener("touchend",e=>{
   if(e.changedTouches.length>0){
     const touchEndY=e.changedTouches[0].clientY;
     const diffY=touchStartY-touchEndY;
-    // Vuốt lên trên trên 40px thì hiện bảng điều khiển
     if(diffY>40){
       setControlsVisibility(true);
     }
-    // Vuốt xuống dưới trên 40px thì ẩn bảng điều khiển
     else if(diffY<-40){
       setControlsVisibility(false);
     }
   }
 },{passive:true});
 
-$("triggerHint").addEventListener("click",()=>setControlsVisibility(true));
+$("modeControls").addEventListener("touchstart",()=>resetAutoHideTimer(),{passive:true});
+$("modeControls").addEventListener("click",()=>resetAutoHideTimer());
 $("handleBar").addEventListener("click",()=>setControlsVisibility(false));
 
 function safeStorageGet(key){
@@ -1542,10 +1530,12 @@ function loadOpacity(){
 
 $("modeToggleBtn").addEventListener("click",()=>{
   setLayoutMode(currentMode==="bubble"?"card":"bubble");
+  resetAutoHideTimer();
 });
 
 $("opacitySlider").addEventListener("input",event=>{
   applyOpacity(event.target.value);
+  resetAutoHideTimer();
 });
 
 window.addEventListener("resize",()=>{
