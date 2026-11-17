@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Weather CarPlay Widget - Perfect Height Fix</title>
+<title>Weather CarPlay Widget - Full Restore Edition</title>
 
 <style>
 :root{
@@ -26,23 +26,22 @@
   -webkit-tap-highlight-color:transparent;
 }
 html,body{
-  width:100%;
-  height:100%;
+  width:100vw;
+  height:100vh;
   overflow:hidden;
-  background:#03050a;
+  background:transparent;
   color:var(--text);
 }
 body{
   display:flex;
   flex-direction:column;
-  justify-content:stretch;
+  justify-content:center;
   align-items:center;
-  padding: 4px;
   position:relative;
   isolation:isolate;
 }
 
-/* AURA BACKGROUND */
+/* AURA BACKGROUND FULL MÀN HÌNH ĐỂ HIỆN LỚP DƯỚI */
 .aura-bg{
   position:fixed;
   inset:0;
@@ -80,6 +79,7 @@ body.aura-noon{background:radial-gradient(circle at 50% 30%,#193563 0%,#0c1830 6
 body.aura-sunset{background:radial-gradient(circle at 50% 30%,#4d2132 0%,#24101f 60%,#0a0408 100%);}
 body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 60%,#010204 100%);}
 
+/* LỚP PHỦ HIỆN HIỆU ỨNG THỜI TIẾT TRỰC QUAN */
 .weather-fx{
   position:fixed;
   inset:0;
@@ -94,19 +94,18 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:stretch;
+  justify-content:center;
   position:relative;
   z-index:2;
   width:100%;
   height:100%;
+  padding: 8px;
 }
 .widget-container{
   display:flex;
   justify-content:center;
-  align-items:stretch;
+  align-items:center;
   width:100%;
-  height:100%;
-  padding: 2px 0;
 }
 
 /* LIQUID GLASS + DUAL TONE BORDER */
@@ -129,7 +128,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   backdrop-filter:blur(28px) saturate(210%) brightness(1.12);
   -webkit-backdrop-filter:blur(28px) saturate(210%) brightness(1.12);
 
-  border-radius:20px;
+  border-radius:22px;
   border:none;
 
   box-shadow:
@@ -189,100 +188,95 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   z-index:3;
 }
 
-/* KHÓA CỨNG HÌNH TRÒN 1:1 */
+/* KHÓA HÌNH TRÒN 1:1 */
 .bubble{
-  width:min(320px, 92vw, 52vh);
+  width:min(310px, 90vw, 50vh);
   height:auto;
   aspect-ratio:1 / 1;
-  flex-shrink:0;
-  flex-grow:0;
   border-radius:50%;
   justify-content:center;
-  padding:6% 5%;
-  gap:1px;
-  container-type:inline-size;
-  margin:auto;
+  padding:4% 3%;
+  gap:2px;
 }
 .bubble::after{
   border-radius:50%;
 }
 
 .bubble .city-container{
-  font-size:clamp(8px, 5.2cqi, 14px);
-  max-width:74%;
-  margin-bottom:1px;
+  font-size:10px;
+  max-width:72%;
+  margin-bottom:0px;
 }
 .bubble .main-temp{
   gap:4px;
 }
 .bubble .temp{
-  font-size:clamp(20px, 14.5cqi, 46px);
+  font-size:32px;
   letter-spacing:-1px;
 }
 .bubble .weather-icon{
-  font-size:clamp(16px, 11.5cqi, 34px);
+  font-size:24px;
 }
 .bubble .desc{
-  font-size:clamp(8.5px, 5.4cqi, 14px);
-  line-height:1.15;
+  font-size:10px;
+  line-height:1.1;
 }
-.bubble .aqi-uv{
-  font-size:clamp(7px, 4.3cqi, 11px);
-  line-height:1.15;
-}
+.bubble .aqi-uv,
 .bubble .temp-range{
-  font-size:clamp(7.5px, 4.5cqi, 11px);
-  line-height:1.15;
+  font-size:8.5px;
 }
 .bubble .divider{
-  width:76%;
-  margin:2px 0;
+  width:68%;
+  margin:1px 0;
 }
 .bubble .details{
-  width:84%;
+  width:78%;
 }
 .bubble .detail-val{
-  font-size:clamp(9px, 5.8cqi, 16px);
+  font-size:11px;
   gap:2px;
 }
 .bubble .detail-icon{
-  font-size:clamp(8.5px, 5.4cqi, 16px);
+  font-size:11px;
 }
-.bubble .detail-unit{
-  font-size:clamp(6.5px, 4.1cqi, 11px);
-}
+.bubble .detail-unit,
 .bubble .detail-lbl{
-  font-size:clamp(6.5px, 4.1cqi, 11px);
+  font-size:8px;
 }
 .bubble .vertical-divider{
-  height:14px;
+  height:12px;
+}
+.bubble .rain-section{
+  transform:scale(0.85);
+  margin-top:-3px;
 }
 .bubble .rain-prob{
-  font-size:clamp(7.5px, 4.6cqi, 12px);
-  gap:3px;
+  font-size:9px;
+  gap:2px;
 }
 .bubble .rain-icon{
-  font-size:clamp(8.5px, 5.2cqi, 15px);
+  font-size:11px;
 }
 .bubble .rain-prob strong{
-  font-size:clamp(9px, 5.8cqi, 16px);
+  font-size:11px;
 }
 .bubble .rain-period{
-  font-size:clamp(6px, 3.9cqi, 10px);
+  font-size:7.5px;
 }
 .bubble .rain-alert,
-.bubble .updated{
+.bubble .updated,
+.bubble .hourly-section{
   display:none;
 }
 
-/* KHUNG CHỮ NHẬT (CARD) - PHỦ KÍN 100% CHIỀU CAO MÀN HÌNH */
+/* KHUNG CHỮ NHẬT (CARD) - ÔM SÁT NỘI DUNG, ĐỦ ĐỒNG HỒ & THỜI GIAN */
 .card{
-  width:min(320px, 94vw);
-  height:100%;
-  max-height:none;
-  justify-content:space-between;
-  padding:8px 8px;
-  gap:2px;
+  width:min(330px, 94vw);
+  height:auto;
+  max-height:92vh;
+  justify-content:flex-start;
+  padding:10px 10px;
+  gap:4px;
 }
 .bubble:active,.card:active{
   transform:scale(.985);
@@ -293,11 +287,12 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   align-items:center;
   max-width:92%;
   overflow:hidden;
-  font-size:clamp(9.5px, 4.2vw, 12px);
+  font-size:clamp(9.5px, 4vw, 12px);
   font-weight:700;
   color:#f1f5f9;
   text-shadow:0 1px 3px rgba(0,0,0,.45);
   flex-shrink:0;
+  margin-bottom:2px;
 }
 .city-pin{
   flex-shrink:0;
@@ -326,17 +321,18 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   100%{transform:translateX(-50%)}
 }
 
-/* CARD TIME */
+/* CARD TIME (ĐẦY ĐỦ Ở FORM CARD) */
 .card-time-block{
   width:100%;
-  display:flex;
+  display:none;
   flex-direction:column;
   align-items:center;
-  gap:0px;
+  gap:1px;
   flex-shrink:0;
+  margin-bottom:2px;
 }
 .card-time-block .clock-text{
-  font-size:clamp(20px, 9.5vw, 29px);
+  font-size:clamp(20px, 9vw, 26px);
   font-weight:900;
   color:#64b5f6;
   text-shadow:0 2px 6px rgba(0,0,0,.95),0 0 12px rgba(100,181,246,.8);
@@ -344,21 +340,21 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   line-height:1.05;
 }
 .card-time-block .solar-date{
-  font-size:clamp(8px, 3.8vw, 10.5px);
+  font-size:clamp(8px, 3.6vw, 10px);
   font-weight:700;
   color:#f1f5f9;
 }
 .card-time-block .lunar-date{
-  font-size:clamp(7.5px, 3.6vw, 9.5px);
+  font-size:clamp(7.5px, 3.4vw, 9.5px);
   font-weight:700;
   color:#ffd54f;
 }
 
-/* BUBBLE TIME */
+/* EXTERNAL TIME BAR (DÀNH RIÊNG CHO FORM BUBBLE TRÒN) */
 .external-time-bar{
   display:none;
-  width:96%;
-  margin-top:4px;
+  width:min(310px, 90vw);
+  margin-top:6px;
   text-align:center;
   flex-direction:column;
   align-items:center;
@@ -366,34 +362,30 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   flex-shrink:0;
 }
 .external-time-bar .clock-text{
-  font-size:clamp(22px, 13.5vw, 34px);
+  font-size:22px;
   font-weight:900;
   color:#64b5f6;
-  width:100%;
-  text-shadow:0 2px 8px rgba(0,0,0,.95),0 0 14px rgba(100,181,246,.9);
+  text-shadow:0 2px 6px rgba(0,0,0,.95),0 0 10px rgba(100,181,246,.8);
   line-height:1.05;
 }
 .external-time-bar .solar-date{
-  font-size:clamp(9.5px, 5.2vw, 12px);
-  font-weight:750;
+  font-size:9.5px;
+  font-weight:700;
   color:#f1f5f9;
-  width:100%;
-  white-space:nowrap;
 }
 .external-time-bar .lunar-date{
-  font-size:clamp(8.5px, 4.6vw, 11px);
-  font-weight:750;
-  color:#ffe082;
-  width:100%;
-  white-space:nowrap;
+  font-size:9px;
+  font-weight:700;
+  color:#ffd54f;
 }
 
 .main-temp{
   display:flex;
   align-items:center;
   justify-content:center;
-  gap:5px;
+  gap:6px;
   flex-shrink:0;
+  margin:2px 0;
 }
 .temp{
   font-size:clamp(24px, 11vw, 36px);
@@ -436,28 +428,30 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 
 .desc{
   color:#e2e8f0;
-  font-size:clamp(9px, 4.2vw, 11.5px);
+  font-size:clamp(9px, 4vw, 11px);
   font-weight:600;
   max-width:95%;
   flex-shrink:0;
+  margin-bottom:2px;
 }
 .aqi-uv{
-  font-size:clamp(8px, 3.8vw, 10px);
+  font-size:clamp(8px, 3.6vw, 10px);
   font-weight:700;
   color:var(--rain-accent);
   flex-shrink:0;
 }
 .temp-range{
-  font-size:clamp(8px, 3.8vw, 10px);
+  font-size:clamp(8px, 3.6vw, 10px);
   font-weight:650;
   color:var(--muted);
   flex-shrink:0;
+  margin-bottom:3px;
 }
 .divider{
   width:90%;
   height:1px;
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.32),transparent);
-  margin:1px 0;
+  margin:4px 0;
   flex-shrink:0;
 }
 .details{
@@ -466,6 +460,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   align-items:center;
   width:96%;
   flex-shrink:0;
+  margin:2px 0;
 }
 .detail-box{
   display:flex;
@@ -478,21 +473,21 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   align-items:center;
   justify-content:center;
   gap:3px;
-  font-size:clamp(9.5px, 4.5vw, 13px);
+  font-size:clamp(9.5px, 4.2vw, 13px);
   font-weight:800;
   white-space:nowrap;
 }
 .detail-icon{
-  font-size:clamp(9.5px, 4.5vw, 14px);
+  font-size:clamp(9.5px, 4.2vw, 13px);
   line-height:1;
 }
 .detail-unit{
-  font-size:clamp(7.5px, 3.6vw, 10px);
+  font-size:clamp(7.5px, 3.4vw, 10px);
   font-weight:600;
   color:#cbd5e1;
 }
 .detail-lbl{
-  font-size:clamp(7.5px, 3.6vw, 10px);
+  font-size:clamp(7.5px, 3.4vw, 10px);
   color:var(--muted);
   font-weight:600;
 }
@@ -505,30 +500,31 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 .rain-section{
   width:100%;
   flex-shrink:0;
+  margin:2px 0;
 }
 .rain-prob{
   display:flex;
   justify-content:center;
   align-items:center;
   gap:4px;
-  font-size:clamp(8.5px, 4vw, 10.5px);
+  font-size:clamp(8.5px, 3.8vw, 10.5px);
   font-weight:650;
   white-space:nowrap;
 }
-.rain-icon{font-size:clamp(9.5px, 4.5vw, 13px)}
+.rain-icon{font-size:clamp(9.5px, 4.2vw, 13px)}
 .rain-prob strong{
-  font-size:clamp(9.5px, 4.5vw, 13px);
+  font-size:clamp(9.5px, 4.2vw, 13px);
   font-weight:850;
   color:var(--rain-accent);
 }
 .rain-period{
-  font-size:clamp(7px, 3.4vw, 9px);
+  font-size:clamp(7px, 3.2vw, 9px);
   color:var(--muted);
   margin-top:1px;
   font-weight:600;
 }
 .rain-alert{
-  font-size:clamp(7px, 3.4vw, 9px);
+  font-size:clamp(7px, 3.2vw, 9px);
   font-weight:700;
   color:var(--rain-accent);
 }
@@ -539,13 +535,14 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   opacity:.95;
   flex-shrink:0;
   font-weight:600;
+  margin-top:4px;
 }
 
 .hourly-section{
   display:none;
   width:100%;
-  margin-top:1px;
-  padding-top:2px;
+  margin-top:3px;
+  padding-top:3px;
   border-top:1px solid rgba(255,255,255,.22);
   flex-shrink:0;
 }
@@ -554,7 +551,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   font-size:8px;
   color:var(--muted);
   font-weight:750;
-  margin-bottom:1px;
+  margin-bottom:2px;
   text-align:left;
 }
 .hourly-list{
@@ -590,27 +587,25 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   font-weight:700;
 }
 
-/* THANH ĐIỀU KHIỂN TỰ ĐỘNG ẨN HOÀN TOÀN */
+/* THANH ĐIỀU KHIỂN ĐÃ ĐẨY CAO TRÁNH NÚT ĐIỀU HƯỚNG */
 .mode-controls{
   position:fixed;
-  bottom:0;
+  bottom:22px;
   left:50%;
-  transform:translateX(-50%) translateY(110%);
-  width:94%;
-  max-width:320px;
+  transform:translateX(-50%) translateY(130%);
+  width:92%;
+  max-width:310px;
   display:flex;
   flex-direction:column;
   align-items:center;
   gap:3px;
   padding:6px 10px;
-  background:rgba(10, 16, 28, 0.92);
-  border:1px solid rgba(79, 195, 247, 0.4);
-  border-bottom:none;
-  border-top-left-radius:16px;
-  border-top-right-radius:16px;
+  background:rgba(10, 16, 28, 0.94);
+  border:1px solid rgba(79, 195, 247, 0.45);
+  border-radius:14px;
   backdrop-filter:blur(20px) saturate(190%);
   -webkit-backdrop-filter:blur(20px) saturate(190%);
-  box-shadow:0 -6px 20px rgba(0,0,0,0.6);
+  box-shadow:0 8px 24px rgba(0,0,0,0.65);
   transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   z-index:9999;
   pointer-events:none;
@@ -703,7 +698,8 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
         </div>
       </div>
 
-      <div class="card-time-block" id="cardTimeBlock" style="display:none">
+      <!-- KHỐI ĐỒNG HỒ DÀNH CHO FORM CHỮ NHẬT (CARD) -->
+      <div class="card-time-block" id="cardTimeBlock">
         <div class="clock-text" id="cardClock">--:--:--</div>
         <div class="solar-date" id="cardSolar">--</div>
         <div class="lunar-date" id="cardLunar">--</div>
@@ -763,6 +759,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
     </main>
   </div>
 
+  <!-- KHỐI ĐỒNG HỒ DÀNH RIÊNG CHO FORM TRÒN (BUBBLE) -->
   <div class="external-time-bar" id="externalTimeBar">
     <div class="clock-text" id="extClock">--:--:--</div>
     <div class="solar-date" id="extSolar">--</div>
@@ -799,12 +796,12 @@ const TIME_ZONE="Asia/Ho_Chi_Minh";
 const WEATHER_LOCATION_MIN_DISTANCE=1000;
 const WEATHER_MIN_FETCH_INTERVAL_MS=60*1000;
 
-const CACHE_KEY="carplay_weather_cache_v43";
-const LAYOUT_KEY="carplay_layout_mode_v18";
+const CACHE_KEY="carplay_weather_cache_v46";
+const LAYOUT_KEY="carplay_layout_mode_v19";
 
 const OPACITY_KEYS={
-  bubble:"carplay_opacity_bubble_v27",
-  card:"carplay_opacity_card_v27"
+  bubble:"carplay_opacity_bubble_v28",
+  card:"carplay_opacity_card_v28"
 };
 
 const REVERSE_GEOCODE_MIN_INTERVAL=60*1000;
@@ -1492,6 +1489,7 @@ function setLayoutMode(mode,save=true){
   widget.classList.remove("bubble","card");
   widget.classList.add(currentMode);
 
+  // Hiển thị đúng đồng hồ tùy theo form (Card hiển thị bên trong, Bubble tròn hiển thị phía dưới)
   $("cardTimeBlock").style.display=currentMode==="card"?"flex":"none";
   $("externalTimeBar").style.display=currentMode==="bubble"?"flex":"none";
 
