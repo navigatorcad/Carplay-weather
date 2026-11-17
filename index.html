@@ -268,7 +268,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 }
 .bubble .rain-alert,
 .bubble .updated,
-.bubble .hourly-section{
+.hourly-section{
   display:none;
 }
 
@@ -334,14 +334,31 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   flex-shrink:0;
   margin-bottom:2px;
 }
-.card-time-block .clock-text{
+
+/* HIỆU ỨNG CẦU VỒNG CHUYỂN ĐỘNG CHO ĐỒNG HỒ Ở FORM CHỮ NHẬT (CARD) */
+@keyframes rainbowFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.card .card-time-block .clock-text{
   font-size:clamp(20px, 9vw, 26px);
   font-weight:900;
-  color:#64b5f6;
-  text-shadow:0 2px 6px rgba(0,0,0,.95),0 0 12px rgba(100,181,246,.8);
   letter-spacing:.5px;
   line-height:1.05;
+  
+  /* Tạo dải màu cầu vồng */
+  background: linear-gradient(270deg, #ff3366, #ff9933, #ffff33, #33cc66, #3399ff, #9933ff, #ff3366);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  /* Chạy hiệu ứng chuyển màu liên tục nhưng số đứng yên */
+  animation: rainbowFlow 6s ease infinite;
+  text-shadow: 0 2px 8px rgba(0,0,0,.6);
 }
+
 .card-time-block .solar-date{
   font-size:clamp(8px, 3.6vw, 10px);
   font-weight:700;
@@ -353,7 +370,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   color:#ffd54f;
 }
 
-/* EXTERNAL TIME BAR (BUBBLE) */
+/* EXTERNAL TIME BAR (BUBBLE) - GIỮ NGUYÊN MÀU CŨ */
 .external-time-bar{
   display:none;
   width:min(310px, 90vw);
@@ -2276,7 +2293,6 @@ async function fetchCityName(lat,lon,force=false){
 
     const address=result.address||{};
     
-    // Lấy cấp Xã / Phường / Thị trấn
     const wardOrCommune=
       address.ward||
       address.quarter||
@@ -2286,7 +2302,6 @@ async function fetchCityName(lat,lon,force=false){
       address.neighbourhood||
       "";
 
-    // Lấy cấp Tỉnh / Thành phố (hoặc Huyện nếu thiếu Tỉnh)
     const provinceOrCity=
       address.province||
       address.state||
@@ -2314,7 +2329,6 @@ async function fetchCityName(lat,lon,force=false){
     }
     updateCityDisplay(displayName);
 
-    // Cập nhật tên địa điểm mới vào cache nếu đã có cache
     const cached=readHourlyCache();
     if(cached){
       cached.city=displayName;
@@ -2324,7 +2338,6 @@ async function fetchCityName(lat,lon,force=false){
     lastReverseGeocodeAt=Date.now();
     lastReverseGeocodePosition={latitude:lat,longitude:lon};
   }catch(_){
-    // Nếu lỗi mạng khi reverse geocode, giữ nguyên tên địa điểm trong cache hoặc mặc định
     const cached=readHourlyCache();
     const fallbackName=cached?.city||DEFAULT_LOCATION.name;
     if($("cityText")?.textContent==="Đang tải địa điểm..."){
