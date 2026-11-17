@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Weather CarPlay Widget - Full Restore Edition</title>
+<title>Weather CarPlay Widget - Master Optimized Edition</title>
 
 <style>
 :root{
@@ -41,7 +41,7 @@ body{
   isolation:isolate;
 }
 
-/* AURA BACKGROUND FULL MÀN HÌNH ĐỂ HIỆN LỚP DƯỚI */
+/* AURA BACKGROUND */
 .aura-bg{
   position:fixed;
   inset:0;
@@ -79,7 +79,7 @@ body.aura-noon{background:radial-gradient(circle at 50% 30%,#193563 0%,#0c1830 6
 body.aura-sunset{background:radial-gradient(circle at 50% 30%,#4d2132 0%,#24101f 60%,#0a0408 100%);}
 body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 60%,#010204 100%);}
 
-/* LỚP PHỦ HIỆN HIỆU ỨNG THỜI TIẾT TRỰC QUAN */
+/* WEATHER FX CANVAS */
 .weather-fx{
   position:fixed;
   inset:0;
@@ -188,7 +188,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   z-index:3;
 }
 
-/* KHÓA HÌNH TRÒN 1:1 */
+/* BUBBLE MODE (TRÒN) */
 .bubble{
   width:min(310px, 90vw, 50vh);
   height:auto;
@@ -201,7 +201,6 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 .bubble::after{
   border-radius:50%;
 }
-
 .bubble .city-container{
   font-size:10px;
   max-width:72%;
@@ -269,7 +268,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   display:none;
 }
 
-/* KHUNG CHỮ NHẬT (CARD) - ÔM SÁT NỘI DUNG, ĐỦ ĐỒNG HỒ & THỜI GIAN */
+/* CARD MODE (CHỮ NHẬT) */
 .card{
   width:min(330px, 94vw);
   height:auto;
@@ -321,7 +320,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   100%{transform:translateX(-50%)}
 }
 
-/* CARD TIME (ĐẦY ĐỦ Ở FORM CARD) */
+/* CARD TIME */
 .card-time-block{
   width:100%;
   display:none;
@@ -350,7 +349,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   color:#ffd54f;
 }
 
-/* EXTERNAL TIME BAR (DÀNH RIÊNG CHO FORM BUBBLE TRÒN) */
+/* EXTERNAL TIME BAR (BUBBLE) */
 .external-time-bar{
   display:none;
   width:min(310px, 90vw);
@@ -587,7 +586,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   font-weight:700;
 }
 
-/* THANH ĐIỀU KHIỂN ĐÃ ĐẨY CAO TRÁNH NÚT ĐIỀU HƯỚNG */
+/* CONTROLS */
 .mode-controls{
   position:fixed;
   bottom:22px;
@@ -698,7 +697,6 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
         </div>
       </div>
 
-      <!-- KHỐI ĐỒNG HỒ DÀNH CHO FORM CHỮ NHẬT (CARD) -->
       <div class="card-time-block" id="cardTimeBlock">
         <div class="clock-text" id="cardClock">--:--:--</div>
         <div class="solar-date" id="cardSolar">--</div>
@@ -759,7 +757,6 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
     </main>
   </div>
 
-  <!-- KHỐI ĐỒNG HỒ DÀNH RIÊNG CHO FORM TRÒN (BUBBLE) -->
   <div class="external-time-bar" id="externalTimeBar">
     <div class="clock-text" id="extClock">--:--:--</div>
     <div class="solar-date" id="extSolar">--</div>
@@ -796,12 +793,12 @@ const TIME_ZONE="Asia/Ho_Chi_Minh";
 const WEATHER_LOCATION_MIN_DISTANCE=1000;
 const WEATHER_MIN_FETCH_INTERVAL_MS=60*1000;
 
-const CACHE_KEY="carplay_weather_cache_v46";
-const LAYOUT_KEY="carplay_layout_mode_v19";
+const CACHE_KEY="carplay_weather_cache_v50";
+const LAYOUT_KEY="carplay_layout_mode_v20";
 
 const OPACITY_KEYS={
-  bubble:"carplay_opacity_bubble_v28",
-  card:"carplay_opacity_card_v28"
+  bubble:"carplay_opacity_bubble_v30",
+  card:"carplay_opacity_card_v30"
 };
 
 const REVERSE_GEOCODE_MIN_INTERVAL=60*1000;
@@ -1382,7 +1379,7 @@ function drawFrame(){
     }
   }
 
-  if(!reducedMotion){
+  if(!reducedMotion&&pageActive){
     rafId=requestAnimationFrame(drawFrame);
   }else{
     rafId=0;
@@ -1489,7 +1486,6 @@ function setLayoutMode(mode,save=true){
   widget.classList.remove("bubble","card");
   widget.classList.add(currentMode);
 
-  // Hiển thị đúng đồng hồ tùy theo form (Card hiển thị bên trong, Bubble tròn hiển thị phía dưới)
   $("cardTimeBlock").style.display=currentMode==="card"?"flex":"none";
   $("externalTimeBar").style.display=currentMode==="bubble"?"flex":"none";
 
