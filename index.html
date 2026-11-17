@@ -207,7 +207,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   margin-bottom:0px;
 }
 .bubble .main-temp{
-  gap:4px;
+  gap:5px;
 }
 .bubble .temp{
   font-size:32px;
@@ -395,35 +395,89 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
   color:var(--temp-accent);
 }
 
-/* WEATHER ICON ANIMATIONS */
+/* WEATHER ICON ANIMATIONS - REFINED & EXPRESSIVE */
 .weather-icon{
   font-size:clamp(18px, 9.5vw, 28px);
   line-height:1;
   display:inline-block;
   transform-origin:center;
-  filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));
+  will-change:transform,filter;
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,.4));
 }
-@keyframes floatCloud {
-  0%, 100% { transform: translateY(0) translateX(0); }
-  50% { transform: translateY(-3px) translateX(2px); }
+
+@keyframes sunGlowSpin {
+  0% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 4px rgba(253, 224, 71, 0.35));
+  }
+  50% {
+    transform: scale(1.12) rotate(12deg);
+    filter: drop-shadow(0 0 12px rgba(253, 224, 71, 0.75));
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 4px rgba(253, 224, 71, 0.35));
+  }
 }
-@keyframes pulseSun {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  50% { transform: scale(1.1) rotate(5deg); }
+
+@keyframes cloudDrift {
+  0%, 100% {
+    transform: translate3d(-2px, 0, 0) scale(1);
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,.35));
+  }
+  50% {
+    transform: translate3d(3px, -2.5px, 0) scale(1.04);
+    filter: drop-shadow(0 5px 8px rgba(148, 163, 184, 0.45));
+  }
 }
-@keyframes bounceRain {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(3px); }
+
+@keyframes rainDropPulse {
+  0%, 100% {
+    transform: translate3d(0, -1.5px, 0) scale(1);
+    filter: drop-shadow(0 2px 5px rgba(56, 189, 248, 0.35));
+  }
+  50% {
+    transform: translate3d(0, 2.5px, 0) scale(1.06);
+    filter: drop-shadow(0 4px 10px rgba(56, 189, 248, 0.7));
+  }
 }
-@keyframes shakeStorm {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-2px) rotate(-3deg); }
-  75% { transform: translateX(2px) rotate(3deg); }
+
+@keyframes stormFlashShake {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 2px 6px rgba(250, 204, 21, 0.3));
+  }
+  20% {
+    transform: translate3d(-2.5px, 0, 0) rotate(-4deg) scale(1.05);
+  }
+  40% {
+    transform: translate3d(2.5px, -1px, 0) rotate(4deg) scale(1.08);
+    filter: drop-shadow(0 0 14px rgba(250, 204, 21, 0.9));
+  }
+  60% {
+    transform: translate3d(-1.5px, 1px, 0) rotate(-2deg) scale(1.02);
+  }
+  80% {
+    transform: translate3d(1.5px, 0, 0) rotate(2deg) scale(1);
+  }
 }
-.weather-icon.anim-sunny { animation: pulseSun 4s ease-in-out infinite; }
-.weather-icon.anim-cloudy { animation: floatCloud 5s ease-in-out infinite; }
-.weather-icon.anim-rain { animation: bounceRain 2s ease-in-out infinite; }
-.weather-icon.anim-storm { animation: shakeStorm 0.8s ease-in-out infinite; }
+
+@keyframes fogPulse {
+  0%, 100% {
+    transform: scale(0.98);
+    opacity: 0.82;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+.weather-icon.anim-sunny { animation: sunGlowSpin 5s ease-in-out infinite; }
+.weather-icon.anim-cloudy { animation: cloudDrift 4.5s ease-in-out infinite; }
+.weather-icon.anim-rain { animation: rainDropPulse 1.8s ease-in-out infinite; }
+.weather-icon.anim-storm { animation: stormFlashShake 1.4s ease-in-out infinite; }
+.weather-icon.anim-fog { animation: fogPulse 4s ease-in-out infinite; }
 
 .desc{
   color:#e2e8f0;
@@ -692,7 +746,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
         <span class="city-pin">📍</span>
         <div class="city-viewport" id="cityViewport">
           <div class="city-track" id="cityTrack">
-            <span class="city-text" id="cityText">Đang xác định vị trí...</span>
+            <span class="city-text" id="cityText">Đang tải địa điểm...</span>
           </div>
         </div>
       </div>
@@ -783,7 +837,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 const DEFAULT_LOCATION={
   latitude:20.5453,
   longitude:105.9122,
-  name:"Phủ Lý (mặc định)"
+  name:"P. Hai Bà Trưng, TP. Phủ Lý"
 };
 
 const REFRESH_INTERVAL_MS=15*60*1000;
@@ -793,7 +847,7 @@ const TIME_ZONE="Asia/Ho_Chi_Minh";
 const WEATHER_LOCATION_MIN_DISTANCE=1000;
 const WEATHER_MIN_FETCH_INTERVAL_MS=60*1000;
 
-const CACHE_KEY="carplay_weather_cache_v50";
+const CACHE_KEY="carplay_weather_cache_v51";
 const LAYOUT_KEY="carplay_layout_mode_v20";
 
 const OPACITY_KEYS={
@@ -801,8 +855,8 @@ const OPACITY_KEYS={
   card:"carplay_opacity_card_v30"
 };
 
-const REVERSE_GEOCODE_MIN_INTERVAL=60*1000;
-const REVERSE_GEOCODE_MIN_DISTANCE=1000;
+const REVERSE_GEOCODE_MIN_INTERVAL=15*1000;
+const REVERSE_GEOCODE_MIN_DISTANCE=300;
 
 const $=id=>document.getElementById(id);
 
@@ -986,7 +1040,7 @@ function updateCityDisplay(name){
   const viewport=$("cityViewport");
   if(!track||!viewport)return;
 
-  const displayName=String(name||"Vị trí hiện tại");
+  const displayName=String(name||DEFAULT_LOCATION.name);
   track.className="city-track";
   track.replaceChildren();
 
@@ -1546,7 +1600,7 @@ function weatherDescription(code){
   if(code===1)return{text:"Ít mây",icon:"🌤️",anim:"anim-sunny"};
   if(code===2)return{text:"Có mây",icon:"⛅",anim:"anim-cloudy"};
   if(code===3)return{text:"Nhiều mây",icon:"☁️",anim:"anim-cloudy"};
-  if(code===45||code===48)return{text:"Sương mù",icon:"🌫️",anim:"anim-cloudy"};
+  if(code===45||code===48)return{text:"Sương mù",icon:"🌫️",anim:"anim-fog"};
   if(code>=51&&code<=57)return{text:"Mưa phùn",icon:"🌦️",anim:"anim-rain"};
   if(code>=61&&code<=67)return{text:"Trời mưa",icon:"🌧️",anim:"anim-rain"};
   if(code>=71&&code<=77)return{text:"Có tuyết",icon:"🌨️",anim:"anim-rain"};
@@ -1811,6 +1865,7 @@ function saveToCache(weatherCode,data,extra={}){
       });
     }
 
+    const currentCityText=$("cityText")?.textContent;
     const cache={
       temp:$("temp").textContent,
       temperatureValue:extra.temperatureValue??null,
@@ -1825,7 +1880,7 @@ function saveToCache(weatherCode,data,extra={}){
       rainMsg:$("rain-msg").textContent,
       rainKnown:extra.rainKnown===true,
       rainProbability:extra.rainProbability??null,
-      city:$("cityText")?.textContent||DEFAULT_LOCATION.name,
+      city:(currentCityText&&currentCityText!=="Đang tải địa điểm...")?currentCityText:DEFAULT_LOCATION.name,
       updated:$("updated").textContent,
       weatherCode,
       hourly,
@@ -2058,15 +2113,29 @@ function queueWeatherRefresh(lat,lon,force=false){
   })();
 }
 
-async function fetchCityName(lat,lon){
+function formatAdminUnit(value){
+  return String(value||"")
+    .trim()
+    .replace(/^thành phố\s+/i,"TP. ")
+    .replace(/^tỉnh\s+/i,"T. ")
+    .replace(/^quận\s+/i,"Q. ")
+    .replace(/^huyện\s+/i,"H. ")
+    .replace(/^thị xã\s+/i,"TX. ")
+    .replace(/^phường\s+/i,"P. ")
+    .replace(/^xã\s+/i,"X. ")
+    .replace(/^thị trấn\s+/i,"TT. ");
+}
+
+async function fetchCityName(lat,lon,force=false){
   const now=Date.now();
   if(
+    !force&&
     lastReverseGeocodePosition&&
-    distanceMeters(lat,lon,lastReverseGeocodePosition.latitude,lastReverseGeocodePosition.longitude)<REVERSE_GEOCODE_MIN_DISTANCE
+    distanceMeters(lat,lon,lastReverseGeocodePosition.latitude,lastReverseGeocodePosition.longitude)<REVERSE_GEOCODE_MIN_DISTANCE&&
+    (now-lastReverseGeocodeAt<REVERSE_GEOCODE_MIN_INTERVAL)
   ){
     return;
   }
-  if(now-lastReverseGeocodeAt<REVERSE_GEOCODE_MIN_INTERVAL)return;
 
   const sequence=++reverseGeocodeSequence;
   try{
@@ -2074,6 +2143,8 @@ async function fetchCityName(lat,lon){
       format:"jsonv2",
       lat:String(lat),
       lon:String(lon),
+      zoom:"14",
+      addressdetails:"1",
       "accept-language":"vi"
     });
 
@@ -2085,24 +2156,62 @@ async function fetchCityName(lat,lon){
     if(!isStillCurrentLocation(lat,lon))return;
 
     const address=result.address||{};
-    const sub=address.ward||address.suburb||address.village||address.quarter||address.hamlet||"";
-    const city=address.city||address.town||address.municipality||address.county||address.state||"";
+    
+    // Lấy cấp Xã / Phường / Thị trấn
+    const wardOrCommune=
+      address.ward||
+      address.quarter||
+      address.suburb||
+      address.village||
+      address.hamlet||
+      address.neighbourhood||
+      "";
 
-    const shortName=value=>String(value)
-      .replace(/^thành phố\s*/i,"TP. ")
-      .replace(/^tỉnh\s*/i,"T. ")
-      .replace(/^quận\s*/i,"Q. ")
-      .replace(/^huyện\s*/i,"H. ")
-      .replace(/^phường\s*/i,"P. ")
-      .replace(/^xã\s*/i,"X. ")
-      .replace(/^thị trấn\s*/i,"TT. ");
+    // Lấy cấp Tỉnh / Thành phố (hoặc Huyện nếu thiếu Tỉnh)
+    const provinceOrCity=
+      address.province||
+      address.state||
+      address.city||
+      address.town||
+      address.municipality||
+      address.county||
+      "";
 
-    const displayName=sub&&city?`${shortName(sub)}, ${shortName(city)}`:shortName(city||"Vị trí hiện tại");
+    let displayName="";
+    if(wardOrCommune&&provinceOrCity&&wardOrCommune!==provinceOrCity){
+      displayName=`${formatAdminUnit(wardOrCommune)}, ${formatAdminUnit(provinceOrCity)}`;
+    }else if(provinceOrCity){
+      displayName=formatAdminUnit(provinceOrCity);
+    }else if(wardOrCommune){
+      displayName=formatAdminUnit(wardOrCommune);
+    }else if(result.name){
+      displayName=formatAdminUnit(result.name);
+    }else{
+      displayName=DEFAULT_LOCATION.name;
+    }
+
+    if(currentLocation){
+      currentLocation.name=displayName;
+    }
     updateCityDisplay(displayName);
+
+    // Cập nhật tên địa điểm mới vào cache nếu đã có cache
+    const cached=readHourlyCache();
+    if(cached){
+      cached.city=displayName;
+      safeStorageSet(CACHE_KEY,JSON.stringify(cached));
+    }
 
     lastReverseGeocodeAt=Date.now();
     lastReverseGeocodePosition={latitude:lat,longitude:lon};
-  }catch(_){}
+  }catch(_){
+    // Nếu lỗi mạng khi reverse geocode, giữ nguyên tên địa điểm trong cache hoặc mặc định
+    const cached=readHourlyCache();
+    const fallbackName=cached?.city||DEFAULT_LOCATION.name;
+    if($("cityText")?.textContent==="Đang tải địa điểm..."){
+      updateCityDisplay(fallbackName);
+    }
+  }
 }
 
 function useFallbackLocation(reason){
@@ -2111,9 +2220,11 @@ function useFallbackLocation(reason){
     longitude:DEFAULT_LOCATION.longitude,
     name:DEFAULT_LOCATION.name
   };
-  updateCityDisplay(DEFAULT_LOCATION.name);
+  const cached=readHourlyCache();
+  updateCityDisplay(cached?.city||DEFAULT_LOCATION.name);
   if(reason)setText("updated",reason);
   queueWeatherRefresh(currentLocation.latitude,currentLocation.longitude,true);
+  fetchCityName(currentLocation.latitude,currentLocation.longitude,true);
 }
 
 function refreshForCurrentLocation(force=false){
@@ -2130,7 +2241,7 @@ window.setCarPlayLocation=function(lat,lon){
   currentLocation={
     latitude:lat,
     longitude:lon,
-    name:"Vị trí từ host"
+    name:""
   };
   geoRequestSequence++;
   if(geoSafetyTimer){
@@ -2138,9 +2249,8 @@ window.setCarPlayLocation=function(lat,lon){
     geoSafetyTimer=null;
   }
   geoInFlight=false;
-  updateCityDisplay("Vị trí hiện tại");
   refreshForCurrentLocation(false);
-  fetchCityName(lat,lon);
+  fetchCityName(lat,lon,true);
 };
 
 function getLocationAndWeather(){
@@ -2176,11 +2286,10 @@ function getLocationAndWeather(){
       }
       const lat=position.coords.latitude;
       const lon=position.coords.longitude;
-      currentLocation={latitude:lat,longitude:lon,name:"Vị trí hiện tại"};
-      updateCityDisplay("Vị trí hiện tại");
+      currentLocation={latitude:lat,longitude:lon,name:""};
       await Promise.allSettled([
         Promise.resolve(refreshForCurrentLocation(false)),
-        fetchCityName(lat,lon)
+        fetchCityName(lat,lon,true)
       ]);
     },
     ()=>{
@@ -2202,6 +2311,7 @@ function refreshData(){
   setText("updated","Đang làm mới dữ liệu...");
   if(currentLocation){
     refreshForCurrentLocation(true);
+    fetchCityName(currentLocation.latitude,currentLocation.longitude,true);
   }else{
     getLocationAndWeather();
   }
