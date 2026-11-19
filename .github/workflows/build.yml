@@ -1,3 +1,4 @@
+
 name: Build TrollStore IPA
 
 on:
@@ -5,60 +6,103 @@ on:
   push:
     branches: [ main, master ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: macos-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
 
       - name: Compile and Package IPA
+        shell: bash
         run: |
-          mkdir -p Payload/CarPlayWeather.app
+          set -e
+
+          APP_NAME="CarPlayWeather"
+          BUNDLE_ID="com.navigatorcad.carplayweather"
+
+          APP_DIR="Payload/${APP_NAME}.app"
+
+          mkdir -p "$APP_DIR"
+
           SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
-          
-          # Tự động tìm chính xác file ViewController.swift
-          VC_FILE=$(find . -name "ViewController.swift" | head -n 1)
-          echo "Found ViewController at: $VC_FILE"
-          
+
+          VC_FILE=$(find . -name "ViewController.swift" -not -path "*/.git/*" | head -n 1)
+
+          echo "Found ViewController: $VC_FILE"
+
           if [ -z "$VC_FILE" ]; then
-            echo "Error: Không tìm thấy file ViewController.swift!"
+            echo "Error: ViewController.swift not found!"
             exit 1
           fi
 
-          # Thêm -parse-as-library để nhận diện @main entry point
-          swiftc -parse-as-library "$VC_FILE" \
+          echo "Compiling Swift application..."
+
+          swiftc \
+            -parse-as-library \
+            "$VC_FILE" \
             -sdk "$SDK_PATH" \
             -target arm64-apple-ios15.0 \
             -framework UIKit \
             -framework WebKit \
-            -o Payload/CarPlayWeather.app/CarPlayWeather
+            -framework CoreLocation \
+            -o "$APP_DIR/$APP_NAME"
 
-          # Tạo Info.plist chuẩn (chạy full-screen và cấp quyền GPS)
-          cat << 'EOF' > Payload/CarPlayWeather.app/Info.plist
+          echo "Creating Info.plist..."
+
+          cat << 'EOF' > "$APP_DIR/Info.plist"
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
               <key>CFBundleExecutable</key>
               <string>CarPlayWeather</string>
+
               <key>CFBundleIdentifier</key>
               <string>com.navigatorcad.carplayweather</string>
+
               <key>CFBundleName</key>
               <string>CarPlayWeather</string>
+
+              <key>CFBundleDisplayName</key>
+              <string>CarPlayWeather</string>
+
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+
+              <key>CFBundleInfoDictionaryVersion</key>
+              <string>6.0</string>
+
               <key>CFBundleShortVersionString</key>
-              <string>1.0</string>
+              <string>1.1</string>
+
               <key>CFBundleVersion</key>
-              <string>1</string>
+              <string>2</string>
+
               <key>LSRequiresIPhoneOS</key>
               <true/>
+
               <key>MinimumOSVersion</key>
               <string>15.0</string>
+
+              <key>UIDeviceFamily</key>
+              <array>
+                  <integer>1</integer>
+              </array>
+
               <key>UIStatusBarHidden</key>
               <true/>
+
               <key>UIViewControllerBasedStatusBarAppearance</key>
               <true/>
+
               <key>NSLocationWhenInUseUsageDescription</key>
               <string>Cập nhật thời tiết và địa điểm hiện tại</string>
+
               <key>NSAppTransportSecurity</key>
               <dict>
                   <key>NSAllowsArbitraryLoads</key>
@@ -68,15 +112,31 @@ jobs:
           </plist>
           EOF
 
-          # Ký giả lập cho TrollStore
-          ldid -S Payload/CarPlayWeather.app/CarPlayWeather || codesign -s - --force Payload/CarPlayWeather.app/CarPlayWeather
+          echo "Validating Info.plist..."
 
-          # Đóng gói thành file .ipa chuẩn
-          zip -r CarPlayWeather.ipa Payload
+          plutil -lint "$APP_DIR/Info.plist"
+
+          echo "Checking executable..."
+
+          file "$APP_DIR/$APP_NAME"
+
+          echo "Signing application..."
+
+          if command -v ldid >/dev/null 2>&1; then
+            ldid -S "$APP_DIR/$APP_NAME"
+          else
+            codesign -s - --force "$APP_DIR/$APP_NAME"
+          fi
+
+          echo "Packaging IPA..."
+
+          zip -qry CarPlayWeather.ipa Payload
+
+          echo "IPA created successfully."
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: CarPlayWeather-IPA
           path: CarPlayWeather.ipa
-          
+          if-no-files-found: error
