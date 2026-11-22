@@ -10,13 +10,7 @@
 <style>
 :root{--temp-accent:#34d399;--rain-accent:#4fc3f7;--text:#f8fafc;--muted:#aebdce;--surface-opacity:.35;--glass-specular:.28;--glass-highlight-opacity:.43}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
-html,body{
-  width:100vw;
-  height:100vh;
-  overflow:hidden;
-  background:transparent;
-  color:var(--text);
-}
+html,body{width:100vw;height:100vh;overflow:hidden;background:transparent;color:var(--text)}
 body{display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;isolation:isolate}
 
 /* AURA */
@@ -35,7 +29,7 @@ body.aura-night .aura-orb{opacity:.25}
 .weather-fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
 
 /* LAYOUT + CO GIÃN */
-.main-wrapper{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2;width:100%;height:100%;padding:8px;overflow:hidden}
+.main-wrapper{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2;width:100%;height:100%;padding:4px;overflow:hidden}
 .scale-stage{display:flex;flex-direction:column;align-items:center;width:max-content;transform-origin:center center}
 .widget-container{display:flex;justify-content:center;align-items:center;width:auto}
 
@@ -55,11 +49,13 @@ body.aura-night .aura-orb{opacity:.25}
   -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;
   mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;pointer-events:none;z-index:2}
 .bubble::before,.card::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(125deg,rgba(255,255,255,.28) 0%,rgba(255,255,255,.06) 30%,transparent 60%);pointer-events:none;z-index:0}
-.bubble>*,.card>*{position:relative;z-index:3}
+.bubble>*,.card>*,.bubble-inner>*{position:relative;z-index:3}
 
 /* BUBBLE (TRÒN) */
-.bubble{width:310px;height:auto;aspect-ratio:1/1;border-radius:50%;justify-content:center;padding:4% 3%;gap:2px}
+.bubble{width:310px;height:auto;aspect-ratio:1/1;border-radius:50%;justify-content:center;padding:4% 3%}
 .bubble::after{border-radius:50%}
+.bubble .bubble-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;transform-origin:center center}
+.card .bubble-inner{display:contents}
 .bubble .city-container{font-size:10px;max-width:72%;margin-bottom:0}
 .bubble .main-temp{gap:5px}
 .bubble .temp{font-size:32px;letter-spacing:-1px}
@@ -79,8 +75,10 @@ body.aura-night .aura-orb{opacity:.25}
 .bubble .rain-period{font-size:7.5px}
 .bubble .rain-alert,.hourly-section,.bubble .updated{display:none}
 
-/* CARD (CHỮ NHẬT) */
-.card{width:330px;height:auto;max-height:none;justify-content:flex-start;padding:10px;gap:4px}
+/* CARD (CHỮ NHẬT): rộng vừa đủ nội dung, không xuống dòng */
+.card{width:max-content;min-width:200px;max-width:none;height:auto;max-height:none;justify-content:flex-start;padding:10px;gap:4px;white-space:nowrap}
+.card .city-viewport{max-width:230px}
+.card .details{gap:14px}
 .bubble:active,.card:active{transform:scale(.985)}
 
 .city-container{display:flex;align-items:center;max-width:92%;overflow:hidden;font-size:12px;font-weight:700;color:#f1f5f9;text-shadow:0 1px 3px rgba(0,0,0,.45);flex-shrink:0;margin-bottom:2px}
@@ -90,6 +88,8 @@ body.aura-night .aura-orb{opacity:.25}
 .city-track.marquee-active{display:inline-flex;animation:smoothScroll 14s linear infinite}
 .city-text{display:inline-block;white-space:nowrap}
 @keyframes smoothScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+.clock-text{font-variant-numeric:tabular-nums}
 
 /* GIỜ TRONG CARD */
 .card-time-block{width:100%;display:none;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;margin-bottom:2px}
@@ -145,8 +145,6 @@ body.aura-night .aura-orb{opacity:.25}
 .weather-icon.anim-moon{animation:moonGlow 5s ease-in-out infinite}
 .weather-icon.anim-moon svg .moon-star,.weather-icon.anim-moon svg .moon-dot{animation:svgStarTwinkle 2.4s ease-in-out infinite alternate}
 
-
-  
 .desc{color:#e2e8f0;font-size:11px;font-weight:600;max-width:95%;flex-shrink:0;margin-bottom:2px}
 .aqi-uv{font-size:10px;font-weight:700;color:var(--rain-accent);flex-shrink:0}
 .temp-range{font-size:10px;font-weight:650;color:var(--muted);flex-shrink:0;margin-bottom:3px}
@@ -170,7 +168,7 @@ body.aura-night .aura-orb{opacity:.25}
 .hourly-section{display:none;width:100%;margin-top:3px;padding-top:3px;border-top:1px solid rgba(255,255,255,.22);flex-shrink:0}
 .card .hourly-section{display:block}
 .hourly-title{font-size:8px;color:var(--muted);font-weight:750;margin-bottom:2px;text-align:left}
-.hourly-list{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}
+.hourly-list{display:grid;grid-template-columns:repeat(var(--hcols,6),1fr);gap:2px}
 .hour-item{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 1px;border-radius:5px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.02))}
 .hour-time{font-size:6.5px;color:#e2e8f0;font-weight:650}
 .hour-icon{font-size:9.5px;line-height:1.1}
@@ -178,8 +176,8 @@ body.aura-night .aura-orb{opacity:.25}
 .hour-rain{font-size:6.5px;color:#90caf9;font-weight:700}
 
 /* ĐIỀU KHIỂN */
-.mode-controls{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(130%);width:92%;max-width:310px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;background:rgba(10,16,28,.94);border:1px solid rgba(79,195,247,.45);border-radius:14px;backdrop-filter:blur(20px) saturate(190%);-webkit-backdrop-filter:blur(20px) saturate(190%);box-shadow:0 8px 24px rgba(0,0,0,.65);transition:transform .35s cubic-bezier(.16,1,.3,1);z-index:9999;pointer-events:none}
-.mode-controls.visible{transform:translateX(-50%) translateY(0);pointer-events:auto}
+.mode-controls{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(calc(100% + 40px));visibility:hidden;width:92%;max-width:310px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;background:rgba(10,16,28,.94);border:1px solid rgba(79,195,247,.45);border-radius:14px;backdrop-filter:blur(20px) saturate(190%);-webkit-backdrop-filter:blur(20px) saturate(190%);box-shadow:0 8px 24px rgba(0,0,0,.65);transition:transform .35s cubic-bezier(.16,1,.3,1),visibility 0s linear .35s;z-index:9999;pointer-events:none}
+.mode-controls.visible{transform:translateX(-50%) translateY(0);visibility:visible;transition:transform .35s cubic-bezier(.16,1,.3,1),visibility 0s;pointer-events:auto}
 .handle-bar{width:36px;height:4px;background:rgba(255,255,255,.35);border-radius:2px;margin-bottom:1px;cursor:pointer}
 .mode-toggle-btn{width:100%;background:linear-gradient(160deg,rgba(255,255,255,.18),rgba(20,30,45,.75));border:1px solid rgba(79,195,247,.85);color:#fff;font-size:11px;font-weight:750;padding:4px 8px;border-radius:8px;cursor:pointer;text-align:center}
 .opacity-control{width:100%;display:flex;align-items:center;gap:6px;padding:2px 8px;border:1px solid rgba(79,195,247,.7);border-radius:8px;background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(20,30,45,.7));color:#fff;font-size:9.5px}
@@ -204,6 +202,7 @@ body.aura-night .aura-orb{opacity:.25}
  <div class="scale-stage" id="scaleStage">
   <div class="widget-container">
     <main class="bubble" id="widgetShape">
+    <div class="bubble-inner" id="bubbleInner">
 
       <div class="city-container">
         <span class="city-pin">📍</span>
@@ -260,6 +259,7 @@ body.aura-night .aura-orb{opacity:.25}
       </section>
 
       <div class="updated" id="updated">Đang kết nối dữ liệu...</div>
+    </div>
     </main>
   </div>
 
@@ -327,8 +327,6 @@ let weatherQueueRunning=false;
 let weatherRequestSequence=0;
 let weatherAbortController=null;
 
-
-  
 let lastWeatherRequestAt=0;
 let lastWeatherSuccessAt=0;
 let weatherFailureCount=0;
@@ -503,6 +501,7 @@ function updateCityDisplay(name){
       track.appendChild(second);
       track.classList.add("marquee-active");
     }
+    scheduleFit();
   });
 }
 
@@ -858,24 +857,91 @@ function setWeatherFX(code){
   }
 }
 
-/* ===== CO GIÃN THEO KHUNG ===== */
+/* ===== CO GIÃN TỐI ĐA THEO KHUNG ===== */
+let fitRaf=0;
+function scheduleFit(){
+  if(fitRaf)return;
+  fitRaf=requestAnimationFrame(()=>{fitRaf=0;updateCardScale();});
+}
+
+/* Khung tròn: phóng nội dung bên trong đến sát mép (không chạm viền) */
+function fitBubbleContent(){
+  const inner=$("bubbleInner"),bub=$("widgetShape");
+  if(!inner||!bub)return;
+  inner.style.transform="";
+  if(currentMode!=="bubble")return;
+
+  const rects=()=>{
+    const out=[];
+    inner.querySelectorAll("*").forEach(el=>{
+      if(el.namespaceURI!=="http://www.w3.org/1999/xhtml")return;
+      if(el.classList.contains("divider")||el.classList.contains("weather-icon")){
+        out.push(el.getBoundingClientRect());return;
+      }
+      for(const n of el.childNodes){
+        if(n.nodeType===3&&n.nodeValue.trim()){
+          const r=document.createRange();
+          r.selectNodeContents(n);
+          out.push(r.getBoundingClientRect());
+        }
+      }
+    });
+    return out.filter(r=>r.width>0&&r.height>0);
+  };
+
+  const fits=k=>{
+    inner.style.transform=`scale(${k})`;
+    const b=bub.getBoundingClientRect();
+    const R=Math.min(b.width,b.height)/2*0.93;
+    const cx=b.left+b.width/2,cy=b.top+b.height/2;
+    return rects().every(r=>[[r.left,r.top],[r.right,r.top],[r.left,r.bottom],[r.right,r.bottom]]
+      .every(([x,y])=>Math.hypot(x-cx,y-cy)<=R));
+  };
+
+  if(!fits(1)){inner.style.transform="";return;}
+  let lo=1,hi=1.9;
+  for(let i=0;i<12;i++){
+    const m=(lo+hi)/2;
+    if(fits(m))lo=m;else hi=m;
+  }
+  inner.style.transform=`scale(${lo.toFixed(3)})`;
+}
+
 function updateCardScale(){
-  const wrap=$("mainWrapper"),stage=$("scaleStage");
-  if(!wrap||!stage)return;
+  const wrap=$("mainWrapper"),stage=$("scaleStage"),widget=$("widgetShape");
+  if(!wrap||!stage||!widget)return;
   const cs=getComputedStyle(wrap);
   const aw=wrap.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
   const ah=wrap.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
-  const w=stage.offsetWidth,h=stage.offsetHeight;
-  if(!w||!h||aw<=0||ah<=0)return;
-  const s=Math.max(.35,Math.min(aw/w,ah/h,2));
+  if(aw<=0||ah<=0)return;
+
+  const fit=()=>{
+    const w=stage.offsetWidth,h=stage.offsetHeight;
+    return w&&h?Math.min(aw/w,ah/h):0;
+  };
+
+  if(currentMode==="card"){
+    /* Giờ dự báo: 6 cột hoặc 3 cột × 2 hàng, chọn cách cho chữ to hơn */
+    let best=0,bestCols=6;
+    for(const cols of [6,3]){
+      widget.style.setProperty("--hcols",cols);
+      const s=fit();
+      if(s>best*1.001){best=s;bestCols=cols;}
+    }
+    widget.style.setProperty("--hcols",bestCols);
+  }
+
+  const s=Math.max(.35,Math.min(fit(),4));
   stage.style.transform=`scale(${s.toFixed(3)})`;
+  fitBubbleContent();
 }
 
 function initScaleObserver(){
   if(window.ResizeObserver){
-    const ro=new ResizeObserver(()=>requestAnimationFrame(updateCardScale));
+    const ro=new ResizeObserver(()=>scheduleFit());
     ro.observe($("mainWrapper"));
     ro.observe($("scaleStage"));
+    ro.observe($("bubbleInner"));
   }
   updateCardScale();
 }
@@ -939,7 +1005,7 @@ $("opacitySlider").addEventListener("input",event=>{
 
 window.addEventListener("resize",()=>{
   resizeCanvas();
-  updateCardScale();
+  scheduleFit();
 });
 /* ===== ICON THỜI TIẾT ===== */
 function weatherIconMarkup(code,night=false){
@@ -1153,6 +1219,7 @@ function loadFromCache(){
       precipitation_probability:data.hourly.map(i=>i.probability),
       weather_code:data.hourly.map(i=>i.code)
     }});
+    scheduleFit();
   }catch(_){}
 }
 
@@ -1315,6 +1382,7 @@ async function requestWeatherData(lat,lon){
   weatherFailureCount=0;
   if(weatherRetryTimer){clearTimeout(weatherRetryTimer);weatherRetryTimer=null;}
 
+  scheduleFit();
   return{ignored:false,requestId};
 }
 
