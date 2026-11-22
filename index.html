@@ -6,489 +6,124 @@
 <meta name="theme-color" content="#000000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Weather CarPlay Widget - Master Optimized Edition</title>
-
+<title>Weather CarPlay Widget</title>
 <style>
-:root{
-  --temp-accent:#34d399;
-  --rain-accent:#4fc3f7;
-  --text:#f8fafc;
-  --muted:#aebdce;
-  --surface-opacity:.35;
-  --glass-specular:.28;
-  --glass-highlight-opacity:.43;
-}
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
-  -webkit-tap-highlight-color:transparent;
-}
-html,body{
-  width:100vw;
-  height:100vh;
-  overflow:hidden;
-  background:transparent;
-  color:var(--text);
-}
-body{
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  position:relative;
-  isolation:isolate;
-}
+:root{--temp-accent:#34d399;--rain-accent:#4fc3f7;--text:#f8fafc;--muted:#aebdce;--surface-opacity:.35;--glass-specular:.28;--glass-highlight-opacity:.43}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:transparent;color:var(--text)}
+body{display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;isolation:isolate}
 
-/* AURA BACKGROUND */
-.aura-bg{
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:0;
-  transition:opacity 2s;
-}
-.aura-orb{
-  position:absolute;
-  border-radius:50%;
-  filter:blur(60px);
-  opacity:.6;
-  animation:floatAura 15s ease-in-out infinite alternate;
-}
-.orb-1{
-  width:240px;
-  height:240px;
-  top:-10%;
-  left:-10%;
-  background:rgba(79,195,247,.6);
-}
-.orb-2{
-  width:260px;
-  height:260px;
-  bottom:-15%;
-  right:-10%;
-  background:rgba(52,211,153,.45);
-  animation-delay:-5s;
-}
-@keyframes floatAura{
-  to{transform:translate(25px,35px) scale(1.15)}
-}
-body.page-paused .aura-orb,
-body.page-paused .weather-icon{
-  animation-play-state:paused!important;
-}
-body.aura-dawn{background:radial-gradient(circle at 50% 30%,#1b324f 0%,#0e1a2b 60%,#05080f 100%);}
-body.aura-noon{background:radial-gradient(circle at 50% 30%,#193563 0%,#0c1830 60%,#03060c 100%);}
-body.aura-sunset{background:radial-gradient(circle at 50% 30%,#4d2132 0%,#24101f 60%,#0a0408 100%);}
-body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 60%,#010204 100%);}
+/* AURA */
+.aura-bg{position:fixed;inset:0;pointer-events:none;z-index:0;transition:opacity 2s}
+.aura-orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.6;animation:floatAura 15s ease-in-out infinite alternate}
+.orb-1{width:240px;height:240px;top:-10%;left:-10%;background:rgba(79,195,247,.6)}
+.orb-2{width:260px;height:260px;bottom:-15%;right:-10%;background:rgba(52,211,153,.45);animation-delay:-5s}
+@keyframes floatAura{to{transform:translate(25px,35px) scale(1.15)}}
+body.page-paused .aura-orb,body.page-paused .weather-icon{animation-play-state:paused!important}
+body.aura-dawn{background:radial-gradient(circle at 50% 30%,#1b324f 0%,#0e1a2b 60%,#05080f 100%)}
+body.aura-noon{background:radial-gradient(circle at 50% 30%,#193563 0%,#0c1830 60%,#03060c 100%)}
+body.aura-sunset{background:radial-gradient(circle at 50% 30%,#4d2132 0%,#24101f 60%,#0a0408 100%)}
+body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 60%,#010204 100%)}
+body.aura-night .aura-orb{opacity:.25}
 
-/* WEATHER FX CANVAS */
-.weather-fx{
-  position:fixed;
-  inset:0;
-  width:100%;
-  height:100%;
-  pointer-events:none;
-  z-index:1;
-}
+.weather-fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
 
-/* MAIN LAYOUT */
-.main-wrapper{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  position:relative;
-  z-index:2;
-  width:100%;
-  height:100%;
-  padding: 8px;
-}
-.widget-container{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  width:100%;
-}
+/* LAYOUT + CO GIÃN */
+.main-wrapper{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;z-index:2;width:100%;height:100%;padding:8px;overflow:hidden}
+.scale-stage{display:flex;flex-direction:column;align-items:center;width:max-content;transform-origin:center center}
+.widget-container{display:flex;justify-content:center;align-items:center;width:auto}
 
-/* LIQUID GLASS + DUAL TONE BORDER */
+/* LIQUID GLASS */
 .bubble,.card{
   background:
-    radial-gradient(
-      120% 100% at 15% 0%,
-      rgba(255,255,255,calc(var(--glass-specular)*1.25)) 0%,
-      rgba(255,255,255,.05) 50%,
-      transparent 80%
-    ),
-    linear-gradient(
-      160deg,
-      rgba(255,255,255,var(--glass-highlight-opacity)) 0%,
-      rgba(255,255,255,.02) 45%,
-      rgba(0,0,0,.2) 100%
-    ),
+    radial-gradient(120% 100% at 15% 0%,rgba(255,255,255,calc(var(--glass-specular)*1.25)) 0%,rgba(255,255,255,.05) 50%,transparent 80%),
+    linear-gradient(160deg,rgba(255,255,255,var(--glass-highlight-opacity)) 0%,rgba(255,255,255,.02) 45%,rgba(0,0,0,.2) 100%),
     rgba(14,22,36,var(--surface-opacity));
-
   backdrop-filter:blur(28px) saturate(210%) brightness(1.12);
   -webkit-backdrop-filter:blur(28px) saturate(210%) brightness(1.12);
+  border-radius:22px;border:none;
+  box-shadow:0 10px 24px rgba(0,0,0,.5),0 0 12px var(--temp-accent),0 0 12px var(--rain-accent),inset 0 1.5px 1.5px rgba(255,255,255,.6),inset 0 -1.5px 4px rgba(0,0,0,.4);
+  display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;transition:box-shadow .4s;overflow:hidden;cursor:pointer}
+.bubble::after,.card::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:2px;
+  background:linear-gradient(to bottom,var(--temp-accent) 0%,var(--temp-accent) 48%,var(--rain-accent) 52%,var(--rain-accent) 100%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;pointer-events:none;z-index:2}
+.bubble::before,.card::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(125deg,rgba(255,255,255,.28) 0%,rgba(255,255,255,.06) 30%,transparent 60%);pointer-events:none;z-index:0}
+.bubble>*,.card>*{position:relative;z-index:3}
 
-  border-radius:22px;
-  border:none;
+/* BUBBLE (TRÒN) */
+.bubble{width:310px;height:auto;aspect-ratio:1/1;border-radius:50%;justify-content:center;padding:4% 3%;gap:2px}
+.bubble::after{border-radius:50%}
+.bubble .city-container{font-size:10px;max-width:72%;margin-bottom:0}
+.bubble .main-temp{gap:5px}
+.bubble .temp{font-size:32px;letter-spacing:-1px}
+.bubble .weather-icon{font-size:24px}
+.bubble .desc{font-size:10px;line-height:1.1}
+.bubble .aqi-uv,.bubble .temp-range{font-size:8.5px}
+.bubble .divider{width:68%;margin:1px 0}
+.bubble .details{width:78%}
+.bubble .detail-val{font-size:11px;gap:2px}
+.bubble .detail-icon{font-size:11px}
+.bubble .detail-unit,.bubble .detail-lbl{font-size:8px}
+.bubble .vertical-divider{height:12px}
+.bubble .rain-section{transform:scale(.85);margin-top:-3px}
+.bubble .rain-prob{font-size:9px;gap:2px}
+.bubble .rain-icon{font-size:11px}
+.bubble .rain-prob strong{font-size:11px}
+.bubble .rain-period{font-size:7.5px}
+.bubble .rain-alert,.hourly-section,.bubble .updated{display:none}
 
-  box-shadow:
-    0 10px 24px rgba(0,0,0,.5),
-    0 0 12px var(--temp-accent),
-    0 0 12px var(--rain-accent),
-    inset 0 1.5px 1.5px rgba(255,255,255,.6),
-    inset 0 -1.5px 4px rgba(0,0,0,.4);
+/* CARD (CHỮ NHẬT) */
+.card{width:330px;height:auto;max-height:none;justify-content:flex-start;padding:10px;gap:4px}
+.bubble:active,.card:active{transform:scale(.985)}
 
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  text-align:center;
-  position:relative;
-  transition:box-shadow .4s;
-  overflow:hidden;
-  cursor:pointer;
-}
+.city-container{display:flex;align-items:center;max-width:92%;overflow:hidden;font-size:12px;font-weight:700;color:#f1f5f9;text-shadow:0 1px 3px rgba(0,0,0,.45);flex-shrink:0;margin-bottom:2px}
+.city-pin{flex-shrink:0;margin-right:2px}
+.city-viewport{overflow:hidden;width:100%;position:relative;white-space:nowrap}
+.city-track{display:inline-block;white-space:nowrap}
+.city-track.marquee-active{display:inline-flex;animation:smoothScroll 14s linear infinite}
+.city-text{display:inline-block;white-space:nowrap}
+@keyframes smoothScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
-.bubble::after,.card::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:inherit;
-  padding:2px;
-  background:linear-gradient(
-    to bottom,
-    var(--temp-accent) 0%,
-    var(--temp-accent) 48%,
-    var(--rain-accent) 52%,
-    var(--rain-accent) 100%
-  );
-  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-  -webkit-mask-composite:xor;
-  mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-  mask-composite:exclude;
-  pointer-events:none;
-  z-index:2;
-}
+/* GIỜ TRONG CARD */
+.card-time-block{width:100%;display:none;flex-direction:column;align-items:center;gap:1px;flex-shrink:0;margin-bottom:2px}
+@keyframes rainbow-move{0%{background-position:0% center}100%{background-position:200% center}}
+.card .card-time-block .clock-text{font-size:26px;font-weight:900;letter-spacing:.5px;line-height:1.05;
+  background:linear-gradient(90deg,#ff0000,#ff7f00,#ffff00,#00ff00,#0000ff,#4b0082,#9400d3,#ff0000);background-size:200% auto;
+  color:transparent;-webkit-background-clip:text;background-clip:text;animation:rainbow-move 3s linear infinite;
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
+.card-time-block .solar-date{font-size:10px;font-weight:700;color:#f1f5f9}
+.card-time-block .lunar-date{font-size:9.5px;font-weight:700;color:#ffd54f}
 
-.bubble::before,.card::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:inherit;
-  background:linear-gradient(
-    125deg,
-    rgba(255,255,255,.28) 0%,
-    rgba(255,255,255,.06) 30%,
-    transparent 60%
-  );
-  pointer-events:none;
-  z-index:0;
-}
-.bubble>*,.card>*{
-  position:relative;
-  z-index:3;
-}
+/* GIỜ NGOÀI (BUBBLE) */
+.external-time-bar{display:none;width:310px;margin-top:6px;text-align:center;flex-direction:column;align-items:center;gap:1px;flex-shrink:0}
+.external-time-bar .clock-text{font-size:22px;font-weight:900;color:#64b5f6;text-shadow:0 2px 6px rgba(0,0,0,.95),0 0 10px rgba(100,181,246,.8);line-height:1.05}
+.external-time-bar .solar-date{font-size:9.5px;font-weight:700;color:#f1f5f9}
+.external-time-bar .lunar-date{font-size:9px;font-weight:700;color:#ffd54f}
 
-/* BUBBLE MODE (TRÒN) */
-.bubble{
-  width:min(310px, 90vw, 50vh);
-  height:auto;
-  aspect-ratio:1 / 1;
-  border-radius:50%;
-  justify-content:center;
-  padding:4% 3%;
-  gap:2px;
-}
-.bubble::after{
-  border-radius:50%;
-}
-.bubble .city-container{
-  font-size:10px;
-  max-width:72%;
-  margin-bottom:0px;
-}
-.bubble .main-temp{
-  gap:5px;
-}
-.bubble .temp{
-  font-size:32px;
-  letter-spacing:-1px;
-}
-.bubble .weather-icon{
-  font-size:24px;
-}
-.bubble .desc{
-  font-size:10px;
-  line-height:1.1;
-}
-.bubble .aqi-uv,
-.bubble .temp-range{
-  font-size:8.5px;
-}
-.bubble .divider{
-  width:68%;
-  margin:1px 0;
-}
-.bubble .details{
-  width:78%;
-}
-.bubble .detail-val{
-  font-size:11px;
-  gap:2px;
-}
-.bubble .detail-icon{
-  font-size:11px;
-}
-.bubble .detail-unit,
-.bubble .detail-lbl{
-  font-size:8px;
-}
-.bubble .vertical-divider{
-  height:12px;
-}
-.bubble .rain-section{
-  transform:scale(0.85);
-  margin-top:-3px;
-}
-.bubble .rain-prob{
-  font-size:9px;
-  gap:2px;
-}
-.bubble .rain-icon{
-  font-size:11px;
-}
-.bubble .rain-prob strong{
-  font-size:11px;
-}
-.bubble .rain-period{
-  font-size:7.5px;
-}
-.bubble .rain-alert,
-.hourly-section{
-  display:none;
-}
-.bubble .updated{
-  display:none;
-}
+.main-temp{display:flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;margin:2px 0}
+.temp{font-size:36px;line-height:1;font-weight:800;letter-spacing:-1.5px;text-shadow:0 2px 10px rgba(0,0,0,.35);color:var(--temp-accent)}
 
-/* CARD MODE (CHỮ NHẬT) */
-.card{
-  width:min(330px, 94vw);
-  height:auto;
-  max-height:92vh;
-  justify-content:flex-start;
-  padding:10px 10px;
-  gap:4px;
-}
-.bubble:active,.card:active{
-  transform:scale(.985);
-}
-
-.city-container{
-  display:flex;
-  align-items:center;
-  max-width:92%;
-  overflow:hidden;
-  font-size:clamp(9.5px, 4vw, 12px);
-  font-weight:700;
-  color:#f1f5f9;
-  text-shadow:0 1px 3px rgba(0,0,0,.45);
-  flex-shrink:0;
-  margin-bottom:2px;
-}
-.city-pin{
-  flex-shrink:0;
-  margin-right:2px;
-}
-.city-viewport{
-  overflow:hidden;
-  width:100%;
-  position:relative;
-  white-space:nowrap;
-}
-.city-track{
-  display:inline-block;
-  white-space:nowrap;
-}
-.city-track.marquee-active{
-  display:inline-flex;
-  animation:smoothScroll 14s linear infinite;
-}
-.city-text{
-  display:inline-block;
-  white-space:nowrap;
-}
-@keyframes smoothScroll{
-  0%{transform:translateX(0)}
-  100%{transform:translateX(-50%)}
-}
-
-/* CARD TIME */
-.card-time-block{
-  width:100%;
-  display:none;
-  flex-direction:column;
-  align-items:center;
-  gap:1px;
-  flex-shrink:0;
-  margin-bottom:2px;
-}
-
-/* HIỆU ỨNG CẦU VỒNG CHUẨN TỪ MẪU CỦA BẠN (Áp dụng riêng cho Card) */
-@keyframes rainbow-move {
-  0% {
-    background-position: 0% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
-.card .card-time-block .clock-text{
-  font-size:clamp(20px, 9vw, 26px);
-  font-weight:900;
-  letter-spacing:.5px;
-  line-height:1.05;
-  
-  /* Dải màu chuẩn 7 sắc có lặp đầu đuôi */
-  background: linear-gradient(
-    90deg, 
-    #ff0000, 
-    #ff7f00, 
-    #ffff00, 
-    #00ff00, 
-    #0000ff, 
-    #4b0082, 
-    #9400d3, 
-    #ff0000
-  );
-  background-size: 200% auto;
-  
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  
-  animation: rainbow-move 3s linear infinite;
-  text-shadow: 0 2px 8px rgba(0,0,0,.3);
-}
-
-.card-time-block .solar-date{
-  font-size:clamp(8px, 3.6vw, 10px);
-  font-weight:700;
-  color:#f1f5f9;
-}
-.card-time-block .lunar-date{
-  font-size:clamp(7.5px, 3.4vw, 9.5px);
-  font-weight:700;
-  color:#ffd54f;
-}
-
-/* EXTERNAL TIME BAR (BUBBLE) - Giữ nguyên màu xanh truyền thống */
-.external-time-bar{
-  display:none;
-  width:min(310px, 90vw);
-  margin-top:6px;
-  text-align:center;
-  flex-direction:column;
-  align-items:center;
-  gap:1px;
-  flex-shrink:0;
-}
-.external-time-bar .clock-text{
-  font-size:22px;
-  font-weight:900;
-  color:#64b5f6;
-  text-shadow:0 2px 6px rgba(0,0,0,.95),0 0 10px rgba(100,181,246,.8);
-  line-height:1.05;
-}
-.external-time-bar .solar-date{
-  font-size:9.5px;
-  font-weight:700;
-  color:#f1f5f9;
-}
-.external-time-bar .lunar-date{
-  font-size:9px;
-  font-weight:700;
-  color:#ffd54f;
-}
-
-.main-temp{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:6px;
-  flex-shrink:0;
-  margin:2px 0;
-}
-.temp{
-  font-size:clamp(24px, 11vw, 36px);
-  line-height:1;
-  font-weight:800;
-  letter-spacing:-1.5px;
-  text-shadow:0 2px 10px rgba(0,0,0,.35);
-  color:var(--temp-accent);
-}
-
-/* WEATHER ICON ANIMATIONS */
-.weather-icon{
-  font-size:clamp(18px, 9.5vw, 28px);
-  line-height:1;
-  display:inline-block;
-  transform-origin:center;
-  will-change:transform,filter;
-  filter:drop-shadow(0 3px 6px rgba(0,0,0,.4));
-}
-
-@keyframes sunGlowSpin {
-  0% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 4px rgba(253, 224, 71, 0.35)); }
-  50% { transform: scale(1.12) rotate(12deg); filter: drop-shadow(0 0 12px rgba(253, 224, 71, 0.75)); }
-  100% { transform: scale(1) rotate(0deg); filter: drop-shadow(0 0 4px rgba(253, 224, 71, 0.35)); }
-}
-
-@keyframes cloudDrift {
-  0%, 100% { transform: translate3d(-2px, 0, 0) scale(1); filter: drop-shadow(0 3px 6px rgba(0,0,0,.35)); }
-  50% { transform: translate3d(3px, -2.5px, 0) scale(1.04); filter: drop-shadow(0 5px 8px rgba(148, 163, 184, 0.45)); }
-}
-
-@keyframes rainDropPulse {
-  0%, 100% { transform: translate3d(0, -1.5px, 0) scale(1); filter: drop-shadow(0 2px 5px rgba(56, 189, 248, 0.35)); }
-  50% { transform: translate3d(0, 2.5px, 0) scale(1.06); filter: drop-shadow(0 4px 10px rgba(56, 189, 248, 0.7)); }
-}
-
-@keyframes stormFlashShake {
-  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); filter: drop-shadow(0 2px 6px rgba(250, 204, 21, 0.3)); }
-  20% { transform: translate3d(-2.5px, 0, 0) rotate(-4deg) scale(1.05); }
-  40% { transform: translate3d(2.5px, -1px, 0) rotate(4deg) scale(1.08); filter: drop-shadow(0 0 14px rgba(250, 204, 21, 0.9)); }
-  60% { transform: translate3d(-1.5px, 1px, 0) rotate(-2deg) scale(1.02); }
-  80% { transform: translate3d(1.5px, 0, 0) rotate(2deg) scale(1); }
-}
-
-@keyframes fogPulse {
-  0%, 100% { transform: scale(0.98); opacity: 0.82; }
-  50% { transform: scale(1.05); opacity: 1; }
-}
-
-.weather-icon.anim-sunny { animation: sunGlowSpin 5s ease-in-out infinite; }
-.weather-icon.anim-cloudy { animation: cloudDrift 4.5s ease-in-out infinite; }
-.weather-icon.anim-rain { animation: rainDropPulse 1.8s ease-in-out infinite; }
-.weather-icon.anim-storm { animation: stormFlashShake 1.4s ease-in-out infinite; }
-.weather-icon.anim-fog { animation: fogPulse 4s ease-in-out infinite; }
-.weather-icon svg{
-  width:1.18em;
-  height:1.18em;
-  display:block;
-  overflow:visible;
-}
+/* ICON THỜI TIẾT */
+.weather-icon{font-size:28px;line-height:1;display:inline-block;transform-origin:center;will-change:transform,filter;filter:drop-shadow(0 3px 6px rgba(0,0,0,.4))}
+@keyframes sunGlowSpin{0%{transform:scale(1);filter:drop-shadow(0 0 4px rgba(253,224,71,.35))}50%{transform:scale(1.12);filter:drop-shadow(0 0 12px rgba(253,224,71,.75))}100%{transform:scale(1);filter:drop-shadow(0 0 4px rgba(253,224,71,.35))}}
+@keyframes cloudDrift{0%,100%{transform:translate3d(-2px,0,0) scale(1);filter:drop-shadow(0 3px 6px rgba(0,0,0,.35))}50%{transform:translate3d(3px,-2.5px,0) scale(1.04);filter:drop-shadow(0 5px 8px rgba(148,163,184,.45))}}
+@keyframes rainDropPulse{0%,100%{transform:translate3d(0,-1.5px,0) scale(1);filter:drop-shadow(0 2px 5px rgba(56,189,248,.35))}50%{transform:translate3d(0,2.5px,0) scale(1.06);filter:drop-shadow(0 4px 10px rgba(56,189,248,.7))}}
+@keyframes stormFlashShake{0%,100%{transform:translate3d(0,0,0) rotate(0) scale(1);filter:drop-shadow(0 2px 6px rgba(250,204,21,.3))}20%{transform:translate3d(-2.5px,0,0) rotate(-4deg) scale(1.05)}40%{transform:translate3d(2.5px,-1px,0) rotate(4deg) scale(1.08);filter:drop-shadow(0 0 14px rgba(250,204,21,.9))}60%{transform:translate3d(-1.5px,1px,0) rotate(-2deg) scale(1.02)}80%{transform:translate3d(1.5px,0,0) rotate(2deg) scale(1)}}
+@keyframes fogPulse{0%,100%{transform:scale(.98);opacity:.82}50%{transform:scale(1.05);opacity:1}}
+.weather-icon.anim-sunny{animation:sunGlowSpin 5s ease-in-out infinite}
+.weather-icon.anim-cloudy{animation:cloudDrift 4.5s ease-in-out infinite}
+.weather-icon.anim-rain{animation:rainDropPulse 1.8s ease-in-out infinite}
+.weather-icon.anim-storm{animation:stormFlashShake 1.4s ease-in-out infinite}
+.weather-icon.anim-fog{animation:fogPulse 4s ease-in-out infinite}
+.weather-icon svg{width:1.18em;height:1.18em;display:block;overflow:visible}
 .weather-icon svg .sun-core{fill:#fbbf24}
 .weather-icon svg .sun-ray{stroke:#fde68a;stroke-width:3;stroke-linecap:round}
 .weather-icon svg .cloud-shape{fill:#dbeafe;stroke:#bfdbfe;stroke-width:1.5}
 .weather-icon svg .rain-line{stroke:#38bdf8;stroke-width:2.5;stroke-linecap:round}
 .weather-icon svg .snowflake{stroke:#bae6fd;stroke-width:2;stroke-linecap:round}
 .weather-icon svg .bolt{fill:#facc15;stroke:#fef08a;stroke-width:1}
-.weather-icon.anim-sunny svg{animation:svgSunRotate 12s linear infinite}
+.weather-icon.anim-sunny svg .sun-ray{transform-box:fill-box;transform-origin:center;animation:svgSunRotate 12s linear infinite}
 .weather-icon.anim-rain svg .rain-line{animation:svgRainFall .9s ease-in-out infinite alternate}
 .weather-icon.anim-storm svg .bolt{animation:svgBoltFlash 1.4s steps(2,end) infinite}
 .weather-icon.anim-cloudy svg .cloud-shape{animation:svgCloudFloat 4s ease-in-out infinite}
@@ -497,254 +132,48 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 @keyframes svgBoltFlash{0%,75%,100%{opacity:1}80%,90%{opacity:.25}}
 @keyframes svgCloudFloat{50%{transform:translateX(2px)}}
 
-.desc{
-  color:#e2e8f0;
-  font-size:clamp(9px, 4vw, 11px);
-  font-weight:600;
-  max-width:95%;
-  flex-shrink:0;
-  margin-bottom:2px;
-}
-.aqi-uv{
-  font-size:clamp(8px, 3.6vw, 10px);
-  font-weight:700;
-  color:var(--rain-accent);
-  flex-shrink:0;
-}
-.temp-range{
-  font-size:clamp(8px, 3.6vw, 10px);
-  font-weight:650;
-  color:var(--muted);
-  flex-shrink:0;
-  margin-bottom:3px;
-}
-.divider{
-  width:90%;
-  height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.32),transparent);
-  margin:4px 0;
-  flex-shrink:0;
-}
-.details{
-  display:flex;
-  justify-content:space-around;
-  align-items:center;
-  width:96%;
-  flex-shrink:0;
-  margin:2px 0;
-}
-.detail-box{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:1px;
-}
-.detail-val{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:3px;
-  font-size:clamp(9.5px, 4.2vw, 13px);
-  font-weight:800;
-  white-space:nowrap;
-}
-.detail-icon{
-  font-size:clamp(9.5px, 4.2vw, 13px);
-  line-height:1;
-}
-.detail-unit{
-  font-size:clamp(7.5px, 3.4vw, 10px);
-  font-weight:600;
-  color:#cbd5e1;
-}
-.detail-lbl{
-  font-size:clamp(7.5px, 3.4vw, 10px);
-  color:var(--muted);
-  font-weight:600;
-}
-.vertical-divider{
-  width:1px;
-  height:15px;
-  background:linear-gradient(180deg,transparent,rgba(255,255,255,.32),transparent);
-}
+.desc{color:#e2e8f0;font-size:11px;font-weight:600;max-width:95%;flex-shrink:0;margin-bottom:2px}
+.aqi-uv{font-size:10px;font-weight:700;color:var(--rain-accent);flex-shrink:0}
+.temp-range{font-size:10px;font-weight:650;color:var(--muted);flex-shrink:0;margin-bottom:3px}
+.divider{width:90%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.32),transparent);margin:4px 0;flex-shrink:0}
+.details{display:flex;justify-content:space-around;align-items:center;width:96%;flex-shrink:0;margin:2px 0}
+.detail-box{display:flex;flex-direction:column;align-items:center;gap:1px}
+.detail-val{display:flex;align-items:center;justify-content:center;gap:3px;font-size:13px;font-weight:800;white-space:nowrap}
+.detail-icon{font-size:13px;line-height:1}
+.detail-unit{font-size:10px;font-weight:600;color:#cbd5e1}
+.detail-lbl{font-size:10px;color:var(--muted);font-weight:600}
+.vertical-divider{width:1px;height:15px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.32),transparent)}
 
-.rain-section{
-  width:100%;
-  flex-shrink:0;
-  margin:2px 0;
-}
-.rain-prob{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:4px;
-  font-size:clamp(8.5px, 3.8vw, 10.5px);
-  font-weight:650;
-  white-space:nowrap;
-}
-.rain-icon{font-size:clamp(9.5px, 4.2vw, 13px)}
-.rain-prob strong{
-  font-size:clamp(9.5px, 4.2vw, 13px);
-  font-weight:850;
-  color:var(--rain-accent);
-}
-.rain-period{
-  font-size:clamp(7px, 3.2vw, 9px);
-  color:var(--muted);
-  margin-top:1px;
-  font-weight:600;
-}
-.rain-alert{
-  font-size:clamp(7px, 3.2vw, 9px);
-  font-weight:700;
-  color:var(--rain-accent);
-}
-.updated{
-  width:100%;
-  color:#94a3b8;
-  font-size:7px;
-  opacity:.95;
-  flex-shrink:0;
-  font-weight:600;
-  margin-top:4px;
-}
+.rain-section{width:100%;flex-shrink:0;margin:2px 0}
+.rain-prob{display:flex;justify-content:center;align-items:center;gap:4px;font-size:10.5px;font-weight:650;white-space:nowrap}
+.rain-icon{font-size:13px}
+.rain-prob strong{font-size:13px;font-weight:850;color:var(--rain-accent)}
+.rain-period{font-size:9px;color:var(--muted);margin-top:1px;font-weight:600}
+.rain-alert{font-size:9px;font-weight:700;color:var(--rain-accent)}
+.updated{width:100%;color:#94a3b8;font-size:7px;opacity:.95;flex-shrink:0;font-weight:600;margin-top:4px}
 
-.hourly-section{
-  display:none;
-  width:100%;
-  margin-top:3px;
-  padding-top:3px;
-  border-top:1px solid rgba(255,255,255,.22);
-  flex-shrink:0;
-}
+.hourly-section{display:none;width:100%;margin-top:3px;padding-top:3px;border-top:1px solid rgba(255,255,255,.22);flex-shrink:0}
 .card .hourly-section{display:block}
-.hourly-title{
-  font-size:8px;
-  color:var(--muted);
-  font-weight:750;
-  margin-bottom:2px;
-  text-align:left;
-}
-.hourly-list{
-  display:grid;
-  grid-template-columns:repeat(6,minmax(0,1fr));
-  gap:2px;
-}
-.hour-item{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:1px;
-  padding:2px 1px;
-  border-radius:5px;
-  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.02));
-}
-.hour-time{
-  font-size:6.5px;
-  color:#e2e8f0;
-  font-weight:650;
-}
-.hour-icon{
-  font-size:9.5px;
-  line-height:1.1;
-}
-.hour-temp{
-  font-size:8.5px;
-  font-weight:800;
-}
-.hour-rain{
-  font-size:6.5px;
-  color:#90caf9;
-  font-weight:700;
-}
+.hourly-title{font-size:8px;color:var(--muted);font-weight:750;margin-bottom:2px;text-align:left}
+.hourly-list{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px}
+.hour-item{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 1px;border-radius:5px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.02))}
+.hour-time{font-size:6.5px;color:#e2e8f0;font-weight:650}
+.hour-icon{font-size:9.5px;line-height:1.1}
+.hour-temp{font-size:8.5px;font-weight:800}
+.hour-rain{font-size:6.5px;color:#90caf9;font-weight:700}
 
-/* CONTROLS */
-.mode-controls{
-  position:fixed;
-  bottom:22px;
-  left:50%;
-  transform:translateX(-50%) translateY(130%);
-  width:92%;
-  max-width:310px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:3px;
-  padding:6px 10px;
-  background:rgba(10, 16, 28, 0.94);
-  border:1px solid rgba(79, 195, 247, 0.45);
-  border-radius:14px;
-  backdrop-filter:blur(20px) saturate(190%);
-  -webkit-backdrop-filter:blur(20px) saturate(190%);
-  box-shadow:0 8px 24px rgba(0,0,0,0.65);
-  transition:transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index:9999;
-  pointer-events:none;
-}
-.mode-controls.visible{
-  transform:translateX(-50%) translateY(0);
-  pointer-events:auto;
-}
-.handle-bar{
-  width:36px;
-  height:4px;
-  background:rgba(255,255,255,0.35);
-  border-radius:2px;
-  margin-bottom:1px;
-  cursor:pointer;
-}
-.mode-toggle-btn{
-  width:100%;
-  background:linear-gradient(160deg,rgba(255,255,255,.18),rgba(20,30,45,.75));
-  border:1px solid rgba(79,195,247,.85);
-  color:#fff;
-  font-size:clamp(9px, 4vw, 11px);
-  font-weight:750;
-  padding:4px 8px;
-  border-radius:8px;
-  cursor:pointer;
-  text-align:center;
-}
-.opacity-control{
-  width:100%;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  padding:2px 8px;
-  border:1px solid rgba(79,195,247,.7);
-  border-radius:8px;
-  background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(20,30,45,.7));
-  color:#fff;
-  font-size:clamp(8px, 3.8vw, 9.5px);
-}
-.opacity-control label{
-  white-space:nowrap;
-  color:#e0f2fe;
-  font-weight:700;
-}
-.opacity-control input{
-  flex:1;
-  min-width:20px;
-  accent-color:#4fc3f7;
-  height:14px;
-  cursor:pointer;
-}
-.opacity-value{
-  width:24px;
-  text-align:right;
-  font-variant-numeric:tabular-nums;
-  font-weight:800;
-}
+/* ĐIỀU KHIỂN */
+.mode-controls{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(130%);width:92%;max-width:310px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 10px;background:rgba(10,16,28,.94);border:1px solid rgba(79,195,247,.45);border-radius:14px;backdrop-filter:blur(20px) saturate(190%);-webkit-backdrop-filter:blur(20px) saturate(190%);box-shadow:0 8px 24px rgba(0,0,0,.65);transition:transform .35s cubic-bezier(.16,1,.3,1);z-index:9999;pointer-events:none}
+.mode-controls.visible{transform:translateX(-50%) translateY(0);pointer-events:auto}
+.handle-bar{width:36px;height:4px;background:rgba(255,255,255,.35);border-radius:2px;margin-bottom:1px;cursor:pointer}
+.mode-toggle-btn{width:100%;background:linear-gradient(160deg,rgba(255,255,255,.18),rgba(20,30,45,.75));border:1px solid rgba(79,195,247,.85);color:#fff;font-size:11px;font-weight:750;padding:4px 8px;border-radius:8px;cursor:pointer;text-align:center}
+.opacity-control{width:100%;display:flex;align-items:center;gap:6px;padding:2px 8px;border:1px solid rgba(79,195,247,.7);border-radius:8px;background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(20,30,45,.7));color:#fff;font-size:9.5px}
+.opacity-control label{white-space:nowrap;color:#e0f2fe;font-weight:700}
+.opacity-control input{flex:1;min-width:20px;accent-color:#4fc3f7;height:14px;cursor:pointer}
+.opacity-value{width:24px;text-align:right;font-variant-numeric:tabular-nums;font-weight:800}
 
 .error .desc{color:#ffb4ab}
-
-@media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{
-    animation:none!important;
-    scroll-behavior:auto!important;
-    transition:none!important;
-  }
-}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
 
@@ -757,8 +186,9 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 <canvas class="weather-fx" id="weatherFxCanvas"></canvas>
 
 <div class="main-wrapper" id="mainWrapper">
+ <div class="scale-stage" id="scaleStage">
   <div class="widget-container">
-    <main class="bubble" id="widgetShape" aria-live="polite">
+    <main class="bubble" id="widgetShape">
 
       <div class="city-container">
         <span class="city-pin">📍</span>
@@ -787,21 +217,12 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 
       <div class="details">
         <div class="detail-box">
-          <div class="detail-val">
-            <span class="detail-icon">💧</span>
-            <span id="humidity">--%</span>
-          </div>
+          <div class="detail-val"><span class="detail-icon">💧</span><span id="humidity">--%</span></div>
           <div class="detail-lbl">Độ ẩm</div>
         </div>
-
         <div class="vertical-divider"></div>
-
         <div class="detail-box">
-          <div class="detail-val">
-            <span class="detail-icon">💨</span>
-            <span id="wind">--</span>
-            <small class="detail-unit">km/h</small>
-          </div>
+          <div class="detail-val"><span class="detail-icon">💨</span><span id="wind">--</span><small class="detail-unit">km/h</small></div>
           <div class="detail-lbl">Tốc độ gió</div>
         </div>
       </div>
@@ -820,9 +241,7 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
 
       <section class="hourly-section" id="hourlySection">
         <div class="hourly-title">DỰ BÁO THEO GIỜ</div>
-        <div class="hourly-list" id="hourlyList">
-          <span class="hour-time">Đang tải...</span>
-        </div>
+        <div class="hourly-list" id="hourlyList"><span class="hour-time">Đang tải...</span></div>
       </section>
 
       <div class="updated" id="updated">Đang kết nối dữ liệu...</div>
@@ -834,29 +253,22 @@ body.aura-night{background:radial-gradient(circle at 50% 30%,#0e1424 0%,#060912 
     <div class="solar-date" id="extSolar">--</div>
     <div class="lunar-date" id="extLunar">--</div>
   </div>
+ </div>
 </div>
 
 <div class="mode-controls" id="modeControls">
   <div class="handle-bar" id="handleBar" title="Đóng menu"></div>
-  <button class="mode-toggle-btn" id="modeToggleBtn" type="button">
-    🔄 Đổi Form
-  </button>
-
+  <button class="mode-toggle-btn" id="modeToggleBtn" type="button">🔄 Đổi Form</button>
   <div class="opacity-control">
     <label for="opacitySlider">Độ trong suốt</label>
     <input id="opacitySlider" type="range" min="5" max="95" step="1" value="65">
     <span class="opacity-value" id="opacityValue">65%</span>
   </div>
 </div>
-
 <script>
 "use strict";
 
-const DEFAULT_LOCATION={
-  latitude:20.5453,
-  longitude:105.9122,
-  name:"P. Hai Bà Trưng, TP. Phủ Lý"
-};
+const DEFAULT_LOCATION={latitude:20.5453,longitude:105.9122,name:"P. Hai Bà Trưng, TP. Phủ Lý"};
 
 const REFRESH_INTERVAL_MS=15*60*1000;
 const FORECAST_HOURS=3;
@@ -871,11 +283,7 @@ const CACHE_STALE_MS=60*60*1000;
 
 const CACHE_KEY="carplay_weather_cache_v51";
 const LAYOUT_KEY="carplay_layout_mode_v20";
-
-const OPACITY_KEYS={
-  bubble:"carplay_opacity_bubble_v30",
-  card:"carplay_opacity_card_v30"
-};
+const OPACITY_KEYS={bubble:"carplay_opacity_bubble_v30",card:"carplay_opacity_card_v30"};
 
 const REVERSE_GEOCODE_MIN_INTERVAL=15*1000;
 const REVERSE_GEOCODE_MIN_DISTANCE=300;
@@ -910,6 +318,7 @@ let lastWeatherRequestLocation=null;
 let weatherRetryTimer=null;
 let pendingLocationRefreshTimer=null;
 let pendingLocationCandidate=null;
+let lastManualRefresh=0;
 
 let fxType="none";
 let particles=[];
@@ -918,6 +327,8 @@ let lightningTimer=null;
 let lightningFlashTimer=null;
 let canvasCtx=null;
 let lastWeatherCode=null;
+let lastIsDay=null;
+let shootingStar=null;
 
 let pageActive=!document.hidden;
 
@@ -927,28 +338,22 @@ let reducedMotion=!!(motionQuery&&motionQuery.matches);
 if(motionQuery){
   const onMotionChange=event=>{
     reducedMotion=!!event.matches;
-    if(reducedMotion)stopCanvas();
-    else startCanvas();
-    if(reducedMotion)clearLightning();
-    else startLightning();
+    if(reducedMotion){stopCanvas();clearLightning();}
+    else{startCanvas();startLightning();}
   };
   if(typeof motionQuery.addEventListener==="function")motionQuery.addEventListener("change",onMotionChange);
   else if(typeof motionQuery.addListener==="function")motionQuery.addListener(onMotionChange);
 }
 
+/* ===== PANEL ĐIỀU KHIỂN ===== */
 let touchStartY=0;
 let controlsVisible=false;
 let autoHideTimer=null;
 
 function resetAutoHideTimer(){
-  if(autoHideTimer){
-    clearTimeout(autoHideTimer);
-    autoHideTimer=null;
-  }
+  if(autoHideTimer){clearTimeout(autoHideTimer);autoHideTimer=null;}
   if(controlsVisible){
-    autoHideTimer=setTimeout(()=>{
-      setControlsVisibility(false);
-    }, 2000);
+    autoHideTimer=setTimeout(()=>setControlsVisibility(false),2000);
   }
 }
 
@@ -960,10 +365,7 @@ function setControlsVisibility(visible){
     resetAutoHideTimer();
   }else{
     panel.classList.remove("visible");
-    if(autoHideTimer){
-      clearTimeout(autoHideTimer);
-      autoHideTimer=null;
-    }
+    if(autoHideTimer){clearTimeout(autoHideTimer);autoHideTimer=null;}
   }
 }
 
@@ -978,30 +380,20 @@ window.addEventListener("touchstart",e=>{
 window.addEventListener("touchend",e=>{
   if(!touchStartY)return;
   if(e.changedTouches.length>0){
-    const touchEndY=e.changedTouches[0].clientY;
-    const diffY=touchStartY-touchEndY;
-    if(diffY>40){
-      setControlsVisibility(true);
-    }
-    else if(diffY<-40){
-      setControlsVisibility(false);
-    }
+    const diffY=touchStartY-e.changedTouches[0].clientY;
+    if(diffY>40)setControlsVisibility(true);
+    else if(diffY<-40)setControlsVisibility(false);
   }
+  touchStartY=0;
 },{passive:true});
 
 $("modeControls").addEventListener("touchstart",()=>resetAutoHideTimer(),{passive:true});
 $("modeControls").addEventListener("click",()=>resetAutoHideTimer());
 $("handleBar").addEventListener("click",()=>setControlsVisibility(false));
 
-function safeStorageGet(key){
-  try{return localStorage.getItem(key)}
-  catch(_){return null}
-}
-
-function safeStorageSet(key,value){
-  try{localStorage.setItem(key,value)}
-  catch(_){}
-}
+/* ===== TIỆN ÍCH ===== */
+function safeStorageGet(key){try{return localStorage.getItem(key)}catch(_){return null}}
+function safeStorageSet(key,value){try{localStorage.setItem(key,value)}catch(_){}}
 
 function setText(id,value){
   const el=$(id);
@@ -1009,10 +401,7 @@ function setText(id,value){
 }
 
 function isValidNumber(value){
-  return value!==null&&
-    value!==undefined&&
-    value!==""&&
-    Number.isFinite(Number(value));
+  return value!==null&&value!==undefined&&value!==""&&Number.isFinite(Number(value));
 }
 
 function toFiniteNumber(value,fallback=null){
@@ -1024,38 +413,32 @@ function locationKey(lat,lon){
 }
 
 function distanceMeters(lat1,lon1,lat2,lon2){
-  const R=6371000;
-  const rad=Math.PI/180;
-  const dLat=(lat2-lat1)*rad;
-  const dLon=(lon2-lon1)*rad;
-  const a=
-    Math.sin(dLat/2)**2+
-    Math.cos(lat1*rad)*
-    Math.cos(lat2*rad)*
-    Math.sin(dLon/2)**2;
+  const R=6371000,rad=Math.PI/180;
+  const dLat=(lat2-lat1)*rad,dLon=(lon2-lon1)*rad;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;
   return 2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
 function isStillCurrentLocation(lat,lon){
   if(!currentLocation)return false;
-  return locationKey(lat,lon)===
-    locationKey(currentLocation.latitude,currentLocation.longitude);
+  return locationKey(lat,lon)===locationKey(currentLocation.latitude,currentLocation.longitude);
 }
 
+function getVietnamHour(){
+  return Number(new Intl.DateTimeFormat("en-US",{timeZone:TIME_ZONE,hour:"2-digit",hourCycle:"h23"}).format(new Date()));
+}
+
+/* Ban đêm: ưu tiên is_day từ API, dự phòng theo giờ */
+function isNightNow(){
+  if(lastIsDay!==null)return !lastIsDay;
+  const h=getVietnamHour();
+  return h>=18||h<5;
+}
+
+/* ===== AURA NỀN ===== */
 function updateAmbianceAura(){
-  const h=Number(new Intl.DateTimeFormat("en-US",{
-    timeZone:TIME_ZONE,
-    hour:"2-digit",
-    hourCycle:"h23"
-  }).format(new Date()));
-
-  document.body.classList.remove(
-    "aura-dawn",
-    "aura-noon",
-    "aura-sunset",
-    "aura-night"
-  );
-
+  const h=getVietnamHour();
+  document.body.classList.remove("aura-dawn","aura-noon","aura-sunset","aura-night");
   document.body.classList.add(
     h>=5&&h<8?"aura-dawn":
     h>=8&&h<17?"aura-noon":
@@ -1071,12 +454,10 @@ function startAuraTimer(){
 }
 
 function stopAuraTimer(){
-  if(auraTimer){
-    clearInterval(auraTimer);
-    auraTimer=null;
-  }
+  if(auraTimer){clearInterval(auraTimer);auraTimer=null;}
 }
 
+/* ===== TÊN ĐỊA ĐIỂM (CHỮ CHẠY) ===== */
 function updateCityDisplay(name){
   const track=$("cityTrack");
   const viewport=$("cityViewport");
@@ -1094,53 +475,34 @@ function updateCityDisplay(name){
 
   requestAnimationFrame(()=>{
     if(!pageActive||!first.isConnected)return;
-    const width=first.getBoundingClientRect().width;
-    if(width>viewport.clientWidth+2){
+    /* offsetWidth không bị ảnh hưởng bởi scale của stage */
+    if(first.offsetWidth>viewport.clientWidth+2){
+      first.style.paddingRight="40px";
       const second=document.createElement("span");
       second.className="city-text";
       second.textContent=displayName;
-      second.style.paddingLeft="40px";
+      second.style.paddingRight="40px";
       track.appendChild(second);
       track.classList.add("marquee-active");
     }
   });
 }
 
+/* ===== ÂM LỊCH (Hồ Ngọc Đức) ===== */
 function INT(d){return Math.floor(d)}
 
 function jdFromDate(dd,mm,yy){
   const a=INT((14-mm)/12);
   const y=yy+4800-a;
   const m=mm+12*a-3;
-  let jd=
-    dd+
-    INT((153*m+2)/5)+
-    365*y+
-    INT(y/4)-
-    INT(y/100)+
-    INT(y/400)-
-    32045;
-  if(jd<2299161){
-    jd=
-      dd+
-      INT((153*m+2)/5)+
-      365*y+
-      INT(y/4)-
-      32083;
-  }
+  let jd=dd+INT((153*m+2)/5)+365*y+INT(y/4)-INT(y/100)+INT(y/400)-32045;
+  if(jd<2299161)jd=dd+INT((153*m+2)/5)+365*y+INT(y/4)-32083;
   return jd;
 }
 
 function newMoon(k){
-  const T=k/1236.85;
-  const T2=T*T;
-  const T3=T2*T;
-  const dr=Math.PI/180;
-  let jd=
-    2415020.75933+
-    29.53058868*k+
-    0.0001178*T2-
-    0.000000155*T3;
+  const T=k/1236.85,T2=T*T,T3=T2*T,dr=Math.PI/180;
+  let jd=2415020.75933+29.53058868*k+0.0001178*T2-0.000000155*T3;
   jd+=0.00033*Math.sin((166.56+132.87*T-0.009173*T2)*dr);
   const M=359.2242+29.10535608*k-0.0000333*T2-0.00000347*T3;
   const Mpr=306.0253+385.81691806*k+0.0107306*T2+0.00001236*T3;
@@ -1165,14 +527,10 @@ function newMoon(k){
   return jd+C-deltaT;
 }
 
-function getNewMoonDay(k,tz=7){
-  return INT(newMoon(k)+0.5+tz/24);
-}
+function getNewMoonDay(k,tz=7){return INT(newMoon(k)+0.5+tz/24)}
 
 function sunLongitudeAngle(jdn){
-  const T=(jdn-2451545)/36525;
-  const T2=T*T;
-  const dr=Math.PI/180;
+  const T=(jdn-2451545)/36525,T2=T*T,dr=Math.PI/180;
   const M=357.52910+35999.05030*T-0.0001559*T2-0.00000048*T*T2;
   const L0=280.46645+36000.76983*T+0.0003032*T2;
   const DL=
@@ -1184,22 +542,15 @@ function sunLongitudeAngle(jdn){
   return L;
 }
 
-function sunLongitude(jdn){
-  return INT(sunLongitudeAngle(jdn)/(Math.PI/6));
-}
-
-function getSunLongitude(dayNumber,tz=7){
-  return sunLongitude(dayNumber-0.5-tz/24);
-}
+function sunLongitude(jdn){return INT(sunLongitudeAngle(jdn)/(Math.PI/6))}
+function getSunLongitude(dayNumber,tz=7){return sunLongitude(dayNumber-0.5-tz/24)}
 
 function getWinterSolsticeDay(year,tz=7){
   const approximateJD=jdFromDate(21,12,year)-0.5;
-  let low=approximateJD-4;
-  let high=approximateJD+4;
+  let low=approximateJD-4,high=approximateJD+4;
   for(let i=0;i<45;i++){
     const mid=(low+high)/2;
-    if(sunLongitudeAngle(mid)<Math.PI*1.5)low=mid;
-    else high=mid;
+    if(sunLongitudeAngle(mid)<Math.PI*1.5)low=mid;else high=mid;
   }
   return INT((low+high)/2+0.5+tz/24);
 }
@@ -1214,12 +565,10 @@ function getLunarMonth11(year,tz=7){
 
 function getLeapMonthOffset(a11,tz=7){
   const k=INT(0.5+(a11-2415021.076998695)/29.530588853);
-  let last=0;
-  let i=1;
+  let last=0,i=1;
   let arc=getSunLongitude(getNewMoonDay(k+i,tz),tz);
   do{
-    last=arc;
-    i++;
+    last=arc;i++;
     arc=getSunLongitude(getNewMoonDay(k+i,tz),tz);
   }while(arc!==last&&i<14);
   return i-1;
@@ -1257,12 +606,7 @@ function convertSolar2Lunar(dd,mm,yy,tz=7){
 }
 
 function getVietnamDateParts(date=new Date()){
-  const parts=new Intl.DateTimeFormat("en-CA",{
-    timeZone:TIME_ZONE,
-    year:"numeric",
-    month:"2-digit",
-    day:"2-digit"
-  }).formatToParts(date);
+  const parts=new Intl.DateTimeFormat("en-CA",{timeZone:TIME_ZONE,year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(date);
   const values={};
   for(const part of parts){
     if(part.type!=="literal")values[part.type]=Number(part.value);
@@ -1280,23 +624,18 @@ function getLunarDateFormatted(date=new Date()){
   }
 }
 
+/* ===== ĐỒNG HỒ ===== */
 function updateClockAndCalendar(){
   const now=new Date();
-  const timeText=new Intl.DateTimeFormat("vi-VN",{
-    timeZone:TIME_ZONE,
-    hour:"2-digit",
-    minute:"2-digit",
-    second:"2-digit",
-    hour12:false
-  }).format(now);
-  const dateText=new Intl.DateTimeFormat("vi-VN",{
-    timeZone:TIME_ZONE,
-    weekday:"short",
-    day:"2-digit",
-    month:"2-digit",
-    year:"numeric"
-  }).format(now);
-  const lunar=getLunarDateFormatted(now);
+  const timeText=new Intl.DateTimeFormat("vi-VN",{timeZone:TIME_ZONE,hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"}).format(now);
+  const dateText=new Intl.DateTimeFormat("vi-VN",{timeZone:TIME_ZONE,weekday:"short",day:"2-digit",month:"2-digit",year:"numeric"}).format(now);
+
+  /* Âm lịch chỉ tính lại khi đổi ngày */
+  if(dateText!==updateClockAndCalendar.k){
+    updateClockAndCalendar.k=dateText;
+    updateClockAndCalendar.v=getLunarDateFormatted(now);
+  }
+  const lunar=updateClockAndCalendar.v;
 
   ["cardClock","extClock"].forEach(id=>setText(id,timeText));
   ["cardSolar","extSolar"].forEach(id=>setText(id,dateText));
@@ -1305,147 +644,106 @@ function updateClockAndCalendar(){
 
 function startClock(){
   if(!pageActive)return;
-  if(clockTimer){
-    clearInterval(clockTimer);
-    clockTimer=null;
-  }
+  if(clockTimer){clearInterval(clockTimer);clockTimer=null;}
   updateClockAndCalendar();
   clockTimer=setInterval(updateClockAndCalendar,1000);
 }
 
 function stopClock(){
-  if(clockTimer){
-    clearInterval(clockTimer);
-    clockTimer=null;
-  }
+  if(clockTimer){clearInterval(clockTimer);clockTimer=null;}
 }
 
+/* ===== HIỆU ỨNG NỀN (CANVAS) ===== */
 const canvas=$("weatherFxCanvas");
-try{
-  canvasCtx=canvas.getContext("2d",{alpha:true});
-}catch(_){
-  canvasCtx=null;
-}
+try{canvasCtx=canvas.getContext("2d",{alpha:true})}catch(_){canvasCtx=null}
 
 function resizeCanvas(){
   if(!canvasCtx)return;
   const dpr=Math.min(window.devicePixelRatio||1,1.5);
-  const w=window.innerWidth;
-  const h=window.innerHeight;
+  const w=window.innerWidth,h=window.innerHeight;
   canvas.width=Math.round(w*dpr);
   canvas.height=Math.round(h*dpr);
   canvas.style.width=w+"px";
   canvas.style.height=h+"px";
   canvasCtx.setTransform(dpr,0,0,dpr,0,0);
-  if(fxType!=="none"){
-    initParticles(fxType,particleCount(fxType));
-  }
+  if(fxType!=="none")initParticles(fxType,particleCount(fxType));
 }
 
 function particleCount(type){
-  return({
-    sunny:24,
-    snow:32,
-    drizzle:28,
-    rain:42,
-    storm:50,
-    fog:5,
-    stars:28
-  })[type]||0;
+  if(type==="stars")return Math.round(Math.min(140,Math.max(40,window.innerWidth*window.innerHeight/6000)));
+  return({sunny:24,snow:32,drizzle:28,rain:42,storm:50,fog:5})[type]||0;
 }
 
 function initParticles(type,count){
   particles=[];
-  const w=window.innerWidth;
-  const h=window.innerHeight;
+  shootingStar=null;
+  const w=window.innerWidth,h=window.innerHeight;
   for(let i=0;i<count;i++){
     if(type==="sunny"){
-      particles.push({
-        x:Math.random()*w,
-        y:Math.random()*h,
-        r:Math.random()*2+1,
-        dx:(Math.random()-.5)*.25,
-        dy:(Math.random()-.5)*.25,
-        a:Math.random()*.35+.1
-      });
+      particles.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*2+1,dx:(Math.random()-.5)*.25,dy:(Math.random()-.5)*.25,a:Math.random()*.35+.1});
     }else if(type==="snow"){
-      particles.push({
-        x:Math.random()*w,
-        y:Math.random()*h,
-        r:Math.random()*2.5+1,
-        dy:Math.random()*.8+.4,
-        dx:(Math.random()-.5)*.35,
-        a:Math.random()*Math.PI*2
-      });
+      particles.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*2.5+1,dy:Math.random()*.8+.4,dx:(Math.random()-.5)*.35,a:Math.random()*Math.PI*2});
     }else if(type==="drizzle"||type==="rain"||type==="storm"){
-      particles.push({
-        x:Math.random()*w,
-        y:Math.random()*h,
-        len:type==="drizzle"?Math.random()*8+5:Math.random()*17+10,
-        s:type==="drizzle"?Math.random()*3+2:Math.random()*7+8
-      });
+      particles.push({x:Math.random()*w,y:Math.random()*h,len:type==="drizzle"?Math.random()*8+5:Math.random()*17+10,s:type==="drizzle"?Math.random()*3+2:Math.random()*7+8});
     }else if(type==="fog"){
-      particles.push({
-        x:Math.random()*w,
-        y:Math.random()*h,
-        w:Math.random()*180+100,
-        h:Math.random()*30+15,
-        s:Math.random()*.35+.15,
-        a:Math.random()*.08+.035
-      });
+      particles.push({x:Math.random()*w,y:Math.random()*h,w:Math.random()*180+100,h:Math.random()*30+15,s:Math.random()*.35+.15,a:Math.random()*.08+.035});
     }else if(type==="stars"){
       particles.push({
-        x:Math.random()*w,
-        y:Math.random()*h,
-        r:Math.random()*1.4+.2,
+        x:Math.random()*w,y:Math.random()*h,
+        r:Math.random()<.12?Math.random()*1.2+1.4:Math.random()*.9+.3,
         a:Math.random(),
-        da:Math.random()*.012+.003
+        da:(Math.random()*.012+.004)*(Math.random()<.5?-1:1),
+        tint:Math.random()<.2?(Math.random()<.5?1:2):0
       });
     }
   }
 }
 
 function drawFrame(){
-  if(!pageActive||!canvasCtx){
-    rafId=0;
-    return;
-  }
-  const c=canvasCtx;
-  const w=window.innerWidth;
-  const h=window.innerHeight;
+  if(!pageActive||!canvasCtx){rafId=0;return;}
+  const c=canvasCtx,w=window.innerWidth,h=window.innerHeight;
   c.clearRect(0,0,w,h);
 
   if(fxType==="stars"){
     for(const p of particles){
       p.a+=p.da;
-      if(p.a>1||p.a<.1)p.da*=-1;
-      c.fillStyle=`rgba(255,255,255,${Math.max(.08,Math.min(1,p.a))})`;
-      c.beginPath();
-      c.arc(p.x,p.y,p.r,0,Math.PI*2);
-      c.fill();
+      if(p.a>=1){p.a=1;p.da=-Math.abs(p.da);}
+      else if(p.a<=.15){p.a=.15;p.da=Math.abs(p.da);}
+      const col=p.tint===1?"200,225,255":p.tint===2?"255,236,200":"255,255,255";
+      c.fillStyle=`rgba(${col},${p.a})`;
+      c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);c.fill();
+      if(p.r>1.5){
+        c.fillStyle=`rgba(${col},${p.a*.18})`;
+        c.beginPath();c.arc(p.x,p.y,p.r*3,0,Math.PI*2);c.fill();
+      }
+    }
+    if(!shootingStar&&Math.random()<.0015){
+      shootingStar={x:w*.1+Math.random()*w*.8,y:Math.random()*h*.35,vx:6+Math.random()*3,vy:3+Math.random()*2,life:1};
+    }
+    if(shootingStar){
+      const s=shootingStar,tx=s.x-s.vx*8,ty=s.y-s.vy*8;
+      const g=c.createLinearGradient(s.x,s.y,tx,ty);
+      g.addColorStop(0,`rgba(255,255,255,${s.life})`);
+      g.addColorStop(1,"rgba(255,255,255,0)");
+      c.strokeStyle=g;c.lineWidth=1.4;
+      c.beginPath();c.moveTo(s.x,s.y);c.lineTo(tx,ty);c.stroke();
+      s.x+=s.vx;s.y+=s.vy;s.life-=.02;
+      if(s.life<=0||s.x>w||s.y>h)shootingStar=null;
     }
   }else if(fxType==="sunny"){
     for(const p of particles){
       c.fillStyle=`rgba(255,235,150,${p.a})`;
-      c.beginPath();
-      c.arc(p.x,p.y,p.r,0,Math.PI*2);
-      c.fill();
+      c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);c.fill();
       p.x=(p.x+p.dx+w)%w;
       p.y=(p.y+p.dy+h)%h;
     }
   }else if(fxType==="snow"){
     c.fillStyle="rgba(255,255,255,.65)";
     for(const p of particles){
-      c.beginPath();
-      c.arc(p.x,p.y,p.r,0,Math.PI*2);
-      c.fill();
-      p.y+=p.dy;
-      p.a+=.02;
+      c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);c.fill();
+      p.y+=p.dy;p.a+=.02;
       p.x+=Math.sin(p.a)*.35+p.dx;
-      if(p.y>h+5){
-        p.y=-5;
-        p.x=Math.random()*w;
-      }
+      if(p.y>h+5){p.y=-5;p.x=Math.random()*w;}
     }
   }else if(fxType==="drizzle"||fxType==="rain"||fxType==="storm"){
     c.strokeStyle=fxType==="drizzle"?"rgba(174,219,255,.25)":"rgba(174,219,255,.38)";
@@ -1454,12 +752,8 @@ function drawFrame(){
     for(const p of particles){
       c.moveTo(p.x,p.y);
       c.lineTo(p.x-1,p.y+p.len);
-      p.y+=p.s;
-      p.x-=.6;
-      if(p.y>h){
-        p.y=-20;
-        p.x=Math.random()*w;
-      }
+      p.y+=p.s;p.x-=.6;
+      if(p.y>h){p.y=-20;p.x=Math.random()*w;}
     }
     c.stroke();
   }else if(fxType==="fog"){
@@ -1475,11 +769,8 @@ function drawFrame(){
     }
   }
 
-  if(fxType!=="none"&&!reducedMotion&&pageActive){
-    rafId=requestAnimationFrame(drawFrame);
-  }else{
-    rafId=0;
-  }
+  if(fxType!=="none"&&!reducedMotion&&pageActive)rafId=requestAnimationFrame(drawFrame);
+  else rafId=0;
 }
 
 function startCanvas(){
@@ -1488,24 +779,13 @@ function startCanvas(){
 }
 
 function stopCanvas(){
-  if(rafId){
-    cancelAnimationFrame(rafId);
-    rafId=0;
-  }
-  if(canvasCtx){
-    canvasCtx.clearRect(0,0,window.innerWidth,window.innerHeight);
-  }
+  if(rafId){cancelAnimationFrame(rafId);rafId=0;}
+  if(canvasCtx)canvasCtx.clearRect(0,0,window.innerWidth,window.innerHeight);
 }
 
 function clearLightning(){
-  if(lightningTimer){
-    clearInterval(lightningTimer);
-    lightningTimer=null;
-  }
-  if(lightningFlashTimer){
-    clearTimeout(lightningFlashTimer);
-    lightningFlashTimer=null;
-  }
+  if(lightningTimer){clearInterval(lightningTimer);lightningTimer=null;}
+  if(lightningFlashTimer){clearTimeout(lightningFlashTimer);lightningFlashTimer=null;}
   document.querySelectorAll(".weather-lightning-flash").forEach(el=>el.remove());
 }
 
@@ -1516,32 +796,25 @@ function triggerLightning(){
   flash.style.cssText="position:fixed;inset:0;background:rgba(255,255,255,.28);z-index:3;pointer-events:none";
   document.body.appendChild(flash);
   if(lightningFlashTimer)clearTimeout(lightningFlashTimer);
-  lightningFlashTimer=setTimeout(()=>{
-    flash.remove();
-    lightningFlashTimer=null;
-  },90);
+  lightningFlashTimer=setTimeout(()=>{flash.remove();lightningFlashTimer=null;},90);
 }
 
 function startLightning(){
   if(!pageActive||reducedMotion||fxType!=="storm"||lightningTimer)return;
-  lightningTimer=setInterval(()=>{
-    if(Math.random()<.3)triggerLightning();
-  },5000);
+  lightningTimer=setInterval(()=>{if(Math.random()<.3)triggerLightning();},5000);
 }
 
 function setWeatherFX(code){
   clearLightning();
   lastWeatherCode=code;
-  const hour=Number(new Intl.DateTimeFormat("en-US",{
-    timeZone:TIME_ZONE,
-    hour:"2-digit",
-    hourCycle:"h23"
-  }).format(new Date()));
+  const night=isNightNow();
 
   if(code===0||code===1){
-    fxType="sunny";
-  }else if(code===2||code===3){
-    fxType=(hour>=19||hour<5)?"stars":"none";
+    fxType=night?"stars":"sunny";
+  }else if(code===2){
+    fxType=night?"stars":"none";
+  }else if(code===3){
+    fxType="none";
   }else if(code===45||code===48){
     fxType="fog";
   }else if(code>=51&&code<=57){
@@ -1557,15 +830,9 @@ function setWeatherFX(code){
   }
 
   initParticles(fxType,particleCount(fxType));
-  if(fxType==="none"){
-    stopCanvas();
-    return;
-  }
+  if(fxType==="none"){stopCanvas();return;}
   if(pageActive){
-    if(rafId){
-      cancelAnimationFrame(rafId);
-      rafId=0;
-    }
+    if(rafId){cancelAnimationFrame(rafId);rafId=0;}
     startCanvas();
     startLightning();
   }else{
@@ -1573,11 +840,29 @@ function setWeatherFX(code){
   }
 }
 
+/* ===== CO GIÃN THEO KHUNG ===== */
 function updateCardScale(){
-  const widget=$("widgetShape");
-  if(widget)widget.style.transform="none";
+  const wrap=$("mainWrapper"),stage=$("scaleStage");
+  if(!wrap||!stage)return;
+  const cs=getComputedStyle(wrap);
+  const aw=wrap.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+  const ah=wrap.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+  const w=stage.offsetWidth,h=stage.offsetHeight;
+  if(!w||!h||aw<=0||ah<=0)return;
+  const s=Math.max(.35,Math.min(aw/w,ah/h,2));
+  stage.style.transform=`scale(${s.toFixed(3)})`;
 }
 
+function initScaleObserver(){
+  if(window.ResizeObserver){
+    const ro=new ResizeObserver(()=>requestAnimationFrame(updateCardScale));
+    ro.observe($("mainWrapper"));
+    ro.observe($("scaleStage"));
+  }
+  updateCardScale();
+}
+
+/* ===== KHUNG TRÒN / CHỮ NHẬT + ĐỘ TRONG SUỐT ===== */
 function setLayoutMode(mode,save=true){
   currentMode=mode==="card"?"card":"bubble";
   const widget=$("widgetShape");
@@ -1589,10 +874,9 @@ function setLayoutMode(mode,save=true){
   $("cardTimeBlock").style.display=currentMode==="card"?"flex":"none";
   $("externalTimeBar").style.display=currentMode==="bubble"?"flex":"none";
 
-  btn.textContent=currentMode==="bubble"
-    ?"▭ Chuyển khung Chữ nhật"
-    :"◯ Chuyển khung Tròn";
+  btn.textContent=currentMode==="bubble"?"▭ Chuyển khung Chữ nhật":"◯ Chuyển khung Tròn";
 
+  updateCityDisplay($("cityText")?.textContent);
   updateCardScale();
   loadOpacity();
 
@@ -1619,8 +903,7 @@ function applyOpacity(value){
 }
 
 function loadOpacity(){
-  const key=OPACITY_KEYS[currentMode];
-  const saved=Number(safeStorageGet(key));
+  const saved=Number(safeStorageGet(OPACITY_KEYS[currentMode]));
   const value=Number.isFinite(saved)&&saved>=5&&saved<=95?saved:65;
   $("opacitySlider").value=String(value);
   applyOpacity(value);
@@ -1640,7 +923,7 @@ window.addEventListener("resize",()=>{
   resizeCanvas();
   updateCardScale();
 });
-
+/* ===== ICON THỜI TIẾT ===== */
 function weatherIconMarkup(code){
   const sun='<circle class="sun-core" cx="24" cy="22" r="8"/><g class="sun-ray"><path d="M24 3v5M24 36v5M5 22h5M38 22h5M10.5 8.5l3.5 3.5M34 32l3.5 3.5M37.5 8.5L34 12M14 32l-3.5 3.5"/></g>';
   const cloud='<path class="cloud-shape" d="M13 34h21a8 8 0 0 0 .5-16 12 12 0 0 0-23-1A8.5 8.5 0 0 0 13 34Z"/>';
@@ -1648,10 +931,11 @@ function weatherIconMarkup(code){
   if(code===1)return `<svg viewBox="0 0 48 48" aria-hidden="true"><g transform="translate(-5 -5) scale(.78)">${sun}</g>${cloud}</svg>`;
   if(code===2||code===3||code===45||code===48)return `<svg viewBox="0 0 48 48" aria-hidden="true">${cloud}${(code===45||code===48)?'<path class="rain-line" d="M8 40h30M13 44h22"/>':''}</svg>`;
   if(code>=95)return `<svg viewBox="0 0 48 48" aria-hidden="true">${cloud}<path class="bolt" d="M25 27h-7l-4 10h7l-2 9 13-15h-8l3-4Z"/></svg>`;
-  if(code>=71&&code<=77||code===85||code===86)return `<svg viewBox="0 0 48 48" aria-hidden="true">${cloud}<g class="snowflake"><path d="M15 37v9m-4-4 8-1m-7-3 6 6M31 37v9m-4-4 8-1m-7-3 6 6"/></g></svg>`;
+  if((code>=71&&code<=77)||code===85||code===86)return `<svg viewBox="0 0 48 48" aria-hidden="true">${cloud}<g class="snowflake"><path d="M15 37v9m-4-4 8-1m-7-3 6 6M31 37v9m-4-4 8-1m-7-3 6 6"/></g></svg>`;
   if(code>=51)return `<svg viewBox="0 0 48 48" aria-hidden="true">${cloud}<g class="rain-line"><path d="m16 37-2 6m12-6-2 6m12-6-2 6"/></g></svg>`;
   return `<svg viewBox="0 0 48 48" aria-hidden="true">${cloud}</svg>`;
 }
+
 function renderWeatherIcon(element,code,animationClass=""){
   if(!element)return;
   element.className="weather-icon "+(animationClass||"");
@@ -1673,19 +957,11 @@ function weatherDescription(code){
   return{text:"Chưa rõ thời tiết",icon:"🌡️",anim:""};
 }
 
-function parseApiLocalTime(value){
-  return typeof value==="string"?value.slice(0,16):"";
-}
+/* ===== DỮ LIỆU GIỜ / MƯA ===== */
+function parseApiLocalTime(value){return typeof value==="string"?value.slice(0,16):"";}
 
 function getCurrentVietnamHour(){
-  return new Intl.DateTimeFormat("sv-SE",{
-    timeZone:TIME_ZONE,
-    year:"numeric",
-    month:"2-digit",
-    day:"2-digit",
-    hour:"2-digit",
-    hourCycle:"h23"
-  }).format(new Date()).replace(" ","T");
+  return new Intl.DateTimeFormat("sv-SE",{timeZone:TIME_ZONE,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",hourCycle:"h23"}).format(new Date()).replace(" ","T");
 }
 
 function findCurrentHourIndex(data){
@@ -1695,9 +971,7 @@ function findCurrentHourIndex(data){
   let index=-1;
   for(let i=0;i<times.length;i++){
     if(typeof times[i]!=="string")continue;
-    const hour=times[i].slice(0,13);
-    if(hour<=now)index=i;
-    else break;
+    if(times[i].slice(0,13)<=now)index=i;else break;
   }
   return index;
 }
@@ -1708,7 +982,6 @@ function getNextHoursForecast(data){
   if(!Array.isArray(times)||!Array.isArray(probs))return null;
   const index=findCurrentHourIndex(data);
   if(index<0)return null;
-
   const candidates=[];
   for(let n=1;n<=FORECAST_HOURS;n++){
     const i=index+n;
@@ -1717,14 +990,11 @@ function getNextHoursForecast(data){
     if(raw===null||raw===undefined||raw==="")continue;
     const probability=Number(raw);
     if(!Number.isFinite(probability))continue;
-    candidates.push({
-      probability:Math.max(0,Math.min(100,probability)),
-      time:parseApiLocalTime(times[i])
-    });
+    candidates.push({probability:Math.max(0,Math.min(100,probability)),time:parseApiLocalTime(times[i])});
   }
   if(!candidates.length)return null;
-  const best=candidates.reduce((best,item)=>item.probability>best.probability?item:best);
-  return {...best,coverage:candidates.length,expected:FORECAST_HOURS};
+  const best=candidates.reduce((b,item)=>item.probability>b.probability?item:b);
+  return{...best,coverage:candidates.length,expected:FORECAST_HOURS};
 }
 
 function formatHourRange(time){
@@ -1742,16 +1012,9 @@ function updateRainTheme(probability,hasData=true){
     const value=Number(probability);
     rainColor="#4fc3f7";
     message="Trời trong / Mát mẻ";
-    if(value>=80){
-      rainColor="#00838f";
-      message="🌦️ Mưa rào mùa hè nặng hạt";
-    }else if(value>=60){
-      rainColor="#00acc1";
-      message="🌦️ Mưa dông mùa hè nhanh tạnh";
-    }else if(value>=40){
-      rainColor="#26c6da";
-      message="🌤️ Mưa bóng mây / Thoáng qua";
-    }
+    if(value>=80){rainColor="#00838f";message="🌦️ Mưa rào mùa hè nặng hạt";}
+    else if(value>=60){rainColor="#00acc1";message="🌦️ Mưa dông mùa hè nhanh tạnh";}
+    else if(value>=40){rainColor="#26c6da";message="🌤️ Mưa bóng mây / Thoáng qua";}
   }
   document.documentElement.style.setProperty("--rain-accent",rainColor);
   setText("rain-msg",message);
@@ -1760,23 +1023,8 @@ function updateRainTheme(probability,hasData=true){
 function updateTemperatureTheme(temp){
   if(!isValidNumber(temp))return;
   const t=Number(temp);
-  let tempColor="#34d399";
-
-  if(t >= 38){
-    tempColor = "#e11d48";
-  }else if(t >= 32){
-    tempColor = "#f97316";
-  }else if(t >= 26){
-    tempColor = "#facc15";
-  }else if(t >= 20){
-    tempColor = "#34d399";
-  }else if(t >= 15){
-    tempColor = "#22d3ee";
-  }else{
-    tempColor = "#38bdf8";
-  }
-
-  document.documentElement.style.setProperty("--temp-accent", tempColor);
+  const color=t>=38?"#e11d48":t>=32?"#f97316":t>=26?"#facc15":t>=20?"#34d399":t>=15?"#22d3ee":"#38bdf8";
+  document.documentElement.style.setProperty("--temp-accent",color);
 }
 
 function renderHourly(data){
@@ -1789,17 +1037,13 @@ function renderHourly(data){
 
   list.replaceChildren();
   const index=findCurrentHourIndex(data);
-  if(index<0){
-    list.textContent="Chưa có dữ liệu";
-    return;
-  }
+  if(index<0){list.textContent="Chưa có dữ liệu";return;}
 
   let rendered=0;
   for(let n=1;n<=6;n++){
     const i=index+n;
     if(!Array.isArray(times)||i>=times.length)break;
-    const conditionCode=toFiniteNumber(codes?.[i],-1);
-    const condition=weatherDescription(conditionCode);
+    const condition=weatherDescription(toFiniteNumber(codes?.[i],-1));
 
     const item=document.createElement("div");
     item.className="hour-item";
@@ -1826,12 +1070,10 @@ function renderHourly(data){
     list.appendChild(item);
     rendered++;
   }
-
-  if(!rendered){
-    list.textContent="Chưa có dữ liệu";
-  }
+  if(!rendered)list.textContent="Chưa có dữ liệu";
 }
 
+/* ===== CACHE ===== */
 function readHourlyCache(){
   try{
     const raw=safeStorageGet(CACHE_KEY);
@@ -1839,9 +1081,7 @@ function readHourlyCache(){
     const data=JSON.parse(raw);
     if(!data||!Array.isArray(data.hourly))return null;
     return data;
-  }catch(_){
-    return null;
-  }
+  }catch(_){return null;}
 }
 
 function loadFromCache(){
@@ -1849,24 +1089,11 @@ function loadFromCache(){
     const data=readHourlyCache();
     if(!data)return;
 
-    const fields=[
-      ["temp","temp"],
-      ["aqi-uv","aqiUvText"],
-      ["temp-range","tempRange"],
-      ["humidity","humidity"],
-      ["wind","wind"],
-      ["desc","desc"],
-      ["rain-pct","rainPct"],
-      ["rain-period","rainPeriod"],
-      ["rain-msg","rainMsg"],
-      ["updated","updated"]
-    ];
-
+    const fields=[["temp","temp"],["aqi-uv","aqiUvText"],["temp-range","tempRange"],["humidity","humidity"],["wind","wind"],["desc","desc"],["rain-pct","rainPct"],["rain-period","rainPeriod"],["rain-msg","rainMsg"],["updated","updated"]];
     for(const [elementId,key] of fields){
-      if(data[key]!==undefined&&data[key]!==null){
-        setText(elementId,data[key]);
-      }
+      if(data[key]!==undefined&&data[key]!==null)setText(elementId,data[key]);
     }
+
     const cacheAge=Date.now()-Number(data.savedAt||0);
     if(Number.isFinite(cacheAge)&&cacheAge>=0){
       const ageMin=Math.floor(cacheAge/60000);
@@ -1875,48 +1102,29 @@ function loadFromCache(){
       else if(cacheAge>=CACHE_FRESH_MS)setText("updated",`Cache ${ageMin} phút · Đang làm mới`);
     }
 
-    if(data.city){
-      updateCityDisplay(data.city);
-    }
+    if(data.city)updateCityDisplay(data.city);
 
-    if(data.weatherIcon){
-      const iconEl=$("weather-icon");
-      if(iconEl){
-        if(Number.isFinite(data.weatherCode)){
-          const cond=weatherDescription(data.weatherCode);
-          renderWeatherIcon(iconEl,data.weatherCode,cond.anim);
-        }else{
-          iconEl.textContent=data.weatherIcon;
-        }
-      }
+    /* Sửa: khôi phục icon theo weatherCode (không dùng textContent của SVG) */
+    if(Number.isFinite(data.weatherCode)){
+      renderWeatherIcon($("weather-icon"),data.weatherCode,weatherDescription(data.weatherCode).anim);
     }
 
     const cachedTemperature=isValidNumber(data.temperatureValue)
       ?Number(data.temperatureValue)
       :parseFloat(String(data.temp||"").replace(/[^\d.-]/g,""));
+    if(Number.isFinite(cachedTemperature))updateTemperatureTheme(cachedTemperature);
 
-    if(Number.isFinite(cachedTemperature)){
-      updateTemperatureTheme(cachedTemperature);
-    }
+    if(data.rainKnown===true&&isValidNumber(data.rainProbability))updateRainTheme(data.rainProbability,true);
+    else updateRainTheme(null,false);
 
-    if(data.rainKnown===true&&isValidNumber(data.rainProbability)){
-      updateRainTheme(data.rainProbability,true);
-    }else{
-      updateRainTheme(null,false);
-    }
+    if(Number.isFinite(data.weatherCode))setWeatherFX(data.weatherCode);
 
-    if(Number.isFinite(data.weatherCode)){
-      setWeatherFX(data.weatherCode);
-    }
-
-    renderHourly({
-      hourly:{
-        time:data.hourly.map(item=>item.time),
-        temperature_2m:data.hourly.map(item=>item.temperature),
-        precipitation_probability:data.hourly.map(item=>item.probability),
-        weather_code:data.hourly.map(item=>item.code)
-      }
-    });
+    renderHourly({hourly:{
+      time:data.hourly.map(i=>i.time),
+      temperature_2m:data.hourly.map(i=>i.temperature),
+      precipitation_probability:data.hourly.map(i=>i.probability),
+      weather_code:data.hourly.map(i=>i.code)
+    }});
   }catch(_){}
 }
 
@@ -1946,7 +1154,6 @@ function saveToCache(weatherCode,data,extra={}){
       humidity:$("humidity").textContent,
       wind:$("wind").textContent,
       desc:$("desc").textContent,
-      weatherIcon:$("weather-icon").textContent,
       rainPct:$("rain-pct").textContent,
       rainPeriod:$("rain-period").textContent,
       rainMsg:$("rain-msg").textContent,
@@ -1962,37 +1169,21 @@ function saveToCache(weatherCode,data,extra={}){
   }catch(_){}
 }
 
+/* ===== GỌI API ===== */
 async function fetchWithTimeout(url,timeoutMs=12000){
   const controller=new AbortController();
   const timer=setTimeout(()=>controller.abort(),timeoutMs);
-  try{
-    return await fetch(url,{
-      signal:controller.signal,
-      cache:"no-store"
-    });
-  }finally{
-    clearTimeout(timer);
-  }
+  try{return await fetch(url,{signal:controller.signal,cache:"no-store"});}
+  finally{clearTimeout(timer);}
 }
 
 function buildWeatherUrl(lat,lon){
   const params=new URLSearchParams({
     latitude:String(lat),
     longitude:String(lon),
-    current:[
-      "temperature_2m",
-      "relative_humidity_2m",
-      "weather_code",
-      "wind_speed_10m",
-      "uv_index"
-    ].join(","),
+    current:["temperature_2m","relative_humidity_2m","weather_code","wind_speed_10m","uv_index","is_day"].join(","),
     daily:"temperature_2m_min,temperature_2m_max",
-    hourly:[
-      "precipitation_probability",
-      "temperature_2m",
-      "weather_code",
-      "uv_index"
-    ].join(","),
+    hourly:["precipitation_probability","temperature_2m","weather_code","uv_index"].join(","),
     timezone:TIME_ZONE,
     forecast_days:"2",
     wind_speed_unit:"kmh"
@@ -2001,11 +1192,7 @@ function buildWeatherUrl(lat,lon){
 }
 
 function buildAirQualityUrl(lat,lon){
-  const params=new URLSearchParams({
-    latitude:String(lat),
-    longitude:String(lon),
-    current:"european_aqi"
-  });
+  const params=new URLSearchParams({latitude:String(lat),longitude:String(lon),current:"us_aqi"});
   return `https://air-quality-api.open-meteo.com/v1/air-quality?${params}`;
 }
 
@@ -2017,30 +1204,22 @@ async function requestWeatherData(lat,lon){
   ]);
 
   const weatherResult=results[0];
-  if(weatherResult.status!=="fulfilled"||!weatherResult.value.ok){
-    throw new Error("Weather API unavailable");
-  }
+  if(weatherResult.status!=="fulfilled"||!weatherResult.value.ok)throw new Error("Weather API unavailable");
 
   const data=await weatherResult.value.json();
-  if(!data||!data.current){
-    throw new Error("Missing current weather");
-  }
+  if(!data||!data.current)throw new Error("Missing current weather");
 
   let aqi="--";
   const airResult=results[1];
   if(airResult.status==="fulfilled"&&airResult.value.ok){
     try{
       const airData=await airResult.value.json();
-      const rawAQI=airData?.current?.european_aqi;
-      if(isValidNumber(rawAQI)){
-        aqi=Math.round(Number(rawAQI));
-      }
+      const rawAQI=airData?.current?.us_aqi;
+      if(isValidNumber(rawAQI))aqi=Math.round(Number(rawAQI));
     }catch(_){}
   }
 
-  if(!pageActive||!isStillCurrentLocation(lat,lon)){
-    return{ignored:true,requestId};
-  }
+  if(!pageActive||!isStillCurrentLocation(lat,lon))return{ignored:true,requestId};
 
   const current=data.current;
   const temperature=toFiniteNumber(current.temperature_2m);
@@ -2048,51 +1227,31 @@ async function requestWeatherData(lat,lon){
   const wind=toFiniteNumber(current.wind_speed_10m);
   const code=toFiniteNumber(current.weather_code);
   const uvCurrent=toFiniteNumber(current.uv_index);
-  const currentHourIndex=findCurrentHourIndex(data);
-  const uvHourly=toFiniteNumber(data.hourly?.uv_index?.[currentHourIndex]);
+  const uvHourly=toFiniteNumber(data.hourly?.uv_index?.[findCurrentHourIndex(data)]);
   const uvValue=uvCurrent===null?uvHourly:uvCurrent;
   const uv=uvValue===null?"--":Math.round(uvValue);
+
+  /* is_day phải được gán TRƯỚC setWeatherFX */
+  lastIsDay=current.is_day===1?true:current.is_day===0?false:null;
 
   setText("aqi-uv",`AQI: ${aqi} · UV: ${uv}`);
 
   const min=toFiniteNumber(data.daily?.temperature_2m_min?.[0]);
   const max=toFiniteNumber(data.daily?.temperature_2m_max?.[0]);
+  setText("temp-range",`${min===null?"--":Math.round(min)}° / ${max===null?"--":Math.round(max)}°`);
+  setText("temp",temperature===null?"--°":`${Math.round(temperature)}°`);
+  if(temperature!==null)updateTemperatureTheme(temperature);
 
-  setText(
-    "temp-range",
-    `${min===null?"--":Math.round(min)}° / ${max===null?"--":Math.round(max)}°`
-  );
-
-  setText(
-    "temp",
-    temperature===null?"--°":`${Math.round(temperature)}°`
-  );
-
-  if(temperature!==null){
-    updateTemperatureTheme(temperature);
-  }
-
-  setText(
-    "humidity",
-    humidity===null?"--%":`${Math.round(humidity)}%`
-  );
-
+  setText("humidity",humidity===null?"--%":`${Math.round(humidity)}%`);
   setText("wind",wind===null?"--":Math.round(wind));
 
   const condition=weatherDescription(code===null?-1:code);
   setText("desc",condition.text);
-  
-  const iconEl=$("weather-icon");
-  renderWeatherIcon(iconEl,code===null?-1:code,condition.anim);
-
-  if(code!==null){
-    setWeatherFX(code);
-  }
+  renderWeatherIcon($("weather-icon"),code===null?-1:code,condition.anim);
+  if(code!==null)setWeatherFX(code);
 
   const rain=getNextHoursForecast(data);
-  let rainKnown=false;
-  let rainProbability=null;
-
+  let rainKnown=false,rainProbability=null;
   if(rain){
     rainKnown=true;
     rainProbability=rain.probability;
@@ -2108,23 +1267,11 @@ async function requestWeatherData(lat,lon){
   renderHourly(data);
   $("widgetShape").classList.remove("error");
 
-  const stamp=new Intl.DateTimeFormat("vi-VN",{
-    timeZone:TIME_ZONE,
-    hour:"2-digit",
-    minute:"2-digit",
-    day:"2-digit",
-    month:"2-digit",
-    hour12:false
-  }).format(new Date());
-
+  const stamp=new Intl.DateTimeFormat("vi-VN",{timeZone:TIME_ZONE,hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit",hourCycle:"h23"}).format(new Date());
   setText("updated",`Cập nhật ${stamp}`);
   window.lastWeatherFetchAt=Date.now();
 
-  saveToCache(code,data,{
-    temperatureValue:temperature,
-    rainKnown,
-    rainProbability
-  });
+  saveToCache(code,data,{temperatureValue:temperature,rainKnown,rainProbability});
   lastWeatherSuccessAt=Date.now();
   weatherFailureCount=0;
   if(weatherRetryTimer){clearTimeout(weatherRetryTimer);weatherRetryTimer=null;}
@@ -2132,11 +1279,11 @@ async function requestWeatherData(lat,lon){
   return{ignored:false,requestId};
 }
 
+/* ===== HÀNG ĐỢI LÀM MỚI ===== */
 function schedulePendingLocationRefresh(lat,lon){
   pendingLocationCandidate={latitude:Number(lat),longitude:Number(lon)};
   if(pendingLocationRefreshTimer)clearTimeout(pendingLocationRefreshTimer);
-  const elapsed=Date.now()-lastWeatherRequestAt;
-  const delay=Math.max(0,WEATHER_MIN_FETCH_INTERVAL_MS-elapsed);
+  const delay=Math.max(0,WEATHER_MIN_FETCH_INTERVAL_MS-(Date.now()-lastWeatherRequestAt));
   pendingLocationRefreshTimer=setTimeout(()=>{
     pendingLocationRefreshTimer=null;
     const target=pendingLocationCandidate;
@@ -2158,11 +1305,7 @@ function shouldFetchForLocation(lat,lon,force=false){
 
 function queueWeatherRefresh(lat,lon,force=false){
   const previous=pendingWeatherLocation;
-  pendingWeatherLocation={
-    latitude:Number(lat),
-    longitude:Number(lon),
-    force:!!force||(previous?.force===true)
-  };
+  pendingWeatherLocation={latitude:Number(lat),longitude:Number(lon),force:!!force||(previous?.force===true)};
 
   if(weatherQueueRunning)return;
   weatherQueueRunning=true;
@@ -2177,18 +1320,15 @@ function queueWeatherRefresh(lat,lon,force=false){
         if(!shouldFetchForLocation(target.latitude,target.longitude,target.force))continue;
 
         lastWeatherRequestAt=Date.now();
-        lastWeatherRequestLocation={
-          latitude:target.latitude,
-          longitude:target.longitude
-        };
+        lastWeatherRequestLocation={latitude:target.latitude,longitude:target.longitude};
 
         try{
           await requestWeatherData(target.latitude,target.longitude);
         }catch(error){
           if(isStillCurrentLocation(target.latitude,target.longitude)){
             $("widgetShape").classList.add("error");
-            setText("desc","Mất kết nối mạng");
-            setText("rain-msg","Đang dùng dữ liệu cũ");
+            /* Không ghi đè mô tả thời tiết cũ nữa */
+            setText("rain-msg","Mất kết nối · Đang dùng dữ liệu cũ");
             setText("updated","Lỗi mạng · Sẽ tự thử lại");
             if(weatherRetryTimer)clearTimeout(weatherRetryTimer);
             weatherFailureCount=Math.min(5,weatherFailureCount+1);
@@ -2211,9 +1351,9 @@ function queueWeatherRefresh(lat,lon,force=false){
   })();
 }
 
+/* ===== TÊN ĐỊA ĐIỂM (REVERSE GEOCODE) ===== */
 function formatAdminUnit(value){
-  return String(value||"")
-    .trim()
+  return String(value||"").trim()
     .replace(/^thành phố\s+/i,"TP. ")
     .replace(/^tỉnh\s+/i,"T. ")
     .replace(/^quận\s+/i,"Q. ")
@@ -2224,25 +1364,23 @@ function formatAdminUnit(value){
     .replace(/^thị trấn\s+/i,"TT. ");
 }
 
-async function fetchCityName(lat,lon,force=false){
+async function fetchCityName(lat,lon){
   if(!pageActive)return;
   const now=Date.now();
-  const moved= !lastReverseGeocodePosition ||
+  const moved=!lastReverseGeocodePosition||
     distanceMeters(lat,lon,lastReverseGeocodePosition.latitude,lastReverseGeocodePosition.longitude)>=REVERSE_GEOCODE_MIN_DISTANCE;
-  if(!moved && now-lastReverseGeocodeAt<REVERSE_GEOCODE_MIN_INTERVAL)return;
-  if(reverseGeocodeInFlight){
-    pendingReverseGeocode={latitude:lat,longitude:lon};
-    return;
-  }
+  if(!moved&&now-lastReverseGeocodeAt<REVERSE_GEOCODE_MIN_INTERVAL)return;
+  if(reverseGeocodeInFlight){pendingReverseGeocode={latitude:lat,longitude:lon};return;}
+
   const wait=Math.max(0,REVERSE_GEOCODE_MIN_INTERVAL-(now-lastReverseGeocodeAt));
-  if(lastReverseGeocodeAt>0 && wait>0){
+  if(lastReverseGeocodeAt>0&&wait>0){
     pendingReverseGeocode={latitude:lat,longitude:lon};
     if(reverseGeocodeTimer)clearTimeout(reverseGeocodeTimer);
     reverseGeocodeTimer=setTimeout(()=>{
       reverseGeocodeTimer=null;
       const next=pendingReverseGeocode;
       pendingReverseGeocode=null;
-      if(next&&pageActive)fetchCityName(next.latitude,next.longitude,false);
+      if(next&&pageActive)fetchCityName(next.latitude,next.longitude);
     },wait);
     return;
   }
@@ -2250,15 +1388,7 @@ async function fetchCityName(lat,lon,force=false){
   reverseGeocodeInFlight=true;
   const sequence=++reverseGeocodeSequence;
   try{
-    const params=new URLSearchParams({
-      format:"jsonv2",
-      lat:String(lat),
-      lon:String(lon),
-      zoom:"14",
-      addressdetails:"1",
-      "accept-language":"vi"
-    });
-
+    const params=new URLSearchParams({format:"jsonv2",lat:String(lat),lon:String(lon),zoom:"14",addressdetails:"1","accept-language":"vi"});
     const response=await fetchWithTimeout(`https://nominatim.openstreetmap.org/reverse?${params}`,10000);
     if(!response.ok)throw new Error("Reverse geocoding failed");
 
@@ -2267,57 +1397,29 @@ async function fetchCityName(lat,lon,force=false){
     if(!isStillCurrentLocation(lat,lon))return;
 
     const address=result.address||{};
-    
-    const wardOrCommune=
-      address.ward||
-      address.quarter||
-      address.suburb||
-      address.village||
-      address.hamlet||
-      address.neighbourhood||
-      "";
-
-    const provinceOrCity=
-      address.province||
-      address.state||
-      address.city||
-      address.town||
-      address.municipality||
-      address.county||
-      "";
+    const wardOrCommune=address.ward||address.quarter||address.suburb||address.village||address.hamlet||address.neighbourhood||"";
+    const provinceOrCity=address.province||address.state||address.city||address.town||address.municipality||address.county||"";
 
     let displayName="";
-    if(wardOrCommune&&provinceOrCity&&wardOrCommune!==provinceOrCity){
-      displayName=`${formatAdminUnit(wardOrCommune)}, ${formatAdminUnit(provinceOrCity)}`;
-    }else if(provinceOrCity){
-      displayName=formatAdminUnit(provinceOrCity);
-    }else if(wardOrCommune){
-      displayName=formatAdminUnit(wardOrCommune);
-    }else if(result.name){
-      displayName=formatAdminUnit(result.name);
-    }else{
-      displayName=DEFAULT_LOCATION.name;
-    }
+    if(wardOrCommune&&provinceOrCity&&wardOrCommune!==provinceOrCity)displayName=`${formatAdminUnit(wardOrCommune)}, ${formatAdminUnit(provinceOrCity)}`;
+    else if(provinceOrCity)displayName=formatAdminUnit(provinceOrCity);
+    else if(wardOrCommune)displayName=formatAdminUnit(wardOrCommune);
+    else if(result.name)displayName=formatAdminUnit(result.name);
+    else displayName=DEFAULT_LOCATION.name;
 
-    if(currentLocation){
-      currentLocation.name=displayName;
-    }
+    if(currentLocation)currentLocation.name=displayName;
     updateCityDisplay(displayName);
 
     const cached=readHourlyCache();
-    if(cached){
-      cached.city=displayName;
-      safeStorageSet(CACHE_KEY,JSON.stringify(cached));
-    }
+    if(cached){cached.city=displayName;safeStorageSet(CACHE_KEY,JSON.stringify(cached));}
 
     lastReverseGeocodeAt=Date.now();
     lastReverseGeocodePosition={latitude:lat,longitude:lon};
   }catch(_){
+    /* Sửa: ghi nhận thời điểm thử để không spam khi lỗi */
+    lastReverseGeocodeAt=Date.now();
     const cached=readHourlyCache();
-    const fallbackName=cached?.city||DEFAULT_LOCATION.name;
-    if($("cityText")?.textContent==="Đang tải địa điểm..."){
-      updateCityDisplay(fallbackName);
-    }
+    if($("cityText")?.textContent==="Đang tải địa điểm...")updateCityDisplay(cached?.city||DEFAULT_LOCATION.name);
   }finally{
     reverseGeocodeInFlight=false;
     if(pendingReverseGeocode&&pageActive&&!reverseGeocodeTimer){
@@ -2326,53 +1428,45 @@ async function fetchCityName(lat,lon,force=false){
       const delay=Math.max(0,REVERSE_GEOCODE_MIN_INTERVAL-(Date.now()-lastReverseGeocodeAt));
       reverseGeocodeTimer=setTimeout(()=>{
         reverseGeocodeTimer=null;
-        if(pageActive)fetchCityName(next.latitude,next.longitude,false);
+        if(pageActive)fetchCityName(next.latitude,next.longitude);
       },delay);
     }
   }
 }
 
+/* ===== VỊ TRÍ ===== */
 function useFallbackLocation(reason){
-  currentLocation={
-    latitude:DEFAULT_LOCATION.latitude,
-    longitude:DEFAULT_LOCATION.longitude,
-    name:DEFAULT_LOCATION.name
-  };
+  currentLocation={latitude:DEFAULT_LOCATION.latitude,longitude:DEFAULT_LOCATION.longitude,name:DEFAULT_LOCATION.name};
   const cached=readHourlyCache();
   updateCityDisplay(cached?.city||DEFAULT_LOCATION.name);
   if(reason)setText("updated",reason);
   queueWeatherRefresh(currentLocation.latitude,currentLocation.longitude,true);
-  fetchCityName(currentLocation.latitude,currentLocation.longitude,true);
+  fetchCityName(currentLocation.latitude,currentLocation.longitude);
 }
 
 function refreshForCurrentLocation(force=false){
   if(!currentLocation||!pageActive)return;
   queueWeatherRefresh(currentLocation.latitude,currentLocation.longitude,force);
   if(!force&&lastWeatherRequestLocation){
-    const moved=distanceMeters(
-      currentLocation.latitude,currentLocation.longitude,
-      lastWeatherRequestLocation.latitude,lastWeatherRequestLocation.longitude
-    );
+    const moved=distanceMeters(currentLocation.latitude,currentLocation.longitude,lastWeatherRequestLocation.latitude,lastWeatherRequestLocation.longitude);
     if(moved>=WEATHER_LOCATION_MIN_DISTANCE&&Date.now()-lastWeatherRequestAt<WEATHER_MIN_FETCH_INTERVAL_MS){
       schedulePendingLocationRefresh(currentLocation.latitude,currentLocation.longitude);
     }
   }
 }
 
+/* Native (Swift) gọi hàm này để đẩy toạ độ vào */
 window.setCarPlayLocation=function(lat,lon){
-  lat=Number(lat);
-  lon=Number(lon);
+  lat=Number(lat);lon=Number(lon);
   if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180)return;
-  const previous=currentLocation;
   const movedFromWeatherAnchor=!lastWeatherRequestLocation||
     distanceMeters(lat,lon,lastWeatherRequestLocation.latitude,lastWeatherRequestLocation.longitude)>=WEATHER_LOCATION_MIN_DISTANCE;
-  const keepName=previous?.name||"";
-  currentLocation={latitude:lat,longitude:lon,name:keepName};
+  currentLocation={latitude:lat,longitude:lon,name:currentLocation?.name||""};
   geoRequestSequence++;
   if(geoSafetyTimer){clearTimeout(geoSafetyTimer);geoSafetyTimer=null;}
   geoInFlight=false;
   if(movedFromWeatherAnchor)refreshForCurrentLocation(false);
-  fetchCityName(lat,lon,false);
+  fetchCityName(lat,lon);
 };
 
 function getLocationAndWeather(){
@@ -2390,7 +1484,7 @@ function getLocationAndWeather(){
 
   geoSafetyTimer=setTimeout(()=>{
     if(resolved||requestSequence!==geoRequestSequence)return;
-    resolved=true;
+    /* Sửa: KHÔNG đặt resolved=true để GPS về trễ vẫn được nhận */
     geoInFlight=false;
     geoSafetyTimer=null;
     if(!currentLocation)useFallbackLocation("GPS chậm · Dùng vị trí mặc định");
@@ -2398,32 +1492,21 @@ function getLocationAndWeather(){
   },6500);
 
   navigator.geolocation.getCurrentPosition(
-    async position=>{
+    position=>{
       if(resolved||requestSequence!==geoRequestSequence)return;
       resolved=true;
       geoInFlight=false;
-      if(geoSafetyTimer){
-        clearTimeout(geoSafetyTimer);
-        geoSafetyTimer=null;
-      }
-      const lat=position.coords.latitude;
-      const lon=position.coords.longitude;
-      const previous=currentLocation;
-      const changed=!previous||distanceMeters(lat,lon,previous.latitude,previous.longitude)>=REVERSE_GEOCODE_MIN_DISTANCE;
-      currentLocation={latitude:lat,longitude:lon,name:changed?(previous?.name||""):(previous?.name||"")};
-      await Promise.allSettled([
-        Promise.resolve(refreshForCurrentLocation(false)),
-        fetchCityName(lat,lon,true)
-      ]);
+      if(geoSafetyTimer){clearTimeout(geoSafetyTimer);geoSafetyTimer=null;}
+      const lat=position.coords.latitude,lon=position.coords.longitude;
+      currentLocation={latitude:lat,longitude:lon,name:currentLocation?.name||""};
+      refreshForCurrentLocation(false);
+      fetchCityName(lat,lon);
     },
     ()=>{
       if(resolved||requestSequence!==geoRequestSequence)return;
       resolved=true;
       geoInFlight=false;
-      if(geoSafetyTimer){
-        clearTimeout(geoSafetyTimer);
-        geoSafetyTimer=null;
-      }
+      if(geoSafetyTimer){clearTimeout(geoSafetyTimer);geoSafetyTimer=null;}
       if(!currentLocation)useFallbackLocation("Chưa cấp quyền GPS · Dùng vị trí mặc định");
       else refreshForCurrentLocation(false);
     },
@@ -2431,11 +1514,15 @@ function getLocationAndWeather(){
   );
 }
 
+/* ===== LÀM MỚI ===== */
 function refreshData(){
+  /* Chống bấm liên tục: tối thiểu 30 giây giữa 2 lần */
+  if(Date.now()-lastManualRefresh<30000)return;
+  lastManualRefresh=Date.now();
   setText("updated","Đang làm mới dữ liệu...");
   if(currentLocation){
     refreshForCurrentLocation(true);
-    fetchCityName(currentLocation.latitude,currentLocation.longitude,false);
+    fetchCityName(currentLocation.latitude,currentLocation.longitude);
   }else{
     getLocationAndWeather();
   }
@@ -2443,18 +1530,20 @@ function refreshData(){
 
 function startPeriodicRefresh(){
   if(!pageActive)return;
-  if(refreshTimer){
-    clearInterval(refreshTimer);
-    refreshTimer=null;
-  }
+  if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
   refreshTimer=setInterval(()=>{
     if(!pageActive||document.hidden)return;
-    if(currentLocation){
-      refreshForCurrentLocation(true);
-    }else{
-      getLocationAndWeather();
-    }
+    if(currentLocation)refreshForCurrentLocation(true);
+    getLocationAndWeather(); /* định vị lại để theo kịp xe di chuyển */
   },REFRESH_INTERVAL_MS);
+}
+
+function resumeIfStale(){
+  if(!currentLocation){getLocationAndWeather();return;}
+  if(Date.now()-(window.lastWeatherFetchAt||0)>5*60*1000){
+    refreshForCurrentLocation(true);
+    getLocationAndWeather();
+  }
 }
 
 function handleVisibility(){
@@ -2466,11 +1555,7 @@ function handleVisibility(){
     startAuraTimer();
     startCanvas();
     startLightning();
-    if(!currentLocation){
-      getLocationAndWeather();
-    }else if(Date.now()-(window.lastWeatherFetchAt||0)>REFRESH_INTERVAL_MS){
-      refreshForCurrentLocation(true);
-    }
+    resumeIfStale();
   }else{
     document.body.classList.add("page-paused");
     if(refreshTimer){clearInterval(refreshTimer);refreshTimer=null;}
@@ -2494,10 +1579,7 @@ window.addEventListener("pagehide",()=>{
   clearLightning();
   stopClock();
   stopAuraTimer();
-  if(geoSafetyTimer){
-    clearTimeout(geoSafetyTimer);
-    geoSafetyTimer=null;
-  }
+  if(geoSafetyTimer){clearTimeout(geoSafetyTimer);geoSafetyTimer=null;}
   geoRequestSequence++;
   geoInFlight=false;
   reverseGeocodeSequence++;
@@ -2512,22 +1594,19 @@ window.addEventListener("pageshow",()=>{
   startAuraTimer();
   startCanvas();
   startLightning();
-  if(!currentLocation){
-    getLocationAndWeather();
-  }else if(Date.now()-(window.lastWeatherFetchAt||0)>REFRESH_INTERVAL_MS){
-    refreshForCurrentLocation(true);
-  }
+  resumeIfStale();
 });
 
+/* ===== KHỞI ĐỘNG ===== */
 function startWeatherWidget(){
   loadSavedLayout();
-  loadOpacity();
   loadFromCache();
   updateAmbianceAura();
   startAuraTimer();
   startClock();
   resizeCanvas();
   startCanvas();
+  initScaleObserver();
   $("widgetShape").addEventListener("click",refreshData);
   getLocationAndWeather();
   startPeriodicRefresh();
