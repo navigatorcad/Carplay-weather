@@ -287,6 +287,7 @@ body.aura-night .aura-orb{opacity:.25}
     <input id="opacitySlider" type="range" min="5" max="95" step="1" value="65">
     <span class="opacity-value" id="opacityValue">65%</span>
   </div>
+    <button class="mode-toggle-btn" id="debugToggleBtn" type="button">🐞 Bật thông số kiểm tra</button>
 </div>
 <script>
 "use strict";
@@ -967,17 +968,44 @@ function updateCardScale(){
   stage.style.transform=`scale(${s.toFixed(3)})`;
   fitBubbleContent();
 
-  if(location.search.includes("debug")){
-    let d=$("dbg");
-    if(!d){
-      d=document.createElement("div");d.id="dbg";
-      d.style.cssText="position:fixed;top:2px;left:2px;z-index:99999;font:10px monospace;color:#0f0;background:#000a;padding:2px 4px;pointer-events:none";
-      document.body.appendChild(d);
-    }
-    d.textContent=`${currentMode} aw${aw|0} ah${ah|0} w${stage.offsetWidth} h${stage.offsetHeight} s${s.toFixed(2)}`;
-  }
+    renderDebug(aw,ah,s);
 }
 
+
+/* ===== THÔNG SỐ KIỂM TRA (bật bằng nút trong bảng điều khiển) ===== */
+const DEBUG_KEY="carplay_debug_v1";
+let debugOn=safeStorageGet(DEBUG_KEY)==="1"||location.search.includes("debug");
+let fitCount=0;
+const fitLog=[];
+
+function renderDebug(aw,ah,s){
+  let d=$("dbg");
+  if(!debugOn){if(d)d.remove();return;}
+  fitCount++;
+  const stage=$("scaleStage"),inner=$("bubbleInner"),bar=$("externalTimeBar"),widget=$("widgetShape");
+  const t=new Date().toLocaleTimeString("vi-VN",{hour12:false});
+  fitLog.push(`${t} ${currentMode} aw${aw|0} ah${ah|0} s${s.toFixed(2)}`);
+  if(fitLog.length>4)fitLog.shift();
+  if(!d){
+    d=document.createElement("div");d.id="dbg";
+    d.style.cssText="position:fixed;top:2px;left:2px;z-index:99999;font:9px/1.25 monospace;color:#0f0;background:#000c;padding:3px 5px;pointer-events:none;white-space:pre;max-width:96vw";
+    document.body.appendChild(d);
+  }
+  d.textContent=[
+    `#${fitCount} ${currentMode} win ${innerWidth}x${innerHeight} dpr${devicePixelRatio}`,
+    `avail ${aw|0}x${ah|0} stage ${stage.offsetWidth}x${stage.offsetHeight} s${s.toFixed(3)}`,
+    `widget ${widget.offsetWidth}x${widget.offsetHeight} bk${inner.style.getPropertyValue("--bk")||"-"} bar${bar.style.getPropertyValue("--bar-k")||"-"} hc${widget.style.getPropertyValue("--hcols")||"-"}`,
+    ...fitLog
+  ].join("\n");
+}
+
+function setDebug(on){
+  debugOn=!!on;
+  safeStorageSet(DEBUG_KEY,debugOn?"1":"0");
+  const b=$("debugToggleBtn");
+  if(b)b.textContent=debugOn?"🐞 Tắt thông số kiểm tra":"🐞 Bật thông số kiểm tra";
+  scheduleFit();
+}
 /* ===== CHỐNG KẸT KÍCH THƯỚC ===== */
 let lastBoxKey="";
 function layoutWatchdog(force=false){
@@ -1059,7 +1087,7 @@ function loadOpacity(){
 $("modeToggleBtn").addEventListener("click",()=>{
   setLayoutMode(currentMode==="bubble"?"card":"bubble");
   resetAutoHideTimer();
-});
+}); $("debugToggleBtn").addEventListener("click",()=>{setDebug(!debugOn);resetAutoHideTimer();});
 
 $("opacitySlider").addEventListener("input",event=>{
   applyOpacity(event.target.value);
@@ -1782,6 +1810,7 @@ function startWeatherWidget(){
   startCanvas();
   initScaleObserver();
   startLayoutWatchdog();
+  setDebug(debugOn);
   $("widgetShape").addEventListener("click",refreshData);
   getLocationAndWeather();
   startPeriodicRefresh();
