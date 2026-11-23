@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Weather CarPlay Widget</title>
 <style>
-:root{--temp-accent:#34d399;--rain-accent:#4fc3f7;--text:#f8fafc;--muted:#aebdce;--glass-fill:.2;--glass-blur:5px;--glass-sheen:.16}
+:root{--temp-accent:#34d399;--rain-accent:#4fc3f7;--text:#f8fafc;--muted:#aebdce;--glass-fill:.12;--glass-blur:3px;--glass-sheen:.13}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;-webkit-tap-highlight-color:transparent}
 html,body{width:100vw;height:100vh;overflow:hidden;background:transparent;color:var(--text)}
 body{display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;isolation:isolate}
@@ -35,28 +35,31 @@ body.aura-night .aura-orb{opacity:.25}
 
 /* LIQUID GLASS TRONG SUỐT */
 .bubble,.card{
+.bubble,.card{
   background:
-    radial-gradient(120% 90% at 18% 0%,rgba(255,255,255,calc(var(--glass-sheen)*1.1)) 0%,rgba(255,255,255,calc(var(--glass-sheen)*.25)) 38%,transparent 70%),
-    linear-gradient(160deg,rgba(255,255,255,calc(var(--glass-sheen)*.6)) 0%,rgba(255,255,255,0) 42%,rgba(0,0,0,calc(var(--glass-sheen)*.5)) 100%),
-    rgba(10,18,32,var(--glass-fill));
-  backdrop-filter:blur(var(--glass-blur)) saturate(180%) brightness(1.05);
-  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(180%) brightness(1.05);
-  text-shadow:0 1px 3px rgba(0,0,0,.5);
+    radial-gradient(140% 100% at 12% -10%,rgba(255,255,255,calc(var(--glass-sheen)*1.6)) 0%,rgba(255,255,255,calc(var(--glass-sheen)*.35)) 30%,transparent 62%),
+    radial-gradient(120% 90% at 100% 112%,rgba(255,255,255,calc(var(--glass-sheen)*.7)) 0%,transparent 55%),
+    rgba(8,14,26,var(--glass-fill));
+  backdrop-filter:blur(var(--glass-blur)) saturate(170%) brightness(1.08) contrast(1.04);
+  -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(170%) brightness(1.08) contrast(1.04);
+  text-shadow:0 1px 2px rgba(0,0,0,.7),0 0 8px rgba(0,0,0,.35);
   border-radius:22px;border:none;
   box-shadow:
-    0 10px 28px rgba(0,0,0,.35),
+    0 12px 32px rgba(0,0,0,.28),
     0 0 12px var(--temp-accent),
     0 0 12px var(--rain-accent),
-    inset 0 1.5px 1px rgba(255,255,255,.7),
-    inset 0 -1px 2px rgba(255,255,255,.2),
-    inset 1px 0 1px rgba(255,255,255,.22),
-    inset 0 0 22px rgba(255,255,255,.08);
+    inset 0 1.5px 0 rgba(255,255,255,.75),
+    inset 0 -1.5px 0 rgba(255,255,255,.25),
+    inset 1.5px 0 0 rgba(255,255,255,.28),
+    inset -1px 0 0 rgba(255,255,255,.12),
+    inset 0 0 28px rgba(255,255,255,.10),
+    inset 0 0 2px 1px rgba(255,255,255,.18);
   display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;transition:box-shadow .4s;overflow:hidden;cursor:pointer}
 .bubble::after,.card::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:2px;
   background:linear-gradient(to bottom,var(--temp-accent) 0%,var(--temp-accent) 48%,var(--rain-accent) 52%,var(--rain-accent) 100%);
   -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;
   mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;pointer-events:none;z-index:2}
-.bubble::before,.card::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(125deg,rgba(255,255,255,calc(var(--glass-sheen)*1.5)) 0%,rgba(255,255,255,calc(var(--glass-sheen)*.3)) 28%,transparent 55%);pointer-events:none;z-index:0}
+.bubble::before,.card::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(118deg,rgba(255,255,255,calc(var(--glass-sheen)*1.8)) 0%,rgba(255,255,255,calc(var(--glass-sheen)*.4)) 22%,transparent 46%,transparent 78%,rgba(255,255,255,calc(var(--glass-sheen)*.5)) 100%);pointer-events:none;z-index:0}
 .bubble>*,.card>*,.bubble-inner>*{position:relative;z-index:3}
 
 /* BUBBLE (TRÒN) */
@@ -177,7 +180,7 @@ body.aura-night .aura-orb{opacity:.25}
 .card .hourly-section{display:block}
 .hourly-title{font-size:8px;color:var(--muted);font-weight:750;margin-bottom:2px;text-align:left}
 .hourly-list{display:grid;grid-template-columns:repeat(var(--hcols,6),1fr);gap:2px}
-.hour-item{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 1px;border-radius:5px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.02))}
+.hour-item{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 1px;border-radius:5px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.015))}
 .hour-time{font-size:6.5px;color:#e2e8f0;font-weight:650}
 .hour-icon{font-size:9.5px;line-height:1.1}
 .hour-temp{font-size:8.5px;font-weight:800}
@@ -284,8 +287,8 @@ body.aura-night .aura-orb{opacity:.25}
   <button class="mode-toggle-btn" id="modeToggleBtn" type="button">🔄 Đổi Form</button>
   <div class="opacity-control">
     <label for="opacitySlider">Độ trong suốt</label>
-    <input id="opacitySlider" type="range" min="5" max="95" step="1" value="65">
-    <span class="opacity-value" id="opacityValue">65%</span>
+    <input id="opacitySlider" type="range" min="5" max="95" step="1" value="80">
+    <span class="opacity-value" id="opacityValue">80%</span>
   </div>
     <button class="mode-toggle-btn" id="debugToggleBtn" type="button">🐞 Bật thông số kiểm tra</button>
 </div>
@@ -307,7 +310,7 @@ const CACHE_STALE_MS=60*60*1000;
 
 const CACHE_KEY="carplay_weather_cache_v51";
 const LAYOUT_KEY="carplay_layout_mode_v20";
-const OPACITY_KEYS={bubble:"carplay_opacity_bubble_v30",card:"carplay_opacity_card_v30"};
+const OPACITY_KEYS={bubble:"carplay_opacity_bubble_v31",card:"carplay_opacity_card_v31"};
 
 const REVERSE_GEOCODE_MIN_INTERVAL=15*1000;
 const REVERSE_GEOCODE_MIN_DISTANCE=300;
@@ -758,13 +761,13 @@ function drawFrame(){
     }
   }else if(fxType==="sunny"){
     for(const p of particles){
-      c.fillStyle=`rgba(255,235,150,${p.a})`;
+      c.fillStyle=`rgba(255,235,150,${Math.min(1,p.a*1.7)})`;
       c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);c.fill();
       p.x=(p.x+p.dx+w)%w;
       p.y=(p.y+p.dy+h)%h;
     }
   }else if(fxType==="snow"){
-    c.fillStyle="rgba(255,255,255,.65)";
+    c.fillStyle="rgba(255,255,255,.88)";
     for(const p of particles){
       c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);c.fill();
       p.y+=p.dy;p.a+=.02;
@@ -772,8 +775,8 @@ function drawFrame(){
       if(p.y>h+5){p.y=-5;p.x=Math.random()*w;}
     }
   }else if(fxType==="drizzle"||fxType==="rain"||fxType==="storm"){
-    c.strokeStyle=fxType==="drizzle"?"rgba(174,219,255,.25)":"rgba(174,219,255,.38)";
-    c.lineWidth=fxType==="drizzle"?1:1.3;
+    c.strokeStyle=fxType==="drizzle"?"rgba(174,219,255,.4)":"rgba(174,219,255,.58)";
+    c.lineWidth=fxType==="drizzle"?1.1:1.6;
     c.beginPath();
     for(const p of particles){
       c.moveTo(p.x,p.y);
@@ -786,7 +789,7 @@ function drawFrame(){
     for(const p of particles){
       const g=c.createLinearGradient(p.x,p.y,p.x+p.w,p.y);
       g.addColorStop(0,"rgba(200,220,240,0)");
-      g.addColorStop(.5,`rgba(200,220,240,${p.a})`);
+      g.addColorStop(.5,`rgba(200,220,240,${Math.min(.35,p.a*2)})`);
       g.addColorStop(1,"rgba(200,220,240,0)");
       c.fillStyle=g;
       c.fillRect(p.x,p.y,p.w,p.h);
@@ -1070,19 +1073,19 @@ function loadSavedLayout(){
 
 /* Kính trong suốt: thanh trượt điều khiển độ đục nền, độ nhoè và độ bóng */
 function applyOpacity(value){
-  const transparency=Math.max(5,Math.min(95,Number(value)||65));
+  const transparency=Math.max(5,Math.min(95,Number(value)||80));
   const t=transparency/100;
   const root=document.documentElement.style;
-  root.setProperty("--glass-fill",(0.05+(1-t)*0.40).toFixed(3));
-  root.setProperty("--glass-blur",(1+(1-t)*12).toFixed(1)+"px");
-  root.setProperty("--glass-sheen",(0.06+(1-t)*0.30).toFixed(3));
+  root.setProperty("--glass-fill",(0.015+(1-t)*0.30).toFixed(3));   // 80% → .075, 95% → .03
+  root.setProperty("--glass-blur",(0.5+(1-t)*7).toFixed(1)+"px");   // 80% → 1.9px, 95% → 0.9px
+  root.setProperty("--glass-sheen",(0.05+(1-t)*0.22).toFixed(3));   // 80% → .094
   setText("opacityValue",`${Math.round(transparency)}%`);
   safeStorageSet(OPACITY_KEYS[currentMode],String(transparency));
 }
 
 function loadOpacity(){
   const saved=Number(safeStorageGet(OPACITY_KEYS[currentMode]));
-  const value=Number.isFinite(saved)&&saved>=5&&saved<=95?saved:65;
+  const value=Number.isFinite(saved)&&saved>=5&&saved<=95?saved:80;
   $("opacitySlider").value=String(value);
   applyOpacity(value);
 }
